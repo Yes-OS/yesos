@@ -6,10 +6,10 @@
 
 .text
 
-.globl  ldt_size, tss_size
+.globl  ldt_size, tss_size, gdt_size
 .globl  gdt_desc, ldt_desc, tss_desc
 .globl  tss, tss_desc_ptr, ldt, ldt_desc_ptr
-.globl  gdt_ptr
+.globl  gdt_ptr, gdtr
 .globl  idt_desc_ptr, idt
 
 .align 4
@@ -20,6 +20,18 @@ tss_size:
 
 ldt_size:
 	.long ldt_bottom - ldt - 1
+
+/* GDT size is one fewer than the end pointer */
+#define GDT_SIZE gdt_bottom - gdt - 1
+gdt_size:
+	.word GDT_SIZE
+
+/* limit is one fewer than the GDT size */
+gdtr:
+	.word GDT_SIZE - 1
+	.long gdt
+
+.align 4
 
 	.word 0 # Padding
 ldt_desc:
