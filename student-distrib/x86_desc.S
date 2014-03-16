@@ -118,3 +118,6 @@ _idt:
 	.endr
 
 idt_bottom:
+
+# Interrupt handlers
+
