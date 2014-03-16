@@ -14,23 +14,59 @@ uint8_t slave_mask; /* IRQs 8-15 */
 void
 i8259_init(void)
 {
+	//	Mask out all interrupts on the pic?
+	master_mask = 0xff;
+ 	slave_mask = 0xff;
+
+	//	Write ICW1 to master and slave.
+	outb(ICW1,MASTER_8259_PORT);
+	outb(ICW1,SLAVE_8259_PORT);
+
+	//	Write ICW2 to master and slave.
+	outb(ICW2_MASTER, MASTER_8259_PORT);
+	outb(ICW2_SLAVE, SLAVE_8259_PORT);
+
+	if(ICW1 & 0x02 == 0)	//	If in Cascade Mode, call ICW3.
+	{
+		//	Write ICW3 to master and slave.
+		outb(ICW3_MASTER, MASTER_8259_PORT);
+		outb(ICW3_SLAVE, SLAVE_8259_PORT);
+	}
+
+	if(ICW1 & 0x01 != 0)	//	If ICW4 is needed, use it.
+	{
+		//	Write ICW4 to master and slave.
+		outb(ICW4, MASTER_8259_PORT);
+		outb(ICW4, SLAVE_8259_PORT);
+	}
+
+	//	Set EOI to yes??? Yes? #TomHANKS
 }
 
 /* Enable (unmask) the specified IRQ */
 void
 enable_irq(uint32_t irq_num)
 {
+	if(irq_num < 0) return;
+	else if(irq_num < 8) master_mask = master_mask & ~(0x01 << irq_num);
+	else if(irq_num < 16) slave_mask = slave_mask & ~(0x01 << irq_num);
+
 }
 
 /* Disable (mask) the specified IRQ */
 void
 disable_irq(uint32_t irq_num)
 {
+	if(irq_num < 0) return;
+	else if(irq_num < 8) master_mask = master_mask | (0x01 << irq_num);
+	else if(irq_num < 16) slave_mask = slave_mask | (0x01 << irq_num);
 }
 
 /* Send end-of-interrupt signal for the specified IRQ */
 void
 send_eoi(uint32_t irq_num)
 {
+	outb(irq_num | EOI, MASTER_8259_PORT);
+	outb(irq_num | EOI, SLAVE_8259_PORT);
 }
 
