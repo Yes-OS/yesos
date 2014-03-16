@@ -26,12 +26,12 @@ ldt_size:
 gdt_size:
 	.word GDT_SIZE
 
-/* limit is one fewer than the GDT size */
+/* limit is the GDT size */
 gdtr:
-	.word GDT_SIZE - 1
+	.word GDT_SIZE 
 	.long gdt
 
-.align 4
+	.align 4
 
 	.word 0 # Padding
 ldt_desc:
