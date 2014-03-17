@@ -7,7 +7,7 @@
 #include "lib.h"
 #include "i8259.h"
 #include "debug.h"
-#include "irq.h"
+#include "isr.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -160,6 +160,7 @@ entry (unsigned long magic, unsigned long addr)
 	sti();
 
 	/* Execute the first program (`shell') ... */
+	int g = 10/0;
 
 	/* Spin (nicely, so we don't chew up cycles) */
 	halt();

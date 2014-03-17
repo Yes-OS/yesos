@@ -2,17 +2,17 @@
  * vim:ts=4 noexpandtab
  */
 
-#include "irq.h"
+#include "isr.h"
 #include "lib.h"
 #include "x86_desc.h"
-#include "irq_stub.h"
+#include "isr_stub.h"
 #include "types.h"
 
 void isr_impl(registers_t regs)
 {
 	switch (regs.irqno) {
 		default:
-			printf("Interrupt ocurred: %d\n", regs.irqno);
+			printf("Interrupt occurred: %d\n", regs.irqno);
 			halt();
 			break;
 	}

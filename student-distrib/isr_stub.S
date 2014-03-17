@@ -4,7 +4,7 @@
 
 # Interrupt handlers
 #define ASM 1
-#include "irq_stub.h"
+#include "isr_stub.h"
 #include "x86_desc.h"
 
 .text
@@ -147,6 +147,7 @@ isr_stub:
 	pushal
 
 	# push segments
+	xorl	%eax, %eax
 	movw	%gs, %ax
 	pushl	%eax
 	movw	%fs, %ax
