@@ -145,7 +145,6 @@ entry (unsigned long magic, unsigned long addr)
 	}
 
 	/* Init the PIC */
-	//not ready
 	i8259_init();
 
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
@@ -160,11 +159,9 @@ entry (unsigned long magic, unsigned long addr)
 	printf("Enabling Interrupts\n");
 	sti();
 
-	int g = 10/0;
-
 	/* Execute the first program (`shell') ... */
 
 	/* Spin (nicely, so we don't chew up cycles) */
-	asm volatile(".1: hlt; jmp .1;");
+	halt();
 }
 

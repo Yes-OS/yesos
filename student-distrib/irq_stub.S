@@ -7,10 +7,14 @@
 #include "irq_stub.h"
 #include "x86_desc.h"
 
+.text
+
 .globl divide_error, debug, nmi, breakpoint, overflow, bound
 .globl invalid_opcode, device_not_available, double_fault, coprocessor_segment_overrun
 .globl invalid_tss, segment_not_present, stack_fault, general_protection, page_fault
 .globl coprocessor_error, alignment_check, machine_check, simd_coprocessor_error
+
+.align 4
 
 divide_error:
 	cli
@@ -143,10 +147,14 @@ isr_stub:
 	pushal
 
 	# push segments
-	pushw	%gs
-	pushw	%fs
-	pushw	%es
-	pushw	%ds
+	movw	%gs, %ax
+	pushl	%eax
+	movw	%fs, %ax
+	pushl	%eax
+	movw	%es, %ax
+	pushl	%eax
+	movw	%ds, %ax
+	pushl	%eax
 
 	movw	$KERNEL_DS, %ax
 	movw	%ax, %ds
@@ -157,10 +165,14 @@ isr_stub:
 	call	isr_impl
 
 	# restore segments
-	popw	%ds
-	popw	%es
-	popw	%fs
-	popw	%gs
+	popl	%eax
+	movw	%ax, %ds
+	popl	%eax
+	movw	%ax, %es
+	popl	%eax
+	movw	%ax, %fs
+	popl	%eax
+	movw	%ax, %gs
 
 	popal
 	addl	$8, %esp	# clean up error code and ISR number

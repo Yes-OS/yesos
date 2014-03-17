@@ -13,6 +13,7 @@ void isr_impl(registers_t regs)
 	switch (regs.irqno) {
 		default:
 			printf("Interrupt ocurred: %d\n", regs.irqno);
+			halt();
 			break;
 	}
 }
@@ -147,4 +148,7 @@ void install_interrupts()
 	set_trap_gate(17, (uint32_t)&alignment_check);
 	set_trap_gate(18, (uint32_t)&machine_check);
 	set_trap_gate(19, (uint32_t)&simd_coprocessor_error);
+
+	/* load IDT */
+	lidt(idt_desc_ptr);
 }

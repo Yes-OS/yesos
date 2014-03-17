@@ -142,4 +142,12 @@ do {                                    \
 			);                      \
 } while(0)
 
+/* Halts nicely
+ */
+#define halt()                           \
+do {                                     \
+	asm volatile(".1: hlt; jmp .1;");    \
+} while(0)
+
+
 #endif /* _LIB_H */
