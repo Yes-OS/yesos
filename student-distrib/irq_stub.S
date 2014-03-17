@@ -5,10 +5,11 @@
 # Interrupt handlers
 #define ASM 1
 #include "irq_stub.h"
+#include "x86_desc.h"
 
-.globl divide_error, debug, nmi, breakpoint, overflow
-.globl invalid_opcode, device_not_avilable, double_fault, coprocessor_segment_overrun
-.globl invalid_tss, segment_not_present, stack_fault, general_protection
+.globl divide_error, debug, nmi, breakpoint, overflow, bound
+.globl invalid_opcode, device_not_available, double_fault, coprocessor_segment_overrun
+.globl invalid_tss, segment_not_present, stack_fault, general_protection, page_fault
 .globl coprocessor_error, alignment_check, machine_check, simd_coprocessor_error
 
 divide_error:
@@ -60,7 +61,7 @@ invalid_opcode:
 	jmp		isr_stub
 
 
-device_not_avilable:
+device_not_available:
 	cli
 	pushl	$0	# dummy error code
 	pushl	$7	# isr number
