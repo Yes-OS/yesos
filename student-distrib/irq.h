@@ -21,6 +21,9 @@ extern void set_intr_gate(uint8_t,uint32_t);
 extern void set_system_gate(uint8_t,uint32_t);
 extern void set_system_intr_gate(uint8_t,uint32_t);
 extern void set_trap_gate(uint8_t,uint32_t);
+extern void set_task_gate(uint8_t,uint16_t);
+
+extern void install_interrupts();
 
 #endif
 
