@@ -1,4 +1,4 @@
-/* irq_stub.h, defines interrupt handler stubs
+/* isr_stub.h, defines interrupt handler stubs
  * vim:ts=4 noexpandtab
  */
 #ifndef _IRQ_STUB_H_

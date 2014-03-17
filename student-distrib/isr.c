@@ -1,4 +1,4 @@
-/* irq.c, implement interrupt request handling and related functions
+/* isr.c, implement interrupt request handling and related functions
  * vim:ts=4 noexpandtab
  */
 
