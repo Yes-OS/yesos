@@ -18,6 +18,7 @@ i8259_init(void)
 	master_mask = 0xff;
  	slave_mask = 0xff;
 
+
 	//	Write ICW1 to master and slave.
 	outb(ICW1,MASTER_8259_PORT);
 	outb(ICW1,SLAVE_8259_PORT);
@@ -40,7 +41,13 @@ i8259_init(void)
 		outb(ICW4, SLAVE_8259_PORT);
 	}
 
-	//	Set EOI to yes??? Yes? #TomHANKS
+
+	//	Write masking values to master and slave?
+ 	outb(master_mask, MASTER_8259_PORT);
+ 	outb(slave_mask, SLAVE_8259_PORT);
+
+	//	Let PIC know it's ready?
+
 }
 
 /* Enable (unmask) the specified IRQ */
@@ -48,8 +55,16 @@ void
 enable_irq(uint32_t irq_num)
 {
 	if(irq_num < 0) return;
-	else if(irq_num < 8) master_mask = master_mask & ~(0x01 << irq_num);
-	else if(irq_num < 16) slave_mask = slave_mask & ~(0x01 << irq_num);
+	else if(irq_num < 8)
+	{
+		master_mask = master_mask & ~(1 << irq_num);
+		outb(master_mask, MASTER_8259_PORT);
+	}
+	else if(irq_num < 16)
+	{
+		slave_mask = slave_mask & ~(1 << irq_num);
+ 		outb(slave_mask, SLAVE_8259_PORT);
+	}
 
 }
 
@@ -58,8 +73,16 @@ void
 disable_irq(uint32_t irq_num)
 {
 	if(irq_num < 0) return;
-	else if(irq_num < 8) master_mask = master_mask | (0x01 << irq_num);
-	else if(irq_num < 16) slave_mask = slave_mask | (0x01 << irq_num);
+	else if(irq_num < 8)
+	{
+		master_mask = master_mask | (1 << irq_num);
+		outb(master_mask, MASTER_8259_PORT);
+	}
+	else if(irq_num < 16)
+	{
+		slave_mask = slave_mask | (1 << irq_num);
+ 		outb(slave_mask, SLAVE_8259_PORT);
+	}
 }
 
 /* Send end-of-interrupt signal for the specified IRQ */
