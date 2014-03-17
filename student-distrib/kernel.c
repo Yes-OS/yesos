@@ -160,7 +160,6 @@ entry (unsigned long magic, unsigned long addr)
 	sti();
 
 	/* Execute the first program (`shell') ... */
-	int g = 10/0;
 
 	/* Spin (nicely, so we don't chew up cycles) */
 	halt();
