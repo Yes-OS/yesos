@@ -18,7 +18,6 @@ i8259_init(void)
 	master_mask = 0xff;
  	slave_mask = 0xff;
 
-
 	//	Write ICW1 to master and slave.
 	outb(ICW1,MASTER_8259_PORT);
 	outb(ICW1,SLAVE_8259_PORT);
@@ -27,14 +26,14 @@ i8259_init(void)
 	outb(ICW2_MASTER, MASTER_8259_PORT);
 	outb(ICW2_SLAVE, SLAVE_8259_PORT);
 
-	if(ICW1 & 0x02 == 0)	//	If in Cascade Mode, call ICW3.
+	if((ICW1 & 0x02) == 0)	//	If in Cascade Mode, call ICW3.
 	{
 		//	Write ICW3 to master and slave.
 		outb(ICW3_MASTER, MASTER_8259_PORT);
 		outb(ICW3_SLAVE, SLAVE_8259_PORT);
 	}
 
-	if(ICW1 & 0x01 != 0)	//	If ICW4 is needed, use it.
+	if((ICW1 & 0x01) != 0)	//	If ICW4 is needed, use it.
 	{
 		//	Write ICW4 to master and slave.
 		outb(ICW4, MASTER_8259_PORT);
@@ -43,8 +42,8 @@ i8259_init(void)
 
 
 	//	Write masking values to master and slave?
- 	outb(master_mask, MASTER_8259_PORT);
- 	outb(slave_mask, SLAVE_8259_PORT);
+ 	outb(master_mask, MASTER_8259_PORT + 1);
+ 	outb(slave_mask, SLAVE_8259_PORT + 1);
 
 	//	Let PIC know it's ready?
 
@@ -58,12 +57,12 @@ enable_irq(uint32_t irq_num)
 	else if(irq_num < 8)
 	{
 		master_mask = master_mask & ~(1 << irq_num);
-		outb(master_mask, MASTER_8259_PORT);
+		outb(master_mask, MASTER_8259_PORT + 1);
 	}
 	else if(irq_num < 16)
 	{
 		slave_mask = slave_mask & ~(1 << irq_num);
- 		outb(slave_mask, SLAVE_8259_PORT);
+ 		outb(slave_mask, SLAVE_8259_PORT + 1);
 	}
 
 }
@@ -76,12 +75,12 @@ disable_irq(uint32_t irq_num)
 	else if(irq_num < 8)
 	{
 		master_mask = master_mask | (1 << irq_num);
-		outb(master_mask, MASTER_8259_PORT);
+		outb(master_mask, MASTER_8259_PORT + 1);
 	}
 	else if(irq_num < 16)
 	{
 		slave_mask = slave_mask | (1 << irq_num);
- 		outb(slave_mask, SLAVE_8259_PORT);
+ 		outb(slave_mask, SLAVE_8259_PORT + 1);
 	}
 }
 
