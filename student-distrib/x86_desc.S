@@ -251,7 +251,7 @@ simd_coprocessor_error:
 
 
 isr_stub:
-	pushad
+	pushal
 
 	# push segments
 	pushw	%gs
@@ -273,7 +273,7 @@ isr_stub:
 	popw	%fs
 	popw	%gs
 
-	popad
+	popal
 	addl	$8, %esp	# clean up error code and ISR number
 	sti
 	iret
