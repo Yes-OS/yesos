@@ -14,6 +14,7 @@ uint8_t slave_mask; /* IRQs 8-15 */
 void
 i8259_init(void)
 {
+
 	//	Mask out all interrupts on the pic?
 	master_mask = 0xff;
  	slave_mask = 0xff;
@@ -41,11 +42,10 @@ i8259_init(void)
 	}
 
 
-	//	Write masking values to master and slave?
- 	outb(master_mask, MASTER_8259_PORT + 1);
- 	outb(slave_mask, SLAVE_8259_PORT + 1);
+	//	Write masking values to master and slave
+ 	outb(master_mask, MASTER_8259_PORT + 1);	//PORT incremented by 1 because OCW1 is to be 											
+ 	outb(slave_mask, SLAVE_8259_PORT + 1);		//accepted in the next port, otherwise system crashes
 
-	//	Let PIC know it's ready?
 
 }
 
@@ -56,13 +56,13 @@ enable_irq(uint32_t irq_num)
 	if(irq_num < 0) return;
 	else if(irq_num < 8)
 	{
-		master_mask = master_mask & ~(1 << irq_num);
-		outb(master_mask, MASTER_8259_PORT + 1);
+		master_mask = master_mask & ~(1 << irq_num);	
+		outb(master_mask, MASTER_8259_PORT + 1);	//PORT incremented by 1 because OCW1 is to be accepted in the next port
 	}
 	else if(irq_num < 16)
 	{
 		slave_mask = slave_mask & ~(1 << irq_num);
- 		outb(slave_mask, SLAVE_8259_PORT + 1);
+ 		outb(slave_mask, SLAVE_8259_PORT + 1);		//PORT incremented by 1 because OCW1 is to be accepted in the next port
 	}
 
 }
@@ -75,12 +75,12 @@ disable_irq(uint32_t irq_num)
 	else if(irq_num < 8)
 	{
 		master_mask = master_mask | (1 << irq_num);
-		outb(master_mask, MASTER_8259_PORT + 1);
+		outb(master_mask, MASTER_8259_PORT + 1);	//PORT incremented by 1 because OCW1 is to be accepted in the next port
 	}
 	else if(irq_num < 16)
 	{
 		slave_mask = slave_mask | (1 << irq_num);
- 		outb(slave_mask, SLAVE_8259_PORT + 1);
+ 		outb(slave_mask, SLAVE_8259_PORT + 1);		//PORT incremented by 1 because OCW1 is to be accepted in the next port
 	}
 }
 
