@@ -10,6 +10,7 @@
 #include "isr.h"
 #include "rtc.h"
 #include "kbd.h"
+#include "paging.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -146,24 +147,25 @@ entry (unsigned long magic, unsigned long addr)
 		ltr(KERNEL_TSS);
 	}
 
+	clear();
+
 	/* Init the PIC */
-	printf("Initializing the PIC\n");
+	printf("Initializing PIC\n");
 	i8259_init();
 
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
 	 * PIC, any other initialization stuff... */
 
+	printf("Installing Interrupts\n");
 	install_interrupts();
-	
-	clear();
+
 	printf("Initializing RTC\n");
 	rtc_init();
 	enable_irq(RTC_IRQ_PORT);
 
-	printf("Enabling kbd\n");
+	printf("Initializing Keyboard\n");
 	kbd_init();
 	enable_irq(KBD_IRQ_PORT);
-	printf("Done enabling kbd\n");
 
 	/* Enable interrupts */
 	/* Do not enable the following until after you have set up your
@@ -172,7 +174,13 @@ entry (unsigned long magic, unsigned long addr)
 	printf("Enabling Interrupts\n");
 	sti();
 
+	/*NEW: Initialize paging. Much wow! */
+	// printf("Initializing Paging\n");
+	// paging_init();
+	
+	
 	/* Execute the first program (`shell') ... */
+
     
 	/* Spin (nicely, so we don't chew up cycles) */
 	halt();
