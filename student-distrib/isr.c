@@ -133,7 +133,7 @@ void isr_impl(registers_t regs)
 			break;
 
 		case 40:
-			printf("Got RTC interrupt\n");
+			test_interrupts();
 			outb(0x0C, 0x70);
 			inb(0x71);
 			send_eoi(RTC_IRQ_PORT);
