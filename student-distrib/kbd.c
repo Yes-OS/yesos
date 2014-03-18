@@ -89,6 +89,12 @@ static uint32_t ps2_read_data()
 	return data;
 }
 
+/* the scancode to ascii table */
+#define SCAN_ENTRIES 256
+const static char scancodes[SCAN_ENTRIES] = {
+	#include "scancodes.h"
+};
+
 
 /* Defines a circular FIFO command queue for the PS/2 keyboard */
 #define CMD_QUEUE_LEN 64
@@ -227,9 +233,12 @@ void kbd_handle_interrupt()
 
 	/* read from the port */
 	value = ps2_read_data();
-	printf("Received value: %d\n", value);
+	if (value == 0xf0) {
+		value = ps2_read_data();
+		putc(scancodes[value]);
+	}
 
-	kbd_queue_pop(&value);
+	kbd_queue_pop((uint8_t*)&value);
 }
 
 

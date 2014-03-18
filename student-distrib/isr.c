@@ -8,6 +8,7 @@
 #include "i8259.h"
 #include "isr_stub.h"
 #include "types.h"
+#include "kbd.h"
 
 void isr_impl(registers_t regs)
 {
