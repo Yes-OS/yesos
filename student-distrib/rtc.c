@@ -21,6 +21,8 @@ void rtc_init(void)
 	outb(regB, RTC_RAM_PORT);
 	
 	/*Re-enable NMI*/
-	outb(REG_B, NMI_RTC_PORT);
+	char enable = inb(NMI_RTC_PORT);
+	enable = enable & ENABLE_NMI;
+	outb(enable, NMI_RTC_PORT);
 	
 }

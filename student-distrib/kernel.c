@@ -8,6 +8,7 @@
 #include "i8259.h"
 #include "debug.h"
 #include "isr.h"
+#include "rtc.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -152,6 +153,10 @@ entry (unsigned long magic, unsigned long addr)
 	 * PIC, any other initialization stuff... */
 
 	install_interrupts();
+	
+	printf("Initializing RTC\n");
+	rtc_init();
+	enable_irq(RTC_IRQ_PORT);
 
 	/* Enable interrupts */
 	/* Do not enable the following until after you have set up your

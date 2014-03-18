@@ -12,6 +12,10 @@
 #define MASTER_8259_PORT 0x20
 #define SLAVE_8259_PORT  0xA0
 
+/*IRQ device ports*/
+#define KBD_IRQ_PORT	0x01
+#define RTC_IRQ_PORT	0x08
+
 /* Initialization control words to init each PIC.
  * See the Intel manuals for details on the meaning
  * of each word */

@@ -8,7 +8,6 @@
 #include "types.h"
 #include "lib.h"
 
-
 /*IO Ports used for RTC/CMOS*/
 #define NMI_RTC_PORT 0x70
 #define RTC_RAM_PORT 0x71
@@ -18,8 +17,9 @@
 #define REG_B	0x0B
 #define REG_C	0x0C
 
-/*NMI (Non Maskable Interrupt) Instruction*/
+/*NMI (Non Maskable Interrupt) Instructions*/
 #define DISABLE_NMI	0x80
+#define ENABLE_NMI	0x7F
 
 
 /*Initializes the RTC to IRQ 8*/
