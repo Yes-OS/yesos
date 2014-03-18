@@ -175,8 +175,8 @@ entry (unsigned long magic, unsigned long addr)
 	sti();
 
 	/*NEW: Initialize paging. Much wow! */
-	// printf("Initializing Paging\n");
-	// paging_init();
+	//printf("Initializing Paging\n");
+	//paging_init();
 	
 	
 	/* Execute the first program (`shell') ... */

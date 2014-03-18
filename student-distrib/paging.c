@@ -33,7 +33,7 @@ void paging_init(void){
 	printf("Page Table(after): %x\n", page_table);
 
 	/* config cr0 and cr3 */
-	//_enable_paging();
+	_enable_paging();
 }
 
 
