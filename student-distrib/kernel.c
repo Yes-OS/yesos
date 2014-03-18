@@ -158,7 +158,7 @@ entry (unsigned long magic, unsigned long addr)
 	clear();
 	printf("Initializing RTC\n");
 	rtc_init();
-	enable_irq(RTC_IRQ_PORT);
+	//enable_irq(RTC_IRQ_PORT);
 
 	printf("Enabling kbd\n");
 	kbd_init();
@@ -172,7 +172,7 @@ entry (unsigned long magic, unsigned long addr)
 	sti();
 
 	/* Execute the first program (`shell') ... */
-
+    
 	/* Spin (nicely, so we don't chew up cycles) */
 	halt();
 }
