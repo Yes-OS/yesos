@@ -16,6 +16,7 @@
 #define REG_A	0x0A
 #define REG_B	0x0B
 #define REG_C	0x0C
+#define REG_D   0x0D
 
 /*NMI (Non Maskable Interrupt) Instructions*/
 #define DISABLE_NMI	0x80

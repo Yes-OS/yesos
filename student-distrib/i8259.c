@@ -16,7 +16,7 @@ i8259_init(void)
 {
 
 	//	Mask out all interrupts on the pic?
-	master_mask = 0xff;
+	master_mask = 0xfb;
  	slave_mask = 0xff;
 
 	//	Write ICW1 to master and slave.
