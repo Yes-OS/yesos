@@ -5,6 +5,7 @@
 
 extern void kbd_init();
 extern void kbd_reset();
+extern void kbd_handle_interrupt();
 
 #endif
 

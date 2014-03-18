@@ -182,12 +182,15 @@ void kbd_init()
 	ps2_write_data(read);
 
 	/* test the controller */
+	/* or not since qemu doesn't seem to have a ps/2 controller */
+#if 0
 	ps2_write_data(PS2_CMD_CONTROLLER_TEST);
 	read = ps2_read_data();
 	if (read != 0x55) {
 		printf("Welp, we're fucked! [0x%x]\n", read);
 		//return;
 	}
+#endif
 
 	/* test first ps/2 port */
 	ps2_write_command(PS2_CMD_TEST_PORT1);
@@ -212,7 +215,21 @@ void kbd_init()
 /* Sends the reset command to the keyboard */
 void kbd_reset()
 {
+	kbd_queue_push(PS2_CMD_RESET);
 	ps2_write_data(PS2_CMD_RESET);
+}
+
+
+/* handle interrupt */
+void kbd_handle_interrupt()
+{
+	uint32_t value;
+
+	/* read from the port */
+	value = ps2_read_data();
+	printf("Received value: %d\n", value);
+
+	kbd_queue_pop(&value);
 }
 
 

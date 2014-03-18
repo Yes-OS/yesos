@@ -109,14 +109,12 @@ void isr_impl(registers_t regs)
             break;
 
 		case 32:
-		case 33:
 		case 34:
 		case 35:
 		case 36:
 		case 37:
 		case 38:
 		case 39:
-		case 40:
 		case 41:
 		case 42:
 		case 43:
@@ -126,6 +124,18 @@ void isr_impl(registers_t regs)
 		case 47:
 			printf("Fuck the IRQ number %d\n", regs.isrno - 32);
 			send_eoi(regs.isrno - 32);
+			break;
+
+		case 33:
+			kbd_handle_interrupt();
+			send_eoi(KBD_IRQ_PORT);
+			break;
+
+		case 40:
+			printf("Got RTC interrupt\n");
+			outb(0x0C, 0x70);
+			inb(0x71);
+			send_eoi(RTC_IRQ_PORT);
 			break;
 
 		default:

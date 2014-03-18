@@ -158,10 +158,11 @@ entry (unsigned long magic, unsigned long addr)
 	clear();
 	printf("Initializing RTC\n");
 	rtc_init();
-	//enable_irq(RTC_IRQ_PORT);
+	enable_irq(RTC_IRQ_PORT);
 
 	printf("Enabling kbd\n");
 	kbd_init();
+	enable_irq(KBD_IRQ_PORT);
 	printf("Done enabling kbd\n");
 
 	/* Enable interrupts */
