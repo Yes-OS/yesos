@@ -240,14 +240,10 @@ void kbd_handle_interrupt()
 
 	/* read from the port */
 	value = ps2_read_data();
-	if (value == PS2_KEY_RELEASED) {
-		/* if released, read garbage */
-		ps2_read_data();
-	}
-	else {
-		putc(scancodes[value]);
-	}
 
+	/* To show that key reading works */
+	//if(value == PS2_KEY_RELEASED)	putc('\b');
+	putc(scancodes[value]);
 
 	kbd_queue_pop((uint8_t*)&value);
 }
