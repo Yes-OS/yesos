@@ -95,6 +95,9 @@ const static char scancodes[SCAN_ENTRIES] = {
 	#include "scancodes.h"
 };
 
+/* sent when a key is sent */
+#define PS2_KEY_RELEASED			0xf0
+
 
 /* Defines a circular FIFO command queue for the PS/2 keyboard */
 #define CMD_QUEUE_LEN 64
@@ -112,7 +115,7 @@ uint8_t *kcq_head, *kcq_tail;
 static void kbd_queue_init();
 static int kbd_queue_push(uint8_t cmd);
 static int kbd_queue_pop(uint8_t *cmd);
-static int kbd_queue_peek(uint8_t *cmd);
+//static int kbd_queue_peek(uint8_t *cmd);
 
 
 /* Initialize the keyboard command queue, clearing the head and tail pointers */
@@ -151,6 +154,7 @@ static int kbd_queue_pop(uint8_t *cmd)
 	return 0;
 }
 
+#if 0 /* not currently used */
 /* Peek at the head of the queue, returns 0 on success and -1 on failure */
 static int kbd_queue_peek(uint8_t *cmd)
 {
@@ -164,10 +168,13 @@ static int kbd_queue_peek(uint8_t *cmd)
 
 	return 0;
 }
+#endif
 
 void kbd_init()
 {
 	uint32_t read;
+
+	kbd_queue_init();
 
 	/* disable all PS/2 devices */
 	ps2_write_command(PS2_CMD_DISABLE_PORT1);
@@ -233,10 +240,14 @@ void kbd_handle_interrupt()
 
 	/* read from the port */
 	value = ps2_read_data();
-	if (value == 0xf0) {
-		value = ps2_read_data();
+	if (value == PS2_KEY_RELEASED) {
+		/* if released, read garbage */
+		ps2_read_data();
+	}
+	else {
 		putc(scancodes[value]);
 	}
+
 
 	kbd_queue_pop((uint8_t*)&value);
 }
