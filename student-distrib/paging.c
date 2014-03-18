@@ -5,11 +5,9 @@
 #include "paging.h"
 #include "lib.h"
 
-/*create a page directory*/
-	
-//unsigned int* page_directory __attribute__((aligned(PAGE_SIZE)));
-unsigned int page_directory[NUM_ENTRIES];
-unsigned int* page_table;
+/*create a page directory and table pointer*/
+unsigned int page_directory[NUM_ENTRIES] 	__attribute__((aligned(PAGE_SIZE))); /*must align to page size!*/
+unsigned int page_table[NUM_ENTRIES] 		__attribute__((aligned(PAGE_SIZE)));
 
 /* helper functions */
 void _directory_init(void);
@@ -22,15 +20,9 @@ void _enable_paging(void);
  *
  */
 void paging_init(void){
-
-	/*create and initialize the page directory */
-	printf("Page Directory(after): %x\n", page_directory);
+															printf("Page Directory(after): %x\n", page_directory);
+	/*create and initialize the page directory (and contents)*/
 	_directory_init();
-	
-	/*create and initialize the first page table */
-	printf("Page Table(before): %x\n", page_table);
-	_table_init();
-	printf("Page Table(after): %x\n", page_table);
 
 	/* config cr0 and cr3 */
 	_enable_paging();
@@ -46,8 +38,20 @@ void _directory_init(){
 	unsigned int i;
 
 	for(i = 0; i < NUM_ENTRIES; i++){
-		page_directory[i] = SET_RW;
+		page_directory[i] = EMPTY; //zero
 	}
+	
+	/*Map the first two entries*/
+	
+	/*create and initialize the first page table */			printf("Page Table(before):  %x\n", page_table);
+	_table_init();											printf("Page Table(after):   %x\n", page_table);	
+
+	/*put page table in page directory*/
+	page_directory[0] = (unsigned int)page_table;
+	page_directory[0] |= SET_RW_P;
+
+	/*map second entry to our 4mb kernel-space*/
+	page_directory[1] = (SET_4MB | SET_RW_P); //0x80
 
 }
 
@@ -59,9 +63,10 @@ void _directory_init(){
 void _table_init(){
 
 	unsigned int i;
-	unsigned int page_address = PAGE_SIZE;	
-    page_table = page_directory + NUM_ENTRIES;
-
+	unsigned int page_address = PAGE_SIZE;	//4096 - the second Page_table entry
+	
+    // page_table = page_directory;
+	// page_table += NUM_ENTRIES;
 		
 	/*first 4kb of memory is not present*/
 	page_table[0] = 0;
@@ -71,38 +76,57 @@ void _table_init(){
 		page_address += PAGE_SIZE;
 	}
 
-	/*put page table in page directory*/
-	
-	page_directory[0] = (unsigned int)page_table;
-	page_directory[0] |= SET_RW_P;
 
 }
 
 
 /*helper function:
- *	Enable Paging using cr3 and cr0
- *
+ *	Enable Paging
+ *	Set cr0, cr3, and cr4 as needed
+ *	Reference: IA32: 2.5, 3.6.1, 3.7.1
  */
 void _enable_paging(){
 
-	unsigned int cr0_temp;
-    
-    /*Set cr3 to base of page directory*/
+	/* register value holder */
+	unsigned int cr0_temp, cr4_temp;
+	cr0_temp = cr4_temp = 0;
+	
+	/* Strategy:
+	 *	Set cr3 > cr4 > cr0
+	 */
+	
+    /*CR3: Set cr3 to base of page directory*/
 	asm volatile("movl %0, %%cr3"
 				:                       /*no outputs*/
 				:"b"(page_directory)    /*inputs*/
 				);
         
-    /*Extract register cr0, set the paging bit*/
-    cr0_temp = 0;												printf("cr0_temp(zero): %d\n", cr0_temp);
+	/*CR4: Extract register cr4*/							printf("cr4_temp(zero):   %x\n", cr4_temp);
+    asm volatile("movl %%cr4, %0"
+                :"=b"(cr4_temp)         /*outputs*/
+                :                       /*no inputs*/
+                );											printf("cr4_temp(after):  %x\n", cr4_temp);
+				
+	/*CR4: Set PAE(5)=0 then PSE(4)=1 flags*/
+    cr0_temp &= 0xffffffdf;									printf("cr4_temp(and):    %x\n", cr4_temp);
+	cr0_temp |= 0x00000010;									printf("cr4_temp(or):     %x\n", cr4_temp);
+    asm volatile("movl %0, %%cr4"
+                :                       /*no outputs*/
+                :"b"(cr4_temp)          /*inputs*/
+                );
+	
+
+	/*CR0: Extract register cr0*/							printf("cr0_temp(zero):  %x\n", cr0_temp);
     asm volatile("movl %%cr0, %0"
                 :"=b"(cr0_temp)         /*outputs*/
                 :                       /*no inputs*/
-                );												printf("cr0_temp(after): %x\n", cr0_temp);
-    cr0_temp |= 0x80000001;										printf("cr0_temp(or): %x\n", cr0_temp);
+                );											printf("cr0_temp(after): %x\n", cr0_temp);
+				
+	/*CR0: Set PE(0)=1 AND PG(31)=1 flags*/
+    cr0_temp |= 0x80000001;									printf("cr0_temp(or):    %x\n", cr0_temp);
     asm volatile("movl %0, %%cr0"
-                :                       //no outputs
-                :"b"(cr0_temp)          //inputs
+                :                       /*no outputs*/
+                :"b"(cr0_temp)          /*inputs*/
                 );
 	
 }
