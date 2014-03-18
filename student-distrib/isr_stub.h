@@ -4,6 +4,48 @@
 #ifndef _IRQ_STUB_H_
 #define _IRQ_STUB_H_
 
+#include "i8259.h"
+
+#define EXCEPTION_DIVIDE				0
+#define EXCEPTION_DEBUG					1
+#define EXCEPTION_NMI					2
+#define EXCEPTION_BREAKPOINT			3
+#define EXCEPTION_OVERFLOW				4
+#define EXCEPTION_BOUND					5
+#define EXCEPTION_INVALID_OPCODE		6
+#define EXCEPTION_DEV_NOT_AVAIL			7
+#define EXCEPTION_DOUBLE_FAULT			8
+#define EXCEPTION_COPROC_SEG_OVERRUN	9
+#define EXCEPTION_INVALID_TSS			10
+#define EXCEPTION_SEG_NOT_PRES			11
+#define EXCEPTION_STACK_FAULT			12
+#define EXCEPTION_GENERAL_PROTECTION	13
+#define EXCEPTION_PAGE_FAULT			14
+#define EXCEPTION_COPROC_ERROR			16
+#define EXCEPTION_ALIGNMENT_CHECK		17
+#define EXCEPTION_MACHINE_CHECK			18
+#define EXCEPTION_SIMD_COPROC_ERR		19
+
+/* should not be caught */
+#define EXCEPTION_NULL					-1
+
+#define IRQ0			(IRQ_START + 0)
+#define IRQ_KBD			(IRQ_START + KBD_IRQ_PORT)
+#define IRQ2			(IRQ_START + 2)
+#define IRQ3			(IRQ_START + 3)
+#define IRQ4			(IRQ_START + 4)
+#define IRQ5			(IRQ_START + 5)
+#define IRQ6			(IRQ_START + 6)
+#define IRQ7			(IRQ_START + 7)
+#define IRQ_RTC			(IRQ_START + RTC_IRQ_PORT)
+#define IRQ9			(IRQ_START + 9)
+#define IRQ10			(IRQ_START + 10)
+#define IRQ11			(IRQ_START + 11)
+#define IRQ12			(IRQ_START + 12)
+#define IRQ13			(IRQ_START + 13)
+#define IRQ14			(IRQ_START + 14)
+#define IRQ15			(IRQ_START + 15)
+
 #ifndef ASM
 
 void divide_error();

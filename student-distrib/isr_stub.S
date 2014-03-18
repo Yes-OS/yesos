@@ -23,128 +23,128 @@
 
 divide_error:
 	cli
-	pushl	$0			# dummy error code
-	pushl	$0			# isr number
+	pushl	$0					# dummy error code
+	pushl	$EXCEPTION_DIVIDE	# isr number
 	jmp		isr_stub
 
 
 debug:
 	cli
-	pushl	$0			# dummy error code
-	pushl	$1			# isr number
+	pushl	$0					# dummy error code
+	pushl	$EXCEPTION_DEBUG	# isr number
 	jmp		isr_stub
 
 
 nmi:
 	cli
-	pushl	$0			# dummy error code
-	pushl	$2			# isr number
+	pushl	$0					# dummy error code
+	pushl	$EXCEPTION_NMI		# isr number
 	jmp		isr_stub
 
 
 breakpoint:
 	cli
-	pushl	$0			# dummy error code
-	pushl	$3			# isr number
+	pushl	$0						# dummy error code
+	pushl	$EXCEPTION_BREAKPOINT	# isr number
 	jmp		isr_stub
 
 
 overflow:
 	cli
-	pushl	$0			# dummy error code
-	pushl	$4			# isr number
+	pushl	$0						# dummy error code
+	pushl	$EXCEPTION_OVERFLOW		# isr number
 	jmp		isr_stub
 
 
 bound:
 	cli
-	pushl	$0			# dummy error code
-	pushl	$5			# isr number
+	pushl	$0					# dummy error code
+	pushl	$EXCEPTION_BOUND	# isr number
 	jmp		isr_stub
 
 
 invalid_opcode:
 	cli
-	pushl	$0			# dummy error code
-	pushl	$6			# isr number
+	pushl	$0							# dummy error code
+	pushl	$EXCEPTION_INVALID_OPCODE	# isr number
 	jmp		isr_stub
 
 
 device_not_available:
 	cli
-	pushl	$0			# dummy error code
-	pushl	$7			# isr number
+	pushl	$0							# dummy error code
+	pushl	$EXCEPTION_DEV_NOT_AVAIL	# isr number
 	jmp		isr_stub
 
 
 double_fault:
 	cli
-	pushl	$0			# dummy error code
-	pushl	$8			# isr number
+	pushl	$0							# dummy error code
+	pushl	$EXCEPTION_DOUBLE_FAULT		# isr number
 	jmp		isr_stub
 
 
 coprocessor_segment_overrun:
 	cli
-	pushl	$0			# dummy error code
-	pushl	$9			# isr number
+	pushl	$0								# dummy error code
+	pushl	$EXCEPTION_COPROC_SEG_OVERRUN	# isr number
 	jmp		isr_stub
 
 
 invalid_tss:
 	cli
-	pushl	$10			# isr number
+	pushl	$EXCEPTION_INVALID_TSS			# isr number
 	jmp		isr_stub
 
 
 segment_not_present:
 	cli
-	pushl	$11			# isr number
+	pushl	$EXCEPTION_SEG_NOT_PRES			# isr number
 	jmp		isr_stub
 
 
 stack_fault:
 	cli
-	pushl	$12			# isr number
+	pushl	$EXCEPTION_STACK_FAULT			# isr number
 	jmp		isr_stub
 
 
 general_protection:
 	cli
-	pushl	$13			# isr number
+	pushl	$EXCEPTION_GENERAL_PROTECTION	# isr number
 	jmp		isr_stub
 
 
 page_fault:				#when page fault occurs, CR2 holds address that was attempted to be accessed.
 	cli
-	pushl	$14			# isr number
+	pushl	$EXCEPTION_PAGE_FAULT			# isr number
 	jmp		isr_stub
 
 
 coprocessor_error:
 	cli
-	pushl	$0			# dummy error code
-	pushl	$16			# isr number
+	pushl	$0							# dummy error code
+	pushl	$EXCEPTION_COPROC_ERROR		# isr number
 	jmp		isr_stub
 
 
 alignment_check:
 	cli
-	pushl	$17			# isr number
+	pushl	$EXCEPTION_ALIGNMENT_CHECK	# isr number
 	jmp		isr_stub
 
 
 machine_check:
 	cli
-	pushl	$0			# dummy error code
-	pushl	$18			# isr number
+	pushl	$0							# dummy error code
+	pushl	$EXCEPTION_MACHINE_CHECK	# isr number
 	jmp		isr_stub
 
 
 simd_coprocessor_error:
 	cli
-	pushl	$0			# dummy error code
-	pushl	$19			# isr number
+	pushl	$0							# dummy error code
+	pushl	$EXCEPTION_SIMD_COPROC_ERR	# isr number
 	jmp		isr_stub
 
 null_int:
@@ -157,97 +157,97 @@ null_int:
 irq0:
 	cli
 	pushl	$0			# dummy error code
-	pushl	$32			# isr number
+	pushl	$IRQ0		# isr number
 	jmp		isr_stub
 
 irq1:
 	cli
 	pushl	$0			# dummy error code
-	pushl	$33			# isr number
+	pushl	$IRQ_KBD	# isr number
 	jmp		isr_stub
 
 irq2:
 	cli
 	pushl	$0			# dummy error code
-	pushl	$34			# isr number
+	pushl	$IRQ2		# isr number
 	jmp		isr_stub
 
 irq3:
 	cli
 	pushl	$0			# dummy error code
-	pushl	$35			# isr number
+	pushl	$IRQ3		# isr number
 	jmp		isr_stub
 
 irq4:
 	cli
 	pushl	$0			# dummy error code
-	pushl	$36			# isr number
+	pushl	$IRQ4		# isr number
 	jmp		isr_stub
 
 irq5:
 	cli
 	pushl	$0			# dummy error code
-	pushl	$37			# isr number
+	pushl	$IRQ5		# isr number
 	jmp		isr_stub
 
 irq6:
 	cli
 	pushl	$0			# dummy error code
-	pushl	$38			# isr number
+	pushl	$IRQ6		# isr number
 	jmp		isr_stub
 
 irq7:
 	cli
 	pushl	$0			# dummy error code
-	pushl	$39			# isr number
+	pushl	$IRQ7		# isr number
 	jmp		isr_stub
 
 irq8:
 	cli
 	pushl	$0			# dummy error code
-	pushl	$40			# isr number
+	pushl	$IRQ_RTC	# isr number
 	jmp		isr_stub
 
 irq9:
 	cli
 	pushl	$0			# dummy error code
-	pushl	$41			# isr number
+	pushl	$IRQ9		# isr number
 	jmp		isr_stub
 
 irq10:
 	cli
 	pushl	$0			# dummy error code
-	pushl	$42			# isr number
+	pushl	$IRQ10		# isr number
 	jmp		isr_stub
 
 irq11:
 	cli
 	pushl	$0			# dummy error code
-	pushl	$43			# isr number
+	pushl	$IRQ11		# isr number
 	jmp		isr_stub
 
 irq12:
 	cli
 	pushl	$0			# dummy error code
-	pushl	$44			# isr number
+	pushl	$IRQ12		# isr number
 	jmp		isr_stub
 
 irq13:
 	cli
 	pushl	$0			# dummy error code
-	pushl	$45			# isr number
+	pushl	$IRQ13		# isr number
 	jmp		isr_stub
 
 irq14:
 	cli
 	pushl	$0			# dummy error code
-	pushl	$46			# isr number
+	pushl	$IRQ14		# isr number
 	jmp		isr_stub
 
 irq15:
 	cli
 	pushl	$0			# dummy error code
-	pushl	$47			# isr number
+	pushl	$IRQ15		# isr number
 	jmp		isr_stub
 
 

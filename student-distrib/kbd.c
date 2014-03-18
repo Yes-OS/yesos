@@ -198,7 +198,7 @@ void kbd_init()
 	ps2_write_data(PS2_CMD_CONTROLLER_TEST);
 	read = ps2_read_data();
 	if (read != 0x55) {
-		printf("Welp, we're fucked! [0x%x]\n", read);
+		printf("Welp, we're borked! [0x%x]\n", read);
 		//return;
 	}
 #endif
@@ -207,7 +207,7 @@ void kbd_init()
 	ps2_write_command(PS2_CMD_TEST_PORT1);
 	read = ps2_read_data();
 	if (read != 0) {
-		printf("Welp, we're fucked for other reasons! [0x%x]\n", read);
+		printf("Welp, we're borked for other reasons! [0x%x]\n", read);
 		//return;
 	}
 

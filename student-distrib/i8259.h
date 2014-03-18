@@ -34,6 +34,9 @@
 /* Define where IRQs start in the interrupt numbers */
 #define IRQ_START		ICW2_MASTER
 
+
+#ifndef ASM
+
 /* Externally-visible functions */
 
 /* Initialize both PICs */
@@ -44,5 +47,7 @@ void enable_irq(uint32_t irq_num);
 void disable_irq(uint32_t irq_num);
 /* Send end-of-interrupt signal for the specified IRQ */
 void send_eoi(uint32_t irq_num);
+
+#endif
 
 #endif /* _I8259_H */

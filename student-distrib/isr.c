@@ -11,6 +11,8 @@
 #include "kbd.h"
 #include "rtc.h"
 
+
+/* implements the interrupt service request */
 void isr_impl(registers_t regs)
 {
 	switch (regs.isrno) {
@@ -130,7 +132,7 @@ void isr_impl(registers_t regs)
 			break;
 
 		/* handle the keyboard interrupt */
-		case IRQ_START + KBD_IRQ_PORT:
+		case IRQ_KBD:
 			/* mask the interrupt and immediately send EOI so we can service other interrupts */
 			disable_irq(KBD_IRQ_PORT);
 			send_eoi(KBD_IRQ_PORT);
@@ -139,7 +141,7 @@ void isr_impl(registers_t regs)
 			break;
 
 		/* handle the RTC interrupt */
-		case IRQ_START + RTC_IRQ_PORT:
+		case IRQ_RTC:
 			/* mask the interrupt and immediately send EOI so we can service other interrupts */
 			disable_irq(RTC_IRQ_PORT);
 			send_eoi(RTC_IRQ_PORT);
