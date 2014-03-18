@@ -10,7 +10,7 @@
 
 void isr_impl(registers_t regs)
 {
-	switch (regs.irqno) {
+	switch (regs.isrno) {
 
         case 0:
             printf("Interrupt occurred(0): divide_error")
@@ -108,15 +108,10 @@ void isr_impl(registers_t regs)
             break;
 
 		default:
-		    if (regs.irqno >= 20 || regs.irqno == 15){
-		        printf("Error: Interrupt unknown");
-		        halt();
-		        break;
-		    }else{
-			    printf("Interrupt occurred: %d\n", regs.irqno);
-			    halt();
-			    break;
-			}
+		    printf("Error: Interrupt unknown");
+		    halt();
+		    break;
+
 	}
 	
 }

@@ -11,7 +11,7 @@
 typedef struct registers {
 	uint32_t ds, es, fs, gs;
 	uint32_t edi, esi, ebp, esp, ebx, edx, ecx, eax;
-	uint32_t irqno, errno;
+	uint32_t isrno, errno;
 	uint32_t eip, cs, eflags, user_esp, ss;
 } __attribute__((packed)) registers_t;
 
