@@ -152,7 +152,7 @@ entry (unsigned long magic, unsigned long addr)
 	/* Init the PIC */
 	printf("Initializing PIC\n");
 	i8259_init();
-
+	
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
 	 * PIC, any other initialization stuff... */
 
@@ -167,17 +167,18 @@ entry (unsigned long magic, unsigned long addr)
 	kbd_init();
 	enable_irq(KBD_IRQ_PORT);
 
+	/*NEW: Initialize paging. Much wow! */
+	// printf("Initializing Paging\n");
+	// paging_init();
+	// printf("Paging Initialized! :)\n");
+
 	/* Enable interrupts */
 	/* Do not enable the following until after you have set up your
 	 * IDT correctly otherwise QEMU will triple fault and simple close
 	 * without showing you any output */
-	printf("Enabling Interrupts\n");
+	printf("STI: Enabling Interrupts\n");
 	sti();
 
-	/*NEW: Initialize paging. Much wow! */
-	//printf("Initializing Paging\n");
-	//paging_init();
-	
 	
 	/* Execute the first program (`shell') ... */
 

@@ -11,6 +11,7 @@
 .globl  tss, tss_desc_ptr, ldt, ldt_desc_ptr
 .globl  gdt_ptr, gdtr
 .globl  idt_desc_ptr, idt
+.globl	page_table, page_directory
 
 .extern isr_impl
 
@@ -118,5 +119,25 @@ _idt:
 	.rept NUM_VEC
 	.quad 0
 	.endr
-
+	
 idt_bottom:
+
+								#	PAGING
+
+	.align 4096
+page_directory:
+	.rept 1024
+	.long 0
+	.endr
+
+page_directory_bottom:
+
+	.align 4096
+page_table:
+	.rept 1024
+	.long 0
+	.endr
+
+page_table_bottom:
+
+

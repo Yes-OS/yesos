@@ -15,6 +15,9 @@
 /*Initialize paging*/
 void paging_init(void);
 
+extern unsigned int page_directory[NUM_ENTRIES];
+extern unsigned int page_table[NUM_ENTRIES];
+
 
 #endif /* _PAGING_H */
 
