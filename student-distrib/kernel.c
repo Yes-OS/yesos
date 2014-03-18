@@ -145,6 +145,7 @@ entry (unsigned long magic, unsigned long addr)
 	}
 
 	/* Init the PIC */
+	printf("Initializing the PIC\n");
 	i8259_init();
 
 	/* Initialize devices, memory, filesystem, enable device interrupts on the

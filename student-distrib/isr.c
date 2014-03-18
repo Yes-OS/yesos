@@ -13,97 +13,97 @@ void isr_impl(registers_t regs)
 	switch (regs.isrno) {
 
         case 0:
-            printf("Interrupt occurred(0): divide_error")
+            printf("Interrupt occurred(0): divide_error");
             halt(); /* just halt for now */
             break;
-            
+
         case 1:
-            printf("Interrupt occurred(1): debug")
+            printf("Interrupt occurred(1): debug");
             halt(); /* just halt for now */
             break;
 
         case 2:
-            printf("Interrupt occurred(2): nmi")
+            printf("Interrupt occurred(2): nmi");
             halt(); /* just halt for now */
             break;
 
         case 3:
-            printf("Interrupt occurred(3): breakpoint")
+            printf("Interrupt occurred(3): breakpoint");
             halt(); /* just halt for now */
             break;
 
         case 4:
-            printf("Interrupt occurred(4): overflow")
+            printf("Interrupt occurred(4): overflow");
             halt(); /* just halt for now */
             break;
 
         case 5:
-            printf("Interrupt occurred(5): bound")
+            printf("Interrupt occurred(5): bound");
             halt(); /* just halt for now */
             break;
 
         case 6:
-            printf("Interrupt occurred(6): invalid_opcode")
+            printf("Interrupt occurred(6): invalid_opcode");
             halt(); /* just halt for now */
             break;
 
         case 7:
-            printf("Interrupt occurred(7): device_not_available")
+            printf("Interrupt occurred(7): device_not_available");
             halt(); /* just halt for now */
             break;
 
         case 8:
-            printf("Interrupt occurred(8): double_fault")
+            printf("Interrupt occurred(8): double_fault");
             halt(); /* just halt for now */
             break;
 
         case 9:
-            printf("Interrupt occurred(9): coprocessor_segment_overrun")
+            printf("Interrupt occurred(9): coprocessor_segment_overrun");
             halt(); /* just halt for now */
             break;
 
         case 10:
-            printf("Interrupt occurred(10): invalid_tss")
+            printf("Interrupt occurred(10): invalid_tss");
             halt(); /* just halt for now */
             break;
 
         case 11:
-            printf("Interrupt occurred(11): segment_not_present")
+            printf("Interrupt occurred(11): segment_not_present");
             halt(); /* just halt for now */
             break;
 
         case 12:
-            printf("Interrupt occurred(12): stack_fault")
+            printf("Interrupt occurred(12): stack_fault");
             halt(); /* just halt for now */
             break;
 
         case 13:
-            printf("Interrupt occurred(13): general_protection")
+            printf("Interrupt occurred(13): general_protection");
             halt(); /* just halt for now */
             break;
 
         case 14:
-            printf("Interrupt occurred(14): page_fault")
+            printf("Interrupt occurred(14): page_fault");
             halt(); /* just halt for now */
             break;
 
         case 16:
-            printf("Interrupt occurred(16): coprocessor_error")
+            printf("Interrupt occurred(16): coprocessor_error");
             halt(); /* just halt for now */
             break;
 
         case 17:
-            printf("Interrupt occurred(17): alignment_check")
+            printf("Interrupt occurred(17): alignment_check");
             halt(); /* just halt for now */
             break;
 
         case 18:
-            printf("Interrupt occurred(18): machine_check")
+            printf("Interrupt occurred(18): machine_check");
             halt(); /* just halt for now */
             break;
 
         case 19:
-            printf("Interrupt occurred(19): simd_coprocessor_error")
+            printf("Interrupt occurred(19): simd_coprocessor_error");
             halt(); /* just halt for now */
             break;
 

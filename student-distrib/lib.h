@@ -146,8 +146,8 @@ do {                                    \
  */
 #define halt()                           \
 do {                                     \
-	asm volatile(".1: hlt; jmp .1;");    \
-} while(0)
+	asm volatile("hlt");    \
+} while(1)
 
 
 #endif /* _LIB_H */
