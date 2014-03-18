@@ -1,5 +1,5 @@
 /* isr.c, implement interrupt request handling and related functions
- * vim:ts=4 noexpandtab
+ * vim:ts=4 sw=4 noexpandtab
  */
 
 #include "isr.h"
@@ -9,6 +9,7 @@
 #include "isr_stub.h"
 #include "types.h"
 #include "kbd.h"
+#include "rtc.h"
 
 void isr_impl(registers_t regs)
 {
@@ -109,6 +110,7 @@ void isr_impl(registers_t regs)
             halt(); /* just halt for now */
             break;
 
+		/* these are IRQs for which we have no specific handling code, here for debugging purposes */
 		case 32:
 		case 34:
 		case 35:
@@ -123,26 +125,32 @@ void isr_impl(registers_t regs)
 		case 45:
 		case 46:
 		case 47:
-			printf("Fuck the IRQ number %d\n", regs.isrno - 32);
-			send_eoi(regs.isrno - 32);
+			printf("Unhandled IRQ number %d\n", regs.isrno - IRQ_START);
+			send_eoi(regs.isrno - IRQ_START);
 			break;
 
-		case 33:
-			kbd_handle_interrupt();
+		/* handle the keyboard interrupt */
+		case IRQ_START + KBD_IRQ_PORT:
+			/* mask the interrupt and immediately send EOI so we can service other interrupts */
+			disable_irq(KBD_IRQ_PORT);
 			send_eoi(KBD_IRQ_PORT);
+			kbd_handle_interrupt();
+			enable_irq(KBD_IRQ_PORT);
 			break;
 
-		case 40:
-			test_interrupts();
-			outb(0x0C, 0x70);
-			inb(0x71);
+		/* handle the RTC interrupt */
+		case IRQ_START + RTC_IRQ_PORT:
+			/* mask the interrupt and immediately send EOI so we can service other interrupts */
+			disable_irq(RTC_IRQ_PORT);
 			send_eoi(RTC_IRQ_PORT);
+			rtc_handle_interrupt();
+			enable_irq(RTC_IRQ_PORT);
 			break;
 
 		default:
-		    printf("Error: Interrupt unknown");
-		    halt();
-		    break;
+			printf("Error: Interrupt unknown");
+			halt();
+			break;
 
 	}
 	

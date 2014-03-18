@@ -1,5 +1,5 @@
 /* i8259.c - Functions to interact with the 8259 interrupt controller
- * vim:ts=4 noexpandtab
+ * vim:ts=4 sw=4 noexpandtab
  */
 
 #include "i8259.h"
@@ -17,7 +17,7 @@ i8259_init(void)
 
 	//	Mask out all interrupts on the pic?
 	master_mask = 0xfb;
- 	slave_mask = 0xff;
+	slave_mask = 0xff;
 
 	//	Write ICW1 to master and slave.
 	outb(ICW1,MASTER_8259_PORT);
@@ -43,8 +43,8 @@ i8259_init(void)
 
 
 	//	Write masking values to master and slave
- 	outb(master_mask, MASTER_8259_PORT + 1);	//PORT incremented by 1 because OCW1 is to be 											
- 	outb(slave_mask, SLAVE_8259_PORT + 1);		//accepted in the next port, otherwise system crashes
+	outb(master_mask, MASTER_8259_PORT + 1);	//PORT incremented by 1 because OCW1 is to be											
+	outb(slave_mask, SLAVE_8259_PORT + 1);		//accepted in the next port, otherwise system crashes
 }
 
 /* Enable (unmask) the specified IRQ */
@@ -62,7 +62,7 @@ enable_irq(uint32_t irq_num)
 	else if(irq_num < 16)
 	{
 		slave_mask = slave_mask & ~(1 << (irq_num - 8));
- 		outb(slave_mask, SLAVE_8259_PORT + 1);		//PORT incremented by 1 because OCW1 is to be accepted in the next port
+		outb(slave_mask, SLAVE_8259_PORT + 1);		//PORT incremented by 1 because OCW1 is to be accepted in the next port
 	}
 
 }
@@ -82,7 +82,7 @@ disable_irq(uint32_t irq_num)
 	else if(irq_num < 16)
 	{
 		slave_mask = slave_mask | (1 << (irq_num - 8));
- 		outb(slave_mask, SLAVE_8259_PORT + 1);		//PORT incremented by 1 because OCW1 is to be accepted in the next port
+		outb(slave_mask, SLAVE_8259_PORT + 1);		//PORT incremented by 1 because OCW1 is to be accepted in the next port
 	}
 }
 

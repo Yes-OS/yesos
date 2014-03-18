@@ -1,5 +1,5 @@
 /* rtc.h - Defines used in interactions with the RTC controller
- * vim:ts=4 noexpandtab
+ * vim:ts=4 sw=4 noexpandtab
  */
  
 #ifndef _RTC_H
@@ -25,6 +25,7 @@
 
 /*Initializes the RTC to IRQ 8*/
 void rtc_init(void);
+void rtc_handle_interrupt(void);
 
 
 #endif /* _RTC_H */

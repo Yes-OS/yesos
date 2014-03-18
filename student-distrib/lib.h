@@ -1,5 +1,5 @@
 /* lib.h - Defines for useful library functions
- * vim:ts=4 noexpandtab
+ * vim:ts=4 sw=4 noexpandtab
  */
 
 #ifndef _LIB_H

@@ -1,6 +1,6 @@
 # isr_stub.S, defines stubs for all the necessary interrupts and forwards them
 #    to one great dispatcher
-# vim:ts=4 noexpandtab
+# vim:ts=4 sw=4 noexpandtab
 
 # Interrupt handlers
 #define ASM 1

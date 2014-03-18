@@ -1,5 +1,5 @@
 # x86_desc.S - Set up x86 segment descriptors, descriptor tables 
-# vim:ts=4 noexpandtab
+# vim:ts=4 sw=4 noexpandtab
 
 #define ASM     1
 #include "x86_desc.h"

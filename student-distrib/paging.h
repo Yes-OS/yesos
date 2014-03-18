@@ -1,5 +1,5 @@
 /* paging.h - Defines constants and functions for paging  
- * vim:ts=4 noexpandtab
+ * vim:ts=4 sw=4 noexpandtab
  */
 
 #ifndef _PAGING_H

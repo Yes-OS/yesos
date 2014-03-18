@@ -1,5 +1,5 @@
 /* isr.h, implement interrupt request handling and related functions
- * vim:ts=4 noexpandtab
+ * vim:ts=4 sw=4 noexpandtab
  */
 #ifndef _IRQ_H_
 #define _IRQ_H_

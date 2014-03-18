@@ -1,6 +1,6 @@
 /* i8259.h - Defines used in interactions with the 8259 interrupt
  * controller
- * vim:ts=4 noexpandtab
+ * vim:ts=4 sw=4 noexpandtab
  */
 
 #ifndef _I8259_H
@@ -19,17 +19,20 @@
 /* Initialization control words to init each PIC.
  * See the Intel manuals for details on the meaning
  * of each word */
-#define ICW1    		0x11
-#define ICW2_MASTER   	0x20
-#define ICW2_SLAVE    	0x28
-#define ICW3_MASTER   	0x04
-#define ICW3_SLAVE    	0x02
-#define ICW4          	0x01
+#define ICW1			0x11
+#define ICW2_MASTER		0x20
+#define ICW2_SLAVE		0x28
+#define ICW3_MASTER		0x04
+#define ICW3_SLAVE		0x02
+#define ICW4			0x01
 
 /* End-of-interrupt byte.  This gets OR'd with
  * the interrupt number and sent out to the PIC
  * to declare the interrupt finished */
 #define EOI             0x60
+
+/* Define where IRQs start in the interrupt numbers */
+#define IRQ_START		ICW2_MASTER
 
 /* Externally-visible functions */
 

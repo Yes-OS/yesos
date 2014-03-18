@@ -1,5 +1,5 @@
 /* kbd.c, ps/2 keyboard driver implementation 
- * vim:ts=4 noexpandtab
+ * vim:ts=4 sw=4 noexpandtab
  */
 #include "types.h"
 #include "lib.h"
@@ -115,7 +115,7 @@ uint8_t *kcq_head, *kcq_tail;
 static void kbd_queue_init();
 static int kbd_queue_push(uint8_t cmd);
 static int kbd_queue_pop(uint8_t *cmd);
-//static int kbd_queue_peek(uint8_t *cmd);
+static int kbd_queue_peek(uint8_t *cmd);
 
 
 /* Initialize the keyboard command queue, clearing the head and tail pointers */
@@ -154,7 +154,6 @@ static int kbd_queue_pop(uint8_t *cmd)
 	return 0;
 }
 
-#if 0 /* not currently used */
 /* Peek at the head of the queue, returns 0 on success and -1 on failure */
 static int kbd_queue_peek(uint8_t *cmd)
 {
@@ -168,7 +167,6 @@ static int kbd_queue_peek(uint8_t *cmd)
 
 	return 0;
 }
-#endif
 
 void kbd_init()
 {
@@ -237,15 +235,33 @@ void kbd_reset()
 void kbd_handle_interrupt()
 {
 	uint32_t value;
+	uint8_t cmd;
+	int queue_empty;
 
-	/* read from the port */
-	value = ps2_read_data();
-
-	/* To show that key reading works */
-	//if(value == PS2_KEY_RELEASED)	putc('\b');
-	putc(scancodes[value]);
-
-	kbd_queue_pop((uint8_t*)&value);
+	/* check the queue for commands */
+	queue_empty = kbd_queue_peek(&cmd);
+	if (!queue_empty) {
+		switch (cmd) {
+			case PS2_KEY_RELEASED:
+			default:
+				/* just pull the data from the keyboard and discard it, we don't care */
+				ps2_read_data();
+				kbd_queue_pop(&cmd);
+				break;
+		}
+	}
+	else {
+		/* read from the port */
+		value = ps2_read_data();
+		if (value == PS2_KEY_RELEASED) {
+			/* if released, read garbage */
+			kbd_queue_push(PS2_KEY_RELEASED);
+		}
+		else {
+			/* just echo the key value for now, we'll handle things specifically later */
+			putc(scancodes[value]);
+		}
+	}
 }
 
 

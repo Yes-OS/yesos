@@ -1,5 +1,5 @@
 /* paging.c - Sets up paging and virtual memory
- * vim:ts=4 noexpandtab
+ * vim:ts=4 sw=4 noexpandtab
  */
  
 #include "paging.h"
