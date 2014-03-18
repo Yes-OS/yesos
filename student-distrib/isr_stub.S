@@ -13,6 +13,11 @@
 .globl invalid_opcode, device_not_available, double_fault, coprocessor_segment_overrun
 .globl invalid_tss, segment_not_present, stack_fault, general_protection, page_fault
 .globl coprocessor_error, alignment_check, machine_check, simd_coprocessor_error
+.globl null_int
+
+# Interrupt requests
+.globl irq0, irq1, irq2, irq3, irq4, irq5, irq6, irq7
+.globl irq8, irq9, irq10, irq11, irq12, irq13, irq14, irq15
 
 .align 4
 
@@ -140,6 +145,109 @@ simd_coprocessor_error:
 	cli
 	pushl	$0	# dummy error code
 	pushl	$19	# isr number
+	jmp		isr_stub
+
+null_int:
+	cli
+	pushl	$0	# dummy error code
+	pushl	$-1	# broke
+	jmp		isr_stub
+
+
+irq0:
+	cli
+	pushl	$0	# dummy error code
+	pushl	$32	# isr number
+	jmp		isr_stub
+
+irq1:
+	cli
+	pushl	$0	# dummy error code
+	pushl	$33	# isr number
+	jmp		isr_stub
+
+irq2:
+	cli
+	pushl	$0	# dummy error code
+	pushl	$34	# isr number
+	jmp		isr_stub
+
+irq3:
+	cli
+	pushl	$0	# dummy error code
+	pushl	$35	# isr number
+	jmp		isr_stub
+
+irq4:
+	cli
+	pushl	$0	# dummy error code
+	pushl	$36	# isr number
+	jmp		isr_stub
+
+irq5:
+	cli
+	pushl	$0	# dummy error code
+	pushl	$37	# isr number
+	jmp		isr_stub
+
+irq6:
+	cli
+	pushl	$0	# dummy error code
+	pushl	$38	# isr number
+	jmp		isr_stub
+
+irq7:
+	cli
+	pushl	$0	# dummy error code
+	pushl	$39	# isr number
+	jmp		isr_stub
+
+irq8:
+	cli
+	pushl	$0	# dummy error code
+	pushl	$40	# isr number
+	jmp		isr_stub
+
+irq9:
+	cli
+	pushl	$0	# dummy error code
+	pushl	$41	# isr number
+	jmp		isr_stub
+
+irq10:
+	cli
+	pushl	$0	# dummy error code
+	pushl	$42	# isr number
+	jmp		isr_stub
+
+irq11:
+	cli
+	pushl	$0	# dummy error code
+	pushl	$43	# isr number
+	jmp		isr_stub
+
+irq12:
+	cli
+	pushl	$0	# dummy error code
+	pushl	$44	# isr number
+	jmp		isr_stub
+
+irq13:
+	cli
+	pushl	$0	# dummy error code
+	pushl	$45	# isr number
+	jmp		isr_stub
+
+irq14:
+	cli
+	pushl	$0	# dummy error code
+	pushl	$46	# isr number
+	jmp		isr_stub
+
+irq15:
+	cli
+	pushl	$0	# dummy error code
+	pushl	$47	# isr number
 	jmp		isr_stub
 
 

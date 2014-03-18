@@ -10,10 +10,30 @@
 #define PS2_PORT_STATUS					0x64
 #define PS2_PORT_COMMAND				0x64
 
-/* the PS/2 commands */
-#define PS2_CMD_RESET					0xFE
+/* the PS/2 keyboard commands */
+#define PS2_CMD_RESET					0xFF
 
-/* the PS/2 status bits */
+/* the PS/2 controller commands */
+#define PS2_CMD_DISABLE_PORT1			0xAD
+#define PS2_CMD_ENABLE_PORT1			0xAE
+#define PS2_CMD_DISABLE_PORT2			0xA7
+#define PS2_CMD_ENABLE_PORT2			0xA8
+#define PS2_CMD_CONTROLLER_TEST			0xAA
+#define PS2_CMD_READ_CONFIGURATION		0x20
+#define PS2_CMD_WRITE_CONFIGURATION		0x60
+#define PS2_CMD_TEST_PORT1				0xAB
+
+/* the PS/2 controller configuration */
+#define PS2_CFG_INT_PORT1				(1 << 0)
+#define PS2_CFG_INT_PORT2				(1 << 1)
+#define PS2_CFG_SYSTEM					(1 << 2)
+#define PS2_CFG_UNUSED1					(1 << 3)
+#define PS2_CFG_CLK_PORT1				(1 << 4)
+#define PS2_CFG_CLK_PORT2				(1 << 5)
+#define PS2_CFG_TRANS_PORT1				(1 << 6)
+#define PS2_CFG_UNUSED2					(1 << 7)
+
+/* the PS/2 controller status bits */
 #define PS2_STATUS_OBUFFER_FULL			(1 << 0)
 #define PS2_STATUS_IBUFFER_FULL			(1 << 1)
 #define PS2_STATUS_SYSTEM_FLAG			(1 << 2)
@@ -22,6 +42,52 @@
 #define PS2_STATUS_UKN2					(1 << 5)
 #define PS2_STATUS_TIME_OUT				(1 << 6)
 #define PS2_STATUS_PARITY_ERR			(1 << 7)
+
+
+/* define functions to read and write safely */
+
+/* writes a command to the PS/2 controller */
+#define ps2_write_command(cmd)                         \
+	do {                                               \
+		uint32_t status;                               \
+		                                               \
+		/* wait until we can write */                  \
+		do {                                           \
+			status = inb(PS2_PORT_STATUS);             \
+		} while (status & PS2_STATUS_IBUFFER_FULL);    \
+                                                       \
+		/* write command */                            \
+		outb((cmd), PS2_PORT_COMMAND);                 \
+	} while (0)
+
+/* writes data to the data port */
+#define ps2_write_data(data)                           \
+	do {                                               \
+		uint32_t status;                               \
+		                                               \
+		/* wait until we can write */                  \
+		do {                                           \
+			status = inb(PS2_PORT_STATUS);             \
+		} while (status & PS2_STATUS_IBUFFER_FULL);    \
+                                                       \
+		/* write command */                            \
+		outb((data), PS2_PORT_DATA);                   \
+	} while (0)
+
+/* block while reading a byte from the data port */
+static uint32_t ps2_read_data()
+{
+	uint32_t data;
+	uint32_t status;
+
+	/* wait until data available */
+	do {
+		status = inb(PS2_PORT_STATUS);
+	} while (!(status & PS2_STATUS_OBUFFER_FULL));
+
+	data = inb(PS2_PORT_DATA);
+	return data;
+}
 
 
 /* Defines a circular FIFO command queue for the PS/2 keyboard */
@@ -93,17 +159,60 @@ static int kbd_queue_peek(uint8_t *cmd)
 	return 0;
 }
 
+void kbd_init()
+{
+	uint32_t read;
+
+	/* disable all PS/2 devices */
+	ps2_write_command(PS2_CMD_DISABLE_PORT1);
+	ps2_write_command(PS2_CMD_DISABLE_PORT2);
+
+	/* flush output buffer? */
+	read = inb(PS2_PORT_DATA);
+
+	/* get controller configuration byte */
+	ps2_write_command(PS2_CMD_READ_CONFIGURATION);
+	read = ps2_read_data();
+
+	/* disable interrupts and keycode translation */
+	read &= ~(PS2_CFG_INT_PORT1 | PS2_CFG_INT_PORT2 | PS2_CFG_TRANS_PORT1);
+
+	/* write back to the controller */
+	ps2_write_command(PS2_CMD_WRITE_CONFIGURATION);
+	ps2_write_data(read);
+
+	/* test the controller */
+	ps2_write_data(PS2_CMD_CONTROLLER_TEST);
+	read = ps2_read_data();
+	if (read != 0x55) {
+		printf("Welp, we're fucked! [0x%x]\n", read);
+		//return;
+	}
+
+	/* test first ps/2 port */
+	ps2_write_command(PS2_CMD_TEST_PORT1);
+	read = ps2_read_data();
+	if (read != 0) {
+		printf("Welp, we're fucked for other reasons! [0x%x]\n", read);
+		//return;
+	}
+
+	/* enable ps/2 port 1 */
+	ps2_write_command(PS2_CMD_ENABLE_PORT1);
+	ps2_write_command(PS2_CMD_READ_CONFIGURATION);
+	read = ps2_read_data();
+	read |= PS2_CFG_INT_PORT1;
+	ps2_write_command(PS2_CMD_WRITE_CONFIGURATION);
+	ps2_write_data(read);
+
+	/* reset device on port 1 */
+	kbd_reset();
+}
+
 /* Sends the reset command to the keyboard */
 void kbd_reset()
 {
-	uint32_t status;
-
-	/* wait until we can write */
-	do {
-		status = inb(PS2_PORT_STATUS);
-	} while (status & PS2_STATUS_IBUFFER_FULL);
-
-	/* do the writing */
-	outb(PS2_PORT_DATA, PS2_CMD_RESET);
+	ps2_write_data(PS2_CMD_RESET);
 }
+
 

@@ -5,6 +5,7 @@
 #include "isr.h"
 #include "lib.h"
 #include "x86_desc.h"
+#include "i8259.h"
 #include "isr_stub.h"
 #include "types.h"
 
@@ -106,6 +107,26 @@ void isr_impl(registers_t regs)
             printf("Interrupt occurred(19): simd_coprocessor_error");
             halt(); /* just halt for now */
             break;
+
+		case 32:
+		case 33:
+		case 34:
+		case 35:
+		case 36:
+		case 37:
+		case 38:
+		case 39:
+		case 40:
+		case 41:
+		case 42:
+		case 43:
+		case 44:
+		case 45:
+		case 46:
+		case 47:
+			printf("Fuck the IRQ number %d\n", regs.isrno - 32);
+			send_eoi(regs.isrno - 32);
+			break;
 
 		default:
 		    printf("Error: Interrupt unknown");
@@ -227,6 +248,14 @@ void set_task_gate(uint8_t n, uint16_t gdt)
 
 void install_interrupts()
 {
+	int i;
+
+	/* set default handler */
+	for (i = 0; i < NUM_VEC; i++) {
+		set_trap_gate(i, (uint32_t)&null_int);
+	}
+
+	/* initialize exceptions */
 	set_trap_gate(0,  (uint32_t)&divide_error);
 	set_trap_gate(1,  (uint32_t)&debug);
 	set_trap_gate(2,  (uint32_t)&nmi);
@@ -246,6 +275,24 @@ void install_interrupts()
 	set_trap_gate(17, (uint32_t)&alignment_check);
 	set_trap_gate(18, (uint32_t)&machine_check);
 	set_trap_gate(19, (uint32_t)&simd_coprocessor_error);
+
+	/* initialize irqs */
+	set_trap_gate(32, (uint32_t)&irq0);
+	set_trap_gate(33, (uint32_t)&irq1);
+	set_trap_gate(34, (uint32_t)&irq2);
+	set_trap_gate(35, (uint32_t)&irq3);
+	set_trap_gate(36, (uint32_t)&irq4);
+	set_trap_gate(37, (uint32_t)&irq5);
+	set_trap_gate(38, (uint32_t)&irq6);
+	set_trap_gate(39, (uint32_t)&irq7);
+	set_trap_gate(40, (uint32_t)&irq8);
+	set_trap_gate(41, (uint32_t)&irq9);
+	set_trap_gate(42, (uint32_t)&irq10);
+	set_trap_gate(43, (uint32_t)&irq11);
+	set_trap_gate(44, (uint32_t)&irq12);
+	set_trap_gate(45, (uint32_t)&irq13);
+	set_trap_gate(46, (uint32_t)&irq14);
+	set_trap_gate(47, (uint32_t)&irq15);
 
 	/* load IDT */
 	lidt(idt_desc_ptr);

@@ -9,6 +9,7 @@
 #include "debug.h"
 #include "isr.h"
 #include "rtc.h"
+#include "kbd.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -154,9 +155,14 @@ entry (unsigned long magic, unsigned long addr)
 
 	install_interrupts();
 	
+	clear();
 	printf("Initializing RTC\n");
 	rtc_init();
 	enable_irq(RTC_IRQ_PORT);
+
+	printf("Enabling kbd\n");
+	kbd_init();
+	printf("Done enabling kbd\n");
 
 	/* Enable interrupts */
 	/* Do not enable the following until after you have set up your
