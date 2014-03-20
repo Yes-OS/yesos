@@ -90,7 +90,7 @@ void paging_init(void){
 #endif
 }
 
-
+#if 0
 /*helper function:
  *
  *
@@ -191,6 +191,7 @@ void _enable_paging(){
                 );
 	
 }
+#endif
 
 void install_pages()
 {
@@ -199,13 +200,13 @@ void install_pages()
 	/* clear page directory */
 	for (i = 0; i < NUM_ENTRIES; i++) {
 		/* install an empty entry */
-		pd[i] = empty_dir_entry;
+		page_directory[i] = empty_dir_entry;
 	}
 
 	/* clear first page table */
 	for (i = 0; i < NUM_ENTRIES; i++) {
 		/* install an empty entry */
-		pt[i] = empty_page_entry;
+		page_table[i] = empty_page_entry;
 	}
 
 	{
@@ -215,9 +216,9 @@ void install_pages()
 		first_page_dir.present = 1;
 		first_page_dir.read_write = 0;
 		first_page_dir.user_supervisor = 1;
-		first_page_dir.pt_base_addr = PAGE_BASE_ADDR((uint32_t)pt);
+		first_page_dir.pt_base_addr = PAGE_BASE_ADDR((uint32_t)page_table);
 
-		pd[0] = first_page_dir;
+		page_directory[0] = first_page_dir;
 
 		/* setup video memory */
 		pte_t video_mem = empty_page_entry;
@@ -226,7 +227,7 @@ void install_pages()
 		video_mem.user_supervisor = 1;
 		video_mem.page_base_addr = PAGE_BASE_ADDR(VIDEO);
 
-		pt[PAGE_TABLE_IDX(VIDEO)] = video_mem;
+		page_table[PAGE_TABLE_IDX(VIDEO)] = video_mem;
 	}
 	
 	{
@@ -239,13 +240,13 @@ void install_pages()
 		kernel_mem.page_size = 1;
 		kernel_mem.page_base_addr_4mb = PAGE_BASE_ADDR_4MB(KERNEL_MEM);
 
-		pd[PAGE_DIR_IDX(KERNEL_MEM)] = kernel_mem;
+		page_directory[PAGE_DIR_IDX(KERNEL_MEM)] = kernel_mem;
 	}
 
 	/* set up registers */
 	clr_pae_flag();
 	set_pse_flag();
-	set_pdbr(pd);
+	set_pdbr(page_directory);
 
 	/* enable paging */
 	set_pg_flag();
