@@ -155,7 +155,7 @@ entry (unsigned long magic, unsigned long addr)
 	/* Init the PIC */
 	printf("    Initializing PIC... ");
 	i8259_init();
-	prinf("done\n");
+	printf("done\n");
 	
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
 	 * PIC, any other initialization stuff... */
