@@ -1,4 +1,4 @@
-ajmadse2 = Adam Madsen <ajmadse2@illinois.edu>
+ajmadse2 = Adam Madsen <madsen.adam@gmail.com>
 hskllgl2 = Ryan Haskell-Glatz <hskllgl2@illinois.edu>
 taberna2 = Artur Tabernacki <taberna2@illinois.edu>
 vinjamu2 = Raj Vinjamuri <vinjamu2@illinois.edu>
