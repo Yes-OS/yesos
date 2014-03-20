@@ -122,22 +122,4 @@ _idt:
 	
 idt_bottom:
 
-								#	PAGING
-
-	.align 4096
-page_directory:
-	.rept 1024
-	.long 0
-	.endr
-
-page_directory_bottom:
-
-	.align 4096
-page_table:
-	.rept 1024
-	.long 0
-	.endr
-
-page_table_bottom:
-
 

@@ -168,9 +168,8 @@ entry (unsigned long magic, unsigned long addr)
 	enable_irq(KBD_IRQ_PORT);
 
 	/*NEW: Initialize paging. Much wow! */
-	// printf("Initializing Paging\n");
-	// paging_init();
-	// printf("Paging Initialized! :)\n");
+	printf("Initializing Paging\n");
+	paging_init();
 
 	/* Enable interrupts */
 	/* Do not enable the following until after you have set up your
@@ -179,7 +178,6 @@ entry (unsigned long magic, unsigned long addr)
 	printf("STI: Enabling Interrupts\n");
 	sti();
 
-	
 	/* Execute the first program (`shell') ... */
 
     
