@@ -7,7 +7,7 @@
 #include "x86_desc.h"
 
 /* method used, 1 for old, 0 for new */
-#define METHOD 1
+#define METHOD 0
 
 /*create a page directory and table pointer*/
 unsigned int page_directory[NUM_ENTRIES] 	__attribute__((aligned(PAGE_SIZE))); /*must align to page size!*/
