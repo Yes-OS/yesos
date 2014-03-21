@@ -90,7 +90,7 @@ void paging_init(void){
 #endif
 }
 
-#if 0
+#if 1
 /*helper function:
  *
  *
@@ -191,7 +191,7 @@ void _enable_paging(){
                 );
 	
 }
-#endif
+#else
 
 void install_pages()
 {
@@ -251,3 +251,5 @@ void install_pages()
 	/* enable paging */
 	set_pg_flag();
 }
+
+#endif
