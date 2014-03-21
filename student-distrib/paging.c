@@ -6,6 +6,9 @@
 #include "lib.h"
 #include "x86_desc.h"
 
+/* method used, 1 for old, 0 for new */
+#define METHOD 1
+
 /*create a page directory and table pointer*/
 unsigned int page_directory[NUM_ENTRIES] 	__attribute__((aligned(PAGE_SIZE))); /*must align to page size!*/
 unsigned int page_table[NUM_ENTRIES] 		__attribute__((aligned(PAGE_SIZE)));
@@ -78,7 +81,7 @@ static const pde_t empty_dir_entry = {{.val = 0L}};
  *
  */
 void paging_init(void){
-#if 1
+#if METHOD == 1
 															printf("Page Directory: %x\n", page_directory);
 	/*create and initialize the page directory (and contents)*/
 	_directory_init();
@@ -90,7 +93,7 @@ void paging_init(void){
 #endif
 }
 
-#if 1
+#if METHOD == 1
 /*helper function:
  *
  *
