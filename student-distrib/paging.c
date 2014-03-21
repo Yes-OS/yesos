@@ -9,12 +9,18 @@
 /* method used, 1 for old, 0 for new */
 #define METHOD 0
 
+#if METHOD == 1
+
 /*create a page directory and table pointer*/
 unsigned int page_directory[NUM_ENTRIES] 	__attribute__((aligned(PAGE_SIZE))); /*must align to page size!*/
 unsigned int page_table[NUM_ENTRIES] 		__attribute__((aligned(PAGE_SIZE)));
 
-//pde_t page_directory[NUM_ENTRIES]	__attribute__((aligned(PAGE_SIZE)));
-//pte_t page_table[NUM_ENTRIES]	__attribute__((aligned(PAGE_SIZE)));
+#else
+
+pde_t page_directory[NUM_ENTRIES]	__attribute__((aligned(PAGE_SIZE)));
+pte_t page_table[NUM_ENTRIES]	__attribute__((aligned(PAGE_SIZE)));
+
+#endif
 
 /* define some actions to set/clear status bits */
 
