@@ -7,11 +7,11 @@
 #include "x86_desc.h"
 
 /*create a page directory and table pointer*/
-//unsigned int page_directory[NUM_ENTRIES] 	__attribute__((aligned(PAGE_SIZE))); /*must align to page size!*/
-//unsigned int page_table[NUM_ENTRIES] 		__attribute__((aligned(PAGE_SIZE)));
+unsigned int page_directory[NUM_ENTRIES] 	__attribute__((aligned(PAGE_SIZE))); /*must align to page size!*/
+unsigned int page_table[NUM_ENTRIES] 		__attribute__((aligned(PAGE_SIZE)));
 
-pde_t page_directory[NUM_ENTRIES]	__attribute__((aligned(PAGE_SIZE)));
-pte_t page_table[NUM_ENTRIES]	__attribute__((aligned(PAGE_SIZE)));
+//pde_t page_directory[NUM_ENTRIES]	__attribute__((aligned(PAGE_SIZE)));
+//pte_t page_table[NUM_ENTRIES]	__attribute__((aligned(PAGE_SIZE)));
 
 /* define some actions to set/clear status bits */
 
@@ -78,7 +78,7 @@ static const pde_t empty_dir_entry = {{.val = 0L}};
  *
  */
 void paging_init(void){
-#if 0
+#if 1
 															printf("Page Directory: %x\n", page_directory);
 	/*create and initialize the page directory (and contents)*/
 	_directory_init();
