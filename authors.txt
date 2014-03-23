@@ -1,5 +1,5 @@
 ajmadse2 = Adam Madsen <madsen.adam@gmail.com>
 hskllgl2 = Ryan Haskell-Glatz <hskllgl2@illinois.edu>
-taberna2 = Artur Tabernacki <taberna2@illinois.edu>
-vinjamu2 = Raj Vinjamuri <vinjamu2@illinois.edu>
+taberna2 = Artur Tabernacki <atabernacki@gmail.com>
+vinjamu2 = Raj Vinjamuri <rajvinjamuri@gmail.com>
 root = ECE391 Root <root@root>
