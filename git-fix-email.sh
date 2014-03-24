@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# borrowed from http://stackoverflow.com/questions/392332/retroactively-correct-authors-with-git-svn
+# Rewrites git history to change authors' emails to correct versions
+# Dangerous. Do not use unless you know what you're doing.
+
 git filter-branch --env-filter '
 
 n=$GIT_AUTHOR_NAME
