@@ -35,7 +35,7 @@ Makefile.dep: $(SRC)
 
 .PHONY: clean
 clean: 
-	rm -f *.o Makefile.dep bootimg
+	rm -f *.o Makefile.dep bootimg mp3.img
 
 ifneq ($(MAKECMDGOALS),dep)
 ifneq ($(MAKECMDGOALS),clean)
