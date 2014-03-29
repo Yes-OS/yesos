@@ -1,7 +1,15 @@
 #!/bin/bash
 
 pushd `dirname $0` > /dev/null
-mp3_dir=`pwd`
+MP3_DIR=`pwd`
 popd > /dev/null
 
-qemu-system-i386 -hda $mp3_dir/student-distrib/mp3.img -m 256 -gdb tcp:127.0.0.1:1234 -S -name mp3
+WORKING_DIR=$MP3_DIR/student-distrib
+
+setsid qemu-system-i386 -hda $WORKING_DIR/mp3.img -m 256 -s -S -name mp3 &
+QEMU_PID=$!
+
+gdb -cd=$WORKING_DIR -ex 'target remote localhost:1234' bootimg
+
+kill $QEMU_PID >/dev/null 2>&1
+
