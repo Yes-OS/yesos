@@ -2,9 +2,8 @@
  * vim:ts=4 sw=4 noexpandtab
  */
 
+#include "vga.h"
 #include "lib.h"
-#define NUM_COLS 80
-#define NUM_ROWS 25
 #define ATTRIB 0x7
 
 static int screen_x;
@@ -27,6 +26,12 @@ clear(void)
         *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
     }
 	screen_x = screen_y = 0;
+}
+
+void
+update_cursor(void)
+{
+	vga_cursor_set_location(screen_y, screen_x);
 }
 
 /* Standard printf().

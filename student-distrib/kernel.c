@@ -11,6 +11,7 @@
 #include "rtc.h"
 #include "kbd.h"
 #include "paging.h"
+#include "vga.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -188,10 +189,10 @@ entry (unsigned long magic, unsigned long addr)
 	printf("done\n");
 
 	printf("\nWelcome!\n");
+	update_cursor();
 
 	/* Execute the first program (`shell') ... */
 
-    
 	/* Spin (nicely, so we don't chew up cycles) */
 	halt();
 }

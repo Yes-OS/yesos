@@ -260,6 +260,7 @@ void kbd_handle_interrupt()
 		else {
 			/* just echo the key value for now, we'll handle things specifically later */
 			putc(scancodes[value]);
+			update_cursor();
 		}
 	}
 }
