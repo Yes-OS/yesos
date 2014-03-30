@@ -21,7 +21,6 @@
 
 /* c structs go here */
 #ifndef ASM
-
 extern void vga_cursor_set_location(uint8_t row, uint8_t col);
 #endif /* ASM */
 
