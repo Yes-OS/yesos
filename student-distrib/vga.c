@@ -4,6 +4,7 @@
 #include "lib.h"
 #include "vga.h"
 
+/* Sets the vga cursor to the specified position */
 void vga_cursor_set_location(uint8_t row, uint8_t col)
 {
 	uint16_t address = row * NUM_COLS + col;
