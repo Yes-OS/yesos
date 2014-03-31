@@ -193,7 +193,8 @@ entry (unsigned long magic, unsigned long addr)
 	
 	/*RTC TESTING HERE*/
 	//rtc_open_test();
-	//clearrtc_rw_test();
+	//rtc_rw_test();
+
 
 
 	
