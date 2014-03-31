@@ -113,7 +113,7 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry)
  *  Reads up to 'length' bytes from position 'offset'
  *	  in the file with 'inode' number into the given 'buf' buffer.
  *
- *	Return  # of bytes read and placed into buffer
+ *  Return  # of bytes read and placed into buffer
  *			0 when end of file reached.
  *			-1 on failure.
  *

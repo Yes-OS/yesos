@@ -142,7 +142,13 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry);
  *				offset	- how many bytes to begin reading at?
  *				buf		- data array to read.
  *				length  - size of array.
- *	Return 0 on success, -1 on failure.
+ *
+ *  Reads up to 'length' bytes from position 'offset'
+ *	  in the file with 'inode' number into the given 'buf' buffer.
+ *
+ *  Return  # of bytes read and placed into buffer
+ *			0 when end of file reached.
+ *			-1 on failure.
  *
  */
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length);
