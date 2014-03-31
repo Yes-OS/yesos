@@ -7,6 +7,7 @@
 
 #include "types.h"
 #include "lib.h"
+#include "i8259.h"
 
 /*IO Ports used for RTC/CMOS*/
 #define NMI_RTC_PORT 0x70
@@ -53,6 +54,10 @@ int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes);
 int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes);
 int32_t rtc_open(const uint8_t* filename);
 int32_t rtc_close(int32_t fd);
+
+/*RTC Test Functions*/
+void rtc_rw_test(void);
+void rtc_open_test(void);
 
 
 #endif /* _RTC_H */

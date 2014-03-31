@@ -6,7 +6,7 @@
 #include "lib.h"
 
 /* initialize the RTC */
-void rtc_init(int freq)
+void rtc_init(void)
 {
     char regB;
 
@@ -30,6 +30,7 @@ void rtc_init(int freq)
 	char enable = inb(NMI_RTC_PORT);
 	enable = enable & ENABLE_NMI;
 	outb(enable, NMI_RTC_PORT);
+	
 }
 
 
@@ -37,15 +38,17 @@ void rtc_init(int freq)
 /* handle the rtc interrupt */
 void rtc_handle_interrupt()
 {
+	/*clear RTC interrupt flag*/
+    rtc_intf = 0;
+
 	/* read a byte from reg c to allow interrupts to continue */
 	outb(REG_C, NMI_RTC_PORT);
 	inb(RTC_RAM_PORT);
 
 	/* do the test interrupts function so we know things are working */
-	//test_interrupts();
+	test_interrupts();
   
-    /*clear RTC interrupt flag*/
-    rtc_intf = 0;
+   
 
 }
 
@@ -112,7 +115,7 @@ void rtc_modify_freq(int freq)
       break;
 
     default:
-      printf("Error: Invalid Frequency");
+      printf("Error: Could not set frequency");
       break;
 
   }
@@ -140,8 +143,31 @@ int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes)
 int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes)
 {
 
-  rtc_modify_freq((int)*buf);
-  return 0;
+  int sc = 0;			//shift counter variable 
+  int freq = (int)buf;	//temp freq variable used for checking validity of requested freq
+  
+  /*find the number of shifts taken to change freq to 0*/
+  while(freq != 0)		
+  {
+	freq = freq >> 1;
+	sc++;
+  }
+  
+  /*decrement freq by 1 for the sake of rtc_modify_freq implementation*/
+  sc--;
+  
+  /*check if the requested freq was a power of 2*/
+  if((int)buf == (1 << sc)){
+	rtc_modify_freq(sc);
+	return 0;
+  }
+  
+
+  printf("Error: Invlaid Frequency Value");
+  return -1;
+  
+  
+  
 
 }
 
@@ -161,6 +187,29 @@ int32_t rtc_close(int32_t fd)
   /*Nothing to do here yet*/
   return 0;
 
+}
+
+void rtc_open_test(void)
+{
+	uint8_t* rtc_test;
+	rtc_open(rtc_test);
+}
+
+void rtc_rw_test(void)
+{
+	int i = 2;
+	int32_t fd_test = 0;
+	int32_t nbytes_test = 4;
+	
+	while(i != 2048)
+	{
+		rtc_read(fd_test, (void*)i, nbytes_test);
+		rtc_write(fd_test, (void*)i, nbytes_test);
+		
+		i *= 2;
+			
+	}
+	
 }
 
 

@@ -166,9 +166,9 @@ entry (unsigned long magic, unsigned long addr)
 
 	printf("    Initializing RTC... ");
 	rtc_init();
-	//enable_irq(RTC_IRQ_PORT);
+	enable_irq(RTC_IRQ_PORT);
 	printf("done\n");
-
+	
 	printf("    Initializing Keyboard... ");
 	kbd_init();
 	enable_irq(KBD_IRQ_PORT);
@@ -190,6 +190,12 @@ entry (unsigned long magic, unsigned long addr)
 	printf("\nWelcome!\n");
 
 	/* Execute the first program (`shell') ... */
+	
+	/*RTC TESTING HERE*/
+	//rtc_open_test();
+	//rtc_rw_test();
+
+	
 
     
 	/* Spin (nicely, so we don't chew up cycles) */
