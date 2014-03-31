@@ -191,7 +191,7 @@ int32_t rtc_close(int32_t fd)
 
 void rtc_open_test(void)
 {
-	uint8_t* rtc_test;
+	uint8_t* rtc_test = 0;
 	rtc_open(rtc_test);
 }
 
