@@ -47,7 +47,7 @@ void rtc_init(void);
 void rtc_handle_interrupt(void);
 
 /*RTC Frequency Modifier*/
-void rtc_modify_freq(int freq);
+void rtc_modify_freq(uint32_t freq);
 
 /*RTC system calls*/
 int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes);

@@ -8,7 +8,8 @@
 /* initialize the RTC */
 void rtc_init(void)
 {
-    char regB;
+
+    uint8_t regB;
 
     rtc_intf = 0;
 
@@ -27,7 +28,7 @@ void rtc_init(void)
 	outb(regB, RTC_RAM_PORT);
 
 	/*Re-enable NMI*/
-	char enable = inb(NMI_RTC_PORT);
+	uint8_t enable = inb(NMI_RTC_PORT);
 	enable = enable & ENABLE_NMI;
 	outb(enable, NMI_RTC_PORT);
 	
@@ -37,6 +38,7 @@ void rtc_init(void)
 /* handle the rtc interrupt */
 void rtc_handle_interrupt()
 {
+
 	/*clear RTC interrupt flag*/
     rtc_intf = 0;
 
@@ -45,19 +47,18 @@ void rtc_handle_interrupt()
 	inb(RTC_RAM_PORT);
 
 	/* do the test interrupts function so we know things are working */
-	//test_interrupts();
-  
-   
+	//test_interrupts(); 
 
 }
 
 
 /*modify the frequency of the RTC (Min 2Hz - Max 1024 Hz)*/
-void rtc_modify_freq(int freq)
+void rtc_modify_freq(uint32_t freq)
 {
+
   cli();
 
-  int regA;
+  uint8_t regA;
 
   /*Disable NMI and select register A of RTC*/
   outb(REG_A, NMI_RTC_PORT);
@@ -66,7 +67,6 @@ void rtc_modify_freq(int freq)
   regA = regA & 0xF0;       //clear the lower 4 bits of regA to clear out previous frequency
 
   outb(REG_A, NMI_RTC_PORT);
-
 
   /*Set frequency, where it is 2^freq*/
   switch(freq)
@@ -112,7 +112,7 @@ void rtc_modify_freq(int freq)
       outb((regA | HZ_1024), RTC_RAM_PORT);
       break;
 
-    default:q
+    default:
 	
       break;
 
@@ -128,9 +128,10 @@ int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes)
   
   rtc_intf = 1;
 
-  while(rtc_intf == 1)
-  {
+  while(rtc_intf == 1){
+  
     continue;
+	
   }
 
   return 0;
@@ -141,26 +142,28 @@ int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes)
 int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes)
 {
 
-  int sc = 0;			//shift counter variable 
-  int freq = (int)buf;	//temp freq variable used for checking validity of requested freq
+  uint32_t sc = 0;			//shift counter variable 
+  uint32_t freq = (uint32_t)buf;	//temp freq variable used for checking validity of requested freq
   
   /*find the number of shifts taken to change freq to 0*/
-  while(freq != 0)		
-  {
+  while(freq != 0){
+  
 	freq = freq >> 1;
 	sc++;
+	
   }
   
   /*decrement freq by 1 for the sake of rtc_modify_freq implementation*/
   sc--;
   
   /*check if the requested freq was a power of 2*/
-  if((int)buf == (1 << sc)){
+  if((uint32_t)buf == (1 << sc)){
+  
 	rtc_modify_freq(sc);
 	return 0;
+	
   }
   
-
   printf("Error: Invlaid Frequency Value\n");
   return -1;
   
@@ -176,6 +179,7 @@ int32_t rtc_open(const uint8_t* filename)
 
 }
 
+/*RTC Close*/
 int32_t rtc_close(int32_t fd)
 {
 
@@ -184,26 +188,29 @@ int32_t rtc_close(int32_t fd)
 
 }
 
+/*Tests rtc_open function*/
 void rtc_open_test(void)
 {
+
 	uint8_t* rtc_test = 0;
 	rtc_open(rtc_test);
+	
 }
 
+/*Tests rtc_read and rtc_write functions*/
 void rtc_rw_test(void)
 {
-	int i = 2;
+
+	uint32_t i = 2;
 	int32_t fd_test = 0;
 	int32_t nbytes_test = 4;
 	
+	while(i != 2048){
 	
-	while(i != 2048)
-	{
 		rtc_read(fd_test, (void*)i, nbytes_test);
 		rtc_write(fd_test, (void*)i, nbytes_test);
 		
-		i *= 2;
-			
+		i *= 2;	
 	}
 	
 }
