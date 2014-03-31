@@ -12,7 +12,7 @@ void kbd_init();
 void kbd_reset();
 void kbd_handle_interrupt();
 
-int32_t kbd_read(uint8_t *buf);
+int32_t kbd_read(uint8_t *buf, int32_t nbytes);
 
 #endif
 
