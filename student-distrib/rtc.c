@@ -34,7 +34,6 @@ void rtc_init(void)
 }
 
 
-
 /* handle the rtc interrupt */
 void rtc_handle_interrupt()
 {
@@ -46,12 +45,11 @@ void rtc_handle_interrupt()
 	inb(RTC_RAM_PORT);
 
 	/* do the test interrupts function so we know things are working */
-	test_interrupts();
+	//test_interrupts();
   
    
 
 }
-
 
 
 /*modify the frequency of the RTC (Min 2Hz - Max 1024 Hz)*/
@@ -114,8 +112,8 @@ void rtc_modify_freq(int freq)
       outb((regA | HZ_1024), RTC_RAM_PORT);
       break;
 
-    default:
-      printf("Error: Could not set frequency");
+    default:q
+	
       break;
 
   }
@@ -163,12 +161,9 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes)
   }
   
 
-  printf("Error: Invlaid Frequency Value");
+  printf("Error: Invlaid Frequency Value\n");
   return -1;
   
-  
-  
-
 }
 
 
@@ -200,6 +195,7 @@ void rtc_rw_test(void)
 	int i = 2;
 	int32_t fd_test = 0;
 	int32_t nbytes_test = 4;
+	
 	
 	while(i != 2048)
 	{
