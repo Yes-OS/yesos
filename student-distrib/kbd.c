@@ -3,6 +3,7 @@
  */
 #include "types.h"
 #include "lib.h"
+#include "vga.h"
 #include "kbd.h"
 
 /* the PS/2 ports */
@@ -265,4 +266,8 @@ void kbd_handle_interrupt()
 	}
 }
 
-
+int32_t kbd_read(uint8_t *buf, int32_t nbytes)
+{
+	(void)buf; (void)nbytes;
+	return -1;
+}
