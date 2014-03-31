@@ -9,6 +9,7 @@
 /* General constants related to video memory */
 #define NUM_COLS 80
 #define NUM_ROWS 25
+#define ATTRIB 0x7
 
 #define VIDEO 0xB8000
 
@@ -21,7 +22,14 @@
 
 /* c structs go here */
 #ifndef ASM
-extern void vga_cursor_set_location(uint8_t row, uint8_t col);
+
+/* location of soft cursor on the screen */
+extern int screen_x, screen_y;
+/* location of video memory in a flat segment */
+extern char *video_mem;
+
+void vga_cursor_set_location(uint8_t row, uint8_t col);
+void update_cursor(void);
 #endif /* ASM */
 
 #endif /* _VGA_H_ */

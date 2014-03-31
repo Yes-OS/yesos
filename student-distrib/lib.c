@@ -4,11 +4,6 @@
 
 #include "vga.h"
 #include "lib.h"
-#define ATTRIB 0x7
-
-static int screen_x;
-static int screen_y;
-static char* video_mem = (char *)VIDEO;
 
 /*
 * void clear(void);
@@ -26,12 +21,6 @@ clear(void)
         *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
     }
 	screen_x = screen_y = 0;
-}
-
-void
-update_cursor(void)
-{
-	vga_cursor_set_location(screen_y, screen_x);
 }
 
 /* Standard printf().
