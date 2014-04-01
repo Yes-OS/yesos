@@ -33,9 +33,12 @@ dep: Makefile.dep
 Makefile.dep: $(SRC)
 	$(CC) -MM $(CPPFLAGS) $(SRC) > $@
 
+tags:
+	ctags -f $@ .
+
 .PHONY: clean
 clean: 
-	rm -f *.o Makefile.dep bootimg mp3.img
+	rm -f *.o Makefile.dep bootimg mp3.img tags
 
 ifneq ($(MAKECMDGOALS),dep)
 ifneq ($(MAKECMDGOALS),clean)

@@ -2,14 +2,8 @@
  * vim:ts=4 sw=4 noexpandtab
  */
 
+#include "vga.h"
 #include "lib.h"
-#define NUM_COLS 80
-#define NUM_ROWS 25
-#define ATTRIB 0x7
-
-static int screen_x;
-static int screen_y;
-static char* video_mem = (char *)VIDEO;
 
 /*
 * void clear(void);
@@ -187,6 +181,8 @@ puts(int8_t* s)
 void
 putc(uint8_t c)
 {
+	int16_t i;
+
     if(c == '\n' || c == '\r') {
         screen_y++;
         screen_x=0;
@@ -201,13 +197,31 @@ putc(uint8_t c)
 		/* clear the character */
 		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = ' ';
 		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
-    } else {
-        *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = c;
-        *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
-        screen_x++;
-        screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
-        screen_x %= NUM_COLS;
-    }
+	} else {
+		if (c == '\0') {
+			return;
+		}
+		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = c;
+		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
+		screen_x++;
+		screen_y = screen_y + (screen_x / NUM_COLS);
+		screen_x %= NUM_COLS;
+	}
+	if (screen_y >= NUM_ROWS) {
+		/* shift screen up */
+		for (i = 0; i < (NUM_ROWS - 1) * NUM_COLS; i++) {
+			*(uint8_t *)(video_mem + ((NUM_COLS*(i / NUM_COLS) + (i % NUM_COLS)) << 1)) =
+				*(uint8_t *)(video_mem + ((NUM_COLS*(i / NUM_COLS + 1) + (i % NUM_COLS)) << 1));
+			*(uint8_t *)(video_mem + ((NUM_COLS*(i / NUM_COLS) + (i % NUM_COLS)) << 1) + 1) =
+				*(uint8_t *)(video_mem + ((NUM_COLS*(i / NUM_COLS + 1) + (i % NUM_COLS)) << 1) + 1);
+		}
+		/* clear last row */
+		for (i = (NUM_ROWS - 1) * NUM_COLS; i < NUM_ROWS * NUM_COLS; i++) {
+			*(uint8_t *)(video_mem + ((NUM_COLS*(i / NUM_COLS) + (i % NUM_COLS)) << 1)) = ' ';
+			*(uint8_t *)(video_mem + ((NUM_COLS*(i / NUM_COLS) + (i % NUM_COLS)) << 1) + 1) = ATTRIB;
+		}
+		screen_y = NUM_ROWS - 1;
+	}
 }
 
 /*

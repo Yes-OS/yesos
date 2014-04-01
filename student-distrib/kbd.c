@@ -3,6 +3,9 @@
  */
 #include "types.h"
 #include "lib.h"
+#include "vga.h"
+#include "queue.h"
+#include "term.h"
 #include "kbd.h"
 
 /* the PS/2 ports */
@@ -22,6 +25,10 @@
 #define PS2_CMD_READ_CONFIGURATION		0x20
 #define PS2_CMD_WRITE_CONFIGURATION		0x60
 #define PS2_CMD_TEST_PORT1				0xAB
+
+/* the PS/2 response codes */
+#define PS2_RET_NAK						0xFE
+#define PS2_RET_ATTACH					0xAA
 
 /* the PS/2 controller configuration */
 #define PS2_CFG_INT_PORT1				(1 << 0)
@@ -75,7 +82,7 @@
 	} while (0)
 
 /* block while reading a byte from the data port */
-static uint32_t ps2_read_data()
+static inline uint32_t ps2_read_data()
 {
 	uint32_t data;
 	uint32_t status;
@@ -90,89 +97,33 @@ static uint32_t ps2_read_data()
 }
 
 /* the scancode to ascii table */
-#define SCAN_ENTRIES 256
-const static char scancodes[SCAN_ENTRIES] = {
+#define SCAN_ENTRIES 512
+const static uint16_t scancodes[SCAN_ENTRIES] = {
 	#include "scancodes.h"
 };
 
 /* sent when a key is sent */
-#define PS2_KEY_RELEASED			0xf0
+#define KBD_KEY_RELEASED			0xf0
+#define KBD_KEY_EMUL0				0xe0
+#define KBD_KEY_EMUL1				0xe1
 
 
 /* Defines a circular FIFO command queue for the PS/2 keyboard */
 #define CMD_QUEUE_LEN 64
-/* increment the pointer, wrap if necessary */
-#define INC(ptr) (((ptr - kbd_cmd_queue) + 1) % CMD_QUEUE_LEN + kbd_cmd_queue)
-/* find the difference between the head and tail pointers, wrapping around the end of 
- * of the queue if necessary */
-#define DIFF(head, tail) (((tail) - (head) + CMD_QUEUE_LEN) % CMD_QUEUE_LEN)
+DECLARE_CIRC_BUF(uint8_t, kbd_cmd_queue, CMD_QUEUE_LEN);
+uint8_t emul = 0;
+uint8_t released = 0;
 
-/* define the actual queue */
-uint8_t kbd_cmd_queue[CMD_QUEUE_LEN] = {0};
-uint8_t *kcq_head, *kcq_tail;
+static int16_t kbd_combine_key(int16_t value);
 
-/* queue related function definitions */
-static void kbd_queue_init();
-static int kbd_queue_push(uint8_t cmd);
-static int kbd_queue_pop(uint8_t *cmd);
-static int kbd_queue_peek(uint8_t *cmd);
-
-
-/* Initialize the keyboard command queue, clearing the head and tail pointers */
-static void kbd_queue_init()
-{
-	kcq_head = kcq_tail = kbd_cmd_queue;
-}
-
-/* Push a command to the end of the queue, returns 0 on success and -1 on failure */
-static int kbd_queue_push(uint8_t cmd)
-{
-	if (DIFF(kcq_head, kcq_tail) == CMD_QUEUE_LEN) {
-		/* queue is full, quit */
-		return -1;
-	}
-
-	/* push command to tail */
-	*kcq_tail = cmd;
-	kcq_tail = INC(kcq_tail);
-
-	return 0;
-}
-
-/* Pop a command from the head of hte queue, returns 0 on success and -1 on failure */
-static int kbd_queue_pop(uint8_t *cmd)
-{
-	if (DIFF(kcq_head, kcq_tail) == 0) {
-		/* queue is empty, quit */
-		return -1;
-	}
-
-	/* pop command from head */
-	*cmd = *kcq_head;
-	kcq_head = INC(kcq_head);
-
-	return 0;
-}
-
-/* Peek at the head of the queue, returns 0 on success and -1 on failure */
-static int kbd_queue_peek(uint8_t *cmd)
-{
-	if (DIFF(kcq_head, kcq_tail) == 0) {
-		/* queue is empty, quit */
-		return -1;
-	}
-
-	/* copy command from head */
-	*cmd = *kcq_head;
-
-	return 0;
-}
 
 void kbd_init()
 {
 	uint32_t read;
 
-	kbd_queue_init();
+	CIRC_BUF_INIT(kbd_cmd_queue);
+	/* awful hack to handle first 0xAA sent */
+	CIRC_BUF_PUSH(kbd_cmd_queue, PS2_CMD_RESET, read);
 
 	/* disable all PS/2 devices */
 	ps2_write_command(PS2_CMD_DISABLE_PORT1);
@@ -208,7 +159,7 @@ void kbd_init()
 	read = ps2_read_data();
 	if (read != 0) {
 		printf("Welp, we're borked for other reasons! [0x%x]\n", read);
-		//return;
+		return;
 	}
 
 	/* enable ps/2 port 1 */
@@ -226,8 +177,12 @@ void kbd_init()
 /* Sends the reset command to the keyboard */
 void kbd_reset()
 {
-	kbd_queue_push(PS2_CMD_RESET);
+	int ok;
+	emul = 0;
+	released = 0;
+	CIRC_BUF_PUSH(kbd_cmd_queue, PS2_CMD_RESET, ok);
 	ps2_write_data(PS2_CMD_RESET);
+	(void)ok;
 }
 
 
@@ -236,32 +191,84 @@ void kbd_handle_interrupt()
 {
 	uint32_t value;
 	uint8_t cmd;
-	int queue_empty;
+	int ok;
 
-	/* check the queue for commands */
-	queue_empty = kbd_queue_peek(&cmd);
-	if (!queue_empty) {
-		switch (cmd) {
-			case PS2_KEY_RELEASED:
-			default:
-				/* just pull the data from the keyboard and discard it, we don't care */
-				ps2_read_data();
-				kbd_queue_pop(&cmd);
-				break;
-		}
-	}
-	else {
-		/* read from the port */
-		value = ps2_read_data();
-		if (value == PS2_KEY_RELEASED) {
-			/* if released, read garbage */
-			kbd_queue_push(PS2_KEY_RELEASED);
-		}
-		else {
-			/* just echo the key value for now, we'll handle things specifically later */
-			putc(scancodes[value]);
-		}
+	/* read data from line */
+	value = ps2_read_data();
+
+	/* decide what to do with it */
+	switch (value) {
+		case PS2_RET_ATTACH:
+			printf("PS/2 Keyboard Attached\n");
+			/* if this was the result of a reset, clear it from the buffer */
+			CIRC_BUF_PEEK(kbd_cmd_queue, cmd, ok);
+			if (ok && cmd == PS2_CMD_RESET) {
+				CIRC_BUF_POP(kbd_cmd_queue, cmd, ok);
+			}
+			break;
+		case KBD_KEY_EMUL1:
+			emul = 2;
+			break;
+		case KBD_KEY_EMUL0:
+			emul = 1;
+			break;
+		case PS2_RET_NAK:
+			CIRC_BUF_PEEK(kbd_cmd_queue, cmd, ok);
+			if (ok) {
+				/* resend value since the keyboard/controller did not receive what we sent */
+				ps2_write_command(cmd);
+			}
+			else {
+				printf("WARN: keyboard nak'd and we didn't send a command\n");
+			}
+			break;
+		case KBD_KEY_RELEASED:
+			released = 1;
+			break;
+		default:
+			/* if there's a command, respond to it here */
+			CIRC_BUF_PEEK(kbd_cmd_queue, cmd, ok);
+			if (ok) {
+				switch (cmd) {
+					default:
+						/* not handling specific commands right now */
+						break;
+				}
+			}
+
+			/* otherwise, it's a key, so we handle it */
+
+			/* translate multibyte into single byte */
+			value = kbd_combine_key(value);
+			if (emul && --emul) {
+				return;
+			}
+			value = scancodes[value];
+
+			/* handle specific keys */
+			switch (value) {
+				case KBD_KEY_NULL:
+					break;
+				default:
+					if (released) {
+						released = 0;
+						term_handle_keypress(value, 0);
+						break;
+					}
+					term_handle_keypress(value, 1);
+			}
+			break;
 	}
 }
 
+/* combines multibyte keys into a single byte */
+int16_t kbd_combine_key(int16_t value)
+{
+	/* combine multibyte */
+	value = (value & 0x7f) | ((value & 0x80) << 1);
+	if (emul == 1) {
+		value |= 0x80;
+	}
 
+	return value;
+}

@@ -4,6 +4,7 @@
  
 #include "paging.h"
 #include "lib.h"
+#include "vga.h"
 #include "x86_desc.h"
 
 /* method used, 1 for old, 0 for new */
