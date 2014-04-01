@@ -21,9 +21,6 @@
 #define BLOCK_SIZE			4096;
 #define ADDRESSES_PER_BLOCK	1024;
 
-/* beginning of the file system */
-extern uint32_t* fs_head;
-
 
 /* ________Data Structures________ */
 
@@ -80,7 +77,7 @@ typedef struct dentry
 
 
 /*	Boot Block
- *	64 + (num_entries * 64) bytes
+ *	4096 bytes
  */
 typedef struct boot_block
 {
@@ -94,7 +91,7 @@ typedef struct boot_block
 	uint32_t num_nodes;
 	uint32_t num_blocks;
 	uint8_t reserved[52];
-	dentry_t entries[63]; //used to traverse dir. entries
+	dentry_t entries[63];
 	
 		
 } __attribute__((packed)) boot_block_t;

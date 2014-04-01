@@ -6,52 +6,62 @@
 
 #include "file_sys.h"
 
+uint32_t* node_head;
+uint32_t* data_head;
+
+extern multiboot_info_t *mbi;
+boot_block_t * boot_block;
+
+ 
 /* Sets up the head pointer for the file system
  * Sets up relevant structures and variables
  *
  * Inputs:	pointer to fs head
  * Outputs:	none
- */
- uint32_t* node_head, * data_head;
- boot_block_t * boot_block;
- 
-void fs_init(uint32_t * beg)
+ */ 
+void fs_init(void)
 {
-	fs_head = beg;
+	module_t* temp = (module_t*)mbi->mods_addr;
+	boot_block = (boot_block_t *)temp->mod_start;
 	
-	boot_block = (boot_block_t *)fs_head;
-	node_head = boot_block + ADDRESSES_PER_BLOCK;
+	node_head = (uint32_t)(boot_block + 1);
 	data_head = node_head + (boot_block->num_nodes)*ADDRESSES_PER_BLOCK;
 }
 
-/* 
- *
+/*  Read data from specified file into specified buffer
+ *  Return amount read.
  */
-uint32_t fs_read(uint8_t* buf, int count)
+uint32_t fs_read(file_t* file, uint8_t* buf, int count)
 {
-	return 0;
+	if (buf == 0) return -1;
+		
+	int ret = read_data(file->inode_ptr, file->file_pos, buf, count);
+	file->file_pos += ret;
+		
+	return ret;
 }
 
-/* 
- *
+/*  Read-only file system.
+ *  Not implemented (yet ;] ).
+ *  Return -1
  */
-uint32_t fs_write(/**/)
+uint32_t fs_write(void)
 {
 	return -1;
 }
 
-/* 
- *
+/*  Filler function. File system already open
+ *  Return 0;
  */
-uint32_t fs_open(/**/)
+uint32_t fs_open(void)
 {
 	return 0;
 }
 
-/* 
- *
+/*  Filler function. File system does not close
+ *  Return 0;
  */
-uint32_t fs_close(/**/)
+uint32_t fs_close(void)
 {
 	return 0;
 }
@@ -149,7 +159,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 		return -1;
 	}
 	
-	index_node_t* my_inode = node_head + inode * ADDRESSES_PER_BLOCK; 
+	index_node_t* my_inode = (node_head + inode * ADDRESSES_PER_BLOCK); 
 	
 	//	If the offset is beyond the block length, 0 bytes were written.
 	if(my_inode->byte_length < offset)
@@ -213,4 +223,43 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 	
 	return bytes_read;
 
+}
+
+/*  Traverse the boot block
+ *  Return the current file name to read from the boot block
+ */
+uint32_t dir_read(file_t* file, uint8_t* buf, int count)
+{
+	/* Check for current location in boot block */
+	
+	/* If first read, return 0th file_name */
+	
+	/* If second+ read, increment then return file_name */
+	
+	
+}
+
+/*  Read-only file system.
+ *  Not implemented (yet ;] ).
+ *  Return -1
+ */
+uint32_t dir_write(void)
+{
+	return -1;
+}
+
+/*  Filler function. Directory already open
+ *  Return 0;
+ */
+uint32_t dir_open(void)
+{
+	return 0;
+}
+
+/*  Filler function. Directory does not close
+ *  Return 0;
+ */
+uint32_t dir_close(void)
+{
+	return 0;
 }
