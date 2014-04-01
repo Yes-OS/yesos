@@ -231,8 +231,8 @@ entry (unsigned long magic, unsigned long addr)
 	clear();
 		
 	int8_t test_result;
-	test_result = _test_read();
-	//test_result = test_fs_all();
+	//test_result = _test_read();
+	test_result = test_fs_all();
 	printf("Result (test_fs_all): %d\n", test_result);
 
 	
