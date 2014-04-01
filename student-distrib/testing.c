@@ -17,11 +17,14 @@ int8_t _test_read(void)
 	/*__Read dentry by name test__*/
 	printf("Testing read_dentry_by_name\n");
 	
-	int32_t retval;
-	int8_t* test_fname	= "frame1.txt"; 
-	dentry_t* test_dentry;
+	int32_t retval = 0;
+	int8_t* test_fname	= "grep"; 
+	dentry_t test_dentry;
+	int32_t inode_test = 13;
+	dentry_t test_dentry2;
 	
-	retval = read_dentry_by_name ((uint8_t*)test_fname, test_dentry);
+	
+	retval = read_dentry_by_name ((uint8_t*)test_fname, &test_dentry);
 	if(retval == -1){
 		printf("read_dentry_by_name failed. Exiting Test.\n");
 		return -1;
@@ -29,20 +32,16 @@ int8_t _test_read(void)
 	
 	printf("test_dentry values:\n");
 	
-	printf("Filename: %s\n",test_dentry->file_name);
-	printf("Should be 2: %u\n",test_dentry->file_type);
-	printf("inode_num: %u\n",test_dentry->inode_num);
+	printf("Filename: %s\n",test_dentry.file_name);
+	printf("Should be 2: %u\n",test_dentry.file_type);
+	printf("inode_num: %u\n",test_dentry.inode_num);
 		
 	printf("Done with read_dentry_by_name testing\n");
-	
 	
 	/*__Read dentry by index test__*/
 	printf("Testing read_dentry_by_index\n");
 	
-	int32_t inode_test = test_dentry->inode_num;
-	dentry_t* test_dentry2;
-	
-	retval = read_dentry_by_index(inode_test, test_dentry2);
+	retval = read_dentry_by_index(inode_test, &test_dentry2);
 	if(retval == -1){
 		printf("read_dentry_by_index failed. Exiting Test.\n");
 		return -1;
@@ -50,12 +49,11 @@ int8_t _test_read(void)
 	
 	printf("test_dentry2 values:\n");
 	
-	printf("Filename: %s\n",test_dentry2->file_name);
-	printf("Should be 2: %u\n",test_dentry2->file_type);
-	printf("inode_num: %u\n",test_dentry2->inode_num);
+	printf("Filename: %s\n",test_dentry2.file_name);
+	printf("Should be 2: %u\n",test_dentry2.file_type);
+	printf("inode_num: %u\n",test_dentry2.inode_num);
 		
 	printf("Done with read_dentry_by_index testing\n");
-	
 
 	return 0;
 

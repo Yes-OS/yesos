@@ -93,7 +93,7 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry)
 		
 			temp = &((boot_block->entries)[i]);
 			
-			strncpy((int8_t *)dentry->file_name, (int8_t*)temp->file_name, FILE_NAME_SIZE);
+			strncpy((int8_t *)dentry->file_name, (int8_t*)temp->file_name, strlen((int8_t*)temp->file_name) + 1);
 			dentry->file_type = temp->file_type;
 			dentry->inode_num = temp->inode_num;
 		
