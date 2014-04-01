@@ -192,7 +192,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 		{
 			if(db_first)
 			{
-				memcpy(buf+bytes_read, data_block+offset, BLOCK_SIZE-offset);
+				memcpy(buf+bytes_read, data_block+offset/ADDRESSES_PER_BLOCK, BLOCK_SIZE-offset);
 				bytes_read += BLOCK_SIZE-offset;
 			}
 			else
@@ -206,19 +206,19 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 		{
 			if(bytes_unread < BLOCK_SIZE-offset)
 			{
-				memcpy(buf+bytes_read, data_block+offset*db_first, bytes_unread);
+				memcpy(buf+bytes_read, data_block+offset/ADDRESSES_PER_BLOCK*db_first, bytes_unread);
 				bytes_read += bytes_unread;
 			}
 			else
 			{
-				memcpy(buf+bytes_read, data_block+offset*db_first, BLOCK_SIZE-offset);
+				memcpy(buf+bytes_read, data_block+offset/ADDRESSES_PER_BLOCK*db_first, BLOCK_SIZE-offset);
 				bytes_read += BLOCK_SIZE-offset;
 			}
 		}
 		//	If bytes unread is more than data in block, just read data left in block.
 		else
 		{
-			memcpy(buf+bytes_read, data_block+offset*db_first, data_unread);
+			memcpy(buf+bytes_read, data_block+offset/ADDRESSES_PER_BLOCK*db_first, data_unread);
 			bytes_read += data_unread;
 		}
 		
