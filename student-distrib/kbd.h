@@ -15,6 +15,8 @@
 #define KBD_KEY_LSHIFT	0x12
 #define KBD_KEY_RSHIFT	0x59
 
+#define KBD_KEY_NULL	0x00
+
 #ifndef ASM
 
 void kbd_init();

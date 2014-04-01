@@ -18,7 +18,7 @@
 		type buf[size];                     \
 	} (name)
 
-#define CIRC_BUF_FULL(queue) (BUF_PTR_DIFF(queue, tail, head) == (SIZEOF_BUF(queue) - 1))
+#define CIRC_BUF_FULL(queue) (BUF_PTR_DIFF(queue, tail, head) == (SIZEOF_BUF(queue) - 2))
 #define CIRC_BUF_EMPTY(queue) (BUF_PTR_DIFF(queue, tail, head) == 0)
 
 #define CIRC_BUF_INIT(queue)                \
@@ -79,6 +79,8 @@
 		*(buf).head = val;                    \
 		(ok) = 1;                             \
 	} while (0)
+
+#define CIRC_BUF_IDX(_buf, idx) ((((idx >= 0) ? (_buf).head : (_buf).tail) - (_buf).buf + (idx)) % SIZEOF_BUF(_buf) + (_buf).buf)
 
 #endif
 #endif
