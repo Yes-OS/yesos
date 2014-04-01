@@ -79,7 +79,9 @@ int8_t _test_file_sys(void)
 	if (file_sys_count == -1) file_sys_count = 0;
 	if (file_sys_count != 0) return file_sys_count; //return if failure this far
 	
-	/* test file sys read */
+	/* test file sys read
+	 * uint32_t fs_write(file_t* file, uint8_t* buf, int count)
+	 */
 	printf("HEY: fs read test not implemented yet\n");
 	
 	return file_sys_count;
@@ -105,7 +107,9 @@ int8_t _test_directory(void)
 	if (direc_count == -1) direc_count = 0;
 	if (direc_count != 0) return direc_count; //return if failure this far
 	
-	/* test directory read */
+	/* test directory read
+	 * uint32_t dir_read(file_t* file, uint8_t* buf, int count)
+	 */
 	printf("HEY: Direc read test not implemented yet\n");
 	
 	return direc_count;
@@ -122,9 +126,9 @@ int8_t test_fs_all (void)
 	int8_t error_count;
 	error_count = 0;
 	
-	// printf("Read tests:...\n");
-	// error_count += _test_read();
-	// printf("Read tests done.\n");
+	printf("Read tests:...\n");
+	error_count += _test_read();
+	printf("Read tests done.\n");
 	
 	
 	printf("File system tests:...\n");	

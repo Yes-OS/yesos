@@ -232,6 +232,8 @@ entry (unsigned long magic, unsigned long addr)
 		
 	int8_t test_result;
 	//test_result = _test_read();
+	//test_result = _test_file_sys();
+	//test_result = _test_directory();
 	test_result = test_fs_all();
 	printf("Result (test_fs_all): %d\n", test_result);
 
