@@ -5,6 +5,8 @@
 #include "rtc.h"
 #include "lib.h"
 
+uint32_t rtc_intf;
+
 /* initialize the RTC */
 void rtc_init(void)
 {
@@ -46,7 +48,7 @@ void rtc_handle_interrupt()
 	outb(REG_C, NMI_RTC_PORT);
 	inb(RTC_RAM_PORT);
 
-	/* do the test interrupts function so we know things are working */
+	/*Call the test interrupts function to be sure of interrupts occurring */
 	//test_interrupts(); 
 
 
@@ -203,15 +205,26 @@ void rtc_rw_test(void)
 {
 
 	uint32_t i = 2;
+	uint32_t j = 0;
 	int32_t fd_test = 0;
 	int32_t nbytes_test = 4;
 	
 	while(i != 2048){
 	
 		rtc_read(fd_test, (void*)i, nbytes_test);
-		rtc_write(fd_test, (void*)i, nbytes_test);
+		printf("RTC int occurred ");
 		
-		i *= 2;	
+		if(j == i){
+			rtc_write(fd_test, (void*)i, nbytes_test);
+			i *= 2;
+		
+			if(i == 2048){
+				printf("MAX FREQUENCY REACHED. STOPPING TEST");
+			}		
+		}
+		
+		j++;
+			
 	}
 	
 }

@@ -38,7 +38,7 @@
 /*RTC interrupt flag*/
 //set flag to 1 in rtc_read
 //clear flag with interrupt handler
-int rtc_intf;
+extern uint32_t rtc_intf;
 
 /*Initializes the RTC to IRQ 8*/
 void rtc_init(void);

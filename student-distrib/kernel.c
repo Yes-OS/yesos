@@ -173,6 +173,10 @@ entry (unsigned long magic, unsigned long addr)
 	kbd_init();
 	enable_irq(KBD_IRQ_PORT);
 	printf("done\n");
+	
+	/*printf("    Initializing File System... ");
+	fs_init();
+	printf("done\n");*/
 
 	/*NEW: Initialize paging. Much wow! */
 	printf("    Initializing Paging... ");
@@ -193,7 +197,7 @@ entry (unsigned long magic, unsigned long addr)
 	
 	/*RTC TESTING HERE*/
 	//rtc_open_test();
-	//rtc_rw_test();
+	rtc_rw_test();
 
 
 
