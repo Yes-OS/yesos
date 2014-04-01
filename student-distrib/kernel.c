@@ -182,6 +182,10 @@ entry (unsigned long magic, unsigned long addr)
 	printf("    Initializing Paging... ");
 	paging_init();
 	printf("done\n");
+	
+	printf("    Initializing File System... ");
+	fs_init();
+	printf("done\n");
 
 	/* Enable interrupts */
 	/* Do not enable the following until after you have set up your
