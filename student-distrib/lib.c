@@ -181,6 +181,8 @@ puts(int8_t* s)
 void
 putc(uint8_t c)
 {
+	int16_t i;
+
     if(c == '\n' || c == '\r') {
         screen_y++;
         screen_x=0;
@@ -195,15 +197,31 @@ putc(uint8_t c)
 		/* clear the character */
 		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = ' ';
 		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
-    } else if (c == '\0') {
-		/* do nothing */
 	} else {
-        *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = c;
-        *(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
-        screen_x++;
-        screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
-        screen_x %= NUM_COLS;
-    }
+		if (c == '\0') {
+			return;
+		}
+		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = c;
+		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
+		screen_x++;
+		screen_y = screen_y + (screen_x / NUM_COLS);
+		screen_x %= NUM_COLS;
+	}
+	if (screen_y >= NUM_ROWS) {
+		/* shift screen up */
+		for (i = 0; i < (NUM_ROWS - 1) * NUM_COLS; i++) {
+			*(uint8_t *)(video_mem + ((NUM_COLS*(i / NUM_COLS) + (i % NUM_COLS)) << 1)) =
+				*(uint8_t *)(video_mem + ((NUM_COLS*(i / NUM_COLS + 1) + (i % NUM_COLS)) << 1));
+			*(uint8_t *)(video_mem + ((NUM_COLS*(i / NUM_COLS) + (i % NUM_COLS)) << 1) + 1) =
+				*(uint8_t *)(video_mem + ((NUM_COLS*(i / NUM_COLS + 1) + (i % NUM_COLS)) << 1) + 1);
+		}
+		/* clear last row */
+		for (i = (NUM_ROWS - 1) * NUM_COLS; i < NUM_ROWS * NUM_COLS; i++) {
+			*(uint8_t *)(video_mem + ((NUM_COLS*(i / NUM_COLS) + (i % NUM_COLS)) << 1)) = ' ';
+			*(uint8_t *)(video_mem + ((NUM_COLS*(i / NUM_COLS) + (i % NUM_COLS)) << 1) + 1) = ATTRIB;
+		}
+		screen_y = NUM_ROWS - 1;
+	}
 }
 
 /*

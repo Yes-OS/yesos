@@ -26,6 +26,10 @@
 #define PS2_CMD_WRITE_CONFIGURATION		0x60
 #define PS2_CMD_TEST_PORT1				0xAB
 
+/* the PS/2 response codes */
+#define PS2_RET_NAK						0xFE
+#define PS2_RET_ATTACH					0xAA
+
 /* the PS/2 controller configuration */
 #define PS2_CFG_INT_PORT1				(1 << 0)
 #define PS2_CFG_INT_PORT2				(1 << 1)
@@ -108,6 +112,9 @@ const static uint16_t scancodes[SCAN_ENTRIES] = {
 #define CMD_QUEUE_LEN 64
 DECLARE_CIRC_BUF(uint8_t, kbd_cmd_queue, CMD_QUEUE_LEN);
 uint8_t emul = 0;
+uint8_t released = 0;
+
+static int16_t kbd_combine_key(int16_t value);
 
 
 void kbd_init()
@@ -172,6 +179,7 @@ void kbd_reset()
 {
 	int ok;
 	emul = 0;
+	released = 0;
 	CIRC_BUF_PUSH(kbd_cmd_queue, PS2_CMD_RESET, ok);
 	ps2_write_data(PS2_CMD_RESET);
 	(void)ok;
@@ -185,52 +193,82 @@ void kbd_handle_interrupt()
 	uint8_t cmd;
 	int ok;
 
-	/* check the queue for commands */
-	CIRC_BUF_PEEK(kbd_cmd_queue, cmd, ok);
-	if (ok) {
-		switch (cmd) {
-			case KBD_KEY_RELEASED:
-				/* send the key release event to the terminal */
-				value = ps2_read_data();
-				term_handle_keypress(scancodes[value], 0);
-				CIRC_BUF_POP(kbd_cmd_queue, cmd, ok);
-				break;
-			default:
-				/* just pull the data from the keyboard and discard it, we don't care */
-				ps2_read_data();
-				CIRC_BUF_POP(kbd_cmd_queue, cmd, ok);
-				break;
-		}
-	}
-	else {
-		/* read from the port */
-		value = ps2_read_data();
-		switch (value) {
-			case KBD_KEY_RELEASED:
-				CIRC_BUF_PUSH(kbd_cmd_queue, KBD_KEY_RELEASED, ok);
-				break;
-			case KBD_KEY_EMUL0:
-				emul = 1;
-				break;
-			case KBD_KEY_EMUL1:
-				emul = 2;
-				break;
-			default:
-				/* combine multibyte */
-				value = (value & 0x7f) | ((value & 0x80) << 1);
-				if (emul == 1) {
-					value |= 0x80;
-				}
-				else if (emul && --emul) {
-					return;
-				}
+	/* read data from line */
+	value = ps2_read_data();
 
-				value = scancodes[value];
-				if (value) {
-					term_handle_keypress(value, 1);
+	/* decide what to do with it */
+	switch (value) {
+		case PS2_RET_ATTACH:
+			printf("PS/2 Keyboard Attached\n");
+			/* if this was the result of a reset, clear it from the buffer */
+			CIRC_BUF_PEEK(kbd_cmd_queue, cmd, ok);
+			if (ok && cmd == PS2_CMD_RESET) {
+				CIRC_BUF_POP(kbd_cmd_queue, cmd, ok);
+			}
+			break;
+		case KBD_KEY_EMUL1:
+			emul = 2;
+			break;
+		case KBD_KEY_EMUL0:
+			emul = 1;
+			break;
+		case PS2_RET_NAK:
+			CIRC_BUF_PEEK(kbd_cmd_queue, cmd, ok);
+			if (ok) {
+				/* resend value since the keyboard/controller did not receive what we sent */
+				ps2_write_command(cmd);
+			}
+			else {
+				printf("WARN: keyboard nak'd and we didn't send a command\n");
+			}
+			break;
+		case KBD_KEY_RELEASED:
+			released = 1;
+			break;
+		default:
+			/* if there's a command, respond to it here */
+			CIRC_BUF_PEEK(kbd_cmd_queue, cmd, ok);
+			if (ok) {
+				switch (cmd) {
+					default:
+						/* not handling specific commands right now */
+						break;
 				}
-				break;
-		}
+			}
+
+			/* otherwise, it's a key, so we handle it */
+
+			/* translate multibyte into single byte */
+			value = kbd_combine_key(value);
+			if (emul && --emul) {
+				return;
+			}
+			value = scancodes[value];
+
+			/* handle specific keys */
+			switch (value) {
+				case KBD_KEY_NULL:
+					break;
+				default:
+					if (released) {
+						released = 0;
+						term_handle_keypress(value, 0);
+						break;
+					}
+					term_handle_keypress(value, 1);
+			}
+			break;
 	}
 }
 
+/* combines multibyte keys into a single byte */
+int16_t kbd_combine_key(int16_t value)
+{
+	/* combine multibyte */
+	value = (value & 0x7f) | ((value & 0x80) << 1);
+	if (emul == 1) {
+		value |= 0x80;
+	}
+
+	return value;
+}
