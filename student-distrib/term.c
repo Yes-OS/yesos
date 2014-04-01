@@ -71,7 +71,9 @@ int32_t term_read(int32_t fd, void *buf, int32_t nbytes)
 
 	for (count = 0; count < idx; count++) {
 		CIRC_BUF_POP(term_key_buf, c, ok);
-		buffer[count] = c;
+		if (ok) {
+			buffer[count] = c;
+		}
 	}
 
 	return idx;
