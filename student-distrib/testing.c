@@ -18,9 +18,9 @@ int8_t _test_read(void)
 	printf("Testing read_dentry_by_name\n");
 	
 	int32_t retval = 0;
-	int8_t* test_fname	= "grep"; 
+	int8_t* test_fname	= "grep"; //insert file name to test for here
 	dentry_t test_dentry;
-	int32_t inode_test = 13;
+	int32_t inode_test = 12;	//inset index number to test for here
 	dentry_t test_dentry2;
 	
 	
@@ -33,7 +33,7 @@ int8_t _test_read(void)
 	printf("test_dentry values:\n");
 	
 	printf("Filename: %s\n",test_dentry.file_name);
-	printf("Should be 2: %u\n",test_dentry.file_type);
+	printf("File type: %u\n",test_dentry.file_type);
 	printf("inode_num: %u\n",test_dentry.inode_num);
 		
 	printf("Done with read_dentry_by_name testing\n");
@@ -50,7 +50,7 @@ int8_t _test_read(void)
 	printf("test_dentry2 values:\n");
 	
 	printf("Filename: %s\n",test_dentry2.file_name);
-	printf("Should be 2: %u\n",test_dentry2.file_type);
+	printf("File type: %u\n",test_dentry2.file_type);
 	printf("inode_num: %u\n",test_dentry2.inode_num);
 		
 	printf("Done with read_dentry_by_index testing\n");

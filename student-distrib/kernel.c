@@ -231,7 +231,7 @@ entry (unsigned long magic, unsigned long addr)
 	clear();
 		
 	int8_t test_result;
-	//test_result = _test_read();
+	test_result = _test_read();
 	//test_result = _test_file_sys();
 	//test_result = _test_directory();
 	test_result = test_fs_all();
