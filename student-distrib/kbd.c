@@ -4,6 +4,7 @@
 #include "types.h"
 #include "lib.h"
 #include "vga.h"
+#include "queue.h"
 #include "kbd.h"
 
 /* the PS/2 ports */
@@ -76,7 +77,7 @@
 	} while (0)
 
 /* block while reading a byte from the data port */
-static uint32_t ps2_read_data()
+static inline uint32_t ps2_read_data()
 {
 	uint32_t data;
 	uint32_t status;
@@ -97,83 +98,25 @@ const static char scancodes[SCAN_ENTRIES] = {
 };
 
 /* sent when a key is sent */
-#define PS2_KEY_RELEASED			0xf0
+#define KBD_KEY_RELEASED			0xf0
+
+
+/* Defines a circular buffer for keypresses */
+#define KBD_BUF_SIZE 128
+DECLARE_CIRC_BUF(int8_t, kbd_key_buf, KBD_BUF_SIZE);
 
 
 /* Defines a circular FIFO command queue for the PS/2 keyboard */
 #define CMD_QUEUE_LEN 64
-/* increment the pointer, wrap if necessary */
-#define INC(ptr) (((ptr - kbd_cmd_queue) + 1) % CMD_QUEUE_LEN + kbd_cmd_queue)
-/* find the difference between the head and tail pointers, wrapping around the end of 
- * of the queue if necessary */
-#define DIFF(head, tail) (((tail) - (head) + CMD_QUEUE_LEN) % CMD_QUEUE_LEN)
+DECLARE_CIRC_BUF(uint8_t, kbd_cmd_queue, CMD_QUEUE_LEN);
 
-/* define the actual queue */
-uint8_t kbd_cmd_queue[CMD_QUEUE_LEN] = {0};
-uint8_t *kcq_head, *kcq_tail;
-
-/* queue related function definitions */
-static void kbd_queue_init();
-static int kbd_queue_push(uint8_t cmd);
-static int kbd_queue_pop(uint8_t *cmd);
-static int kbd_queue_peek(uint8_t *cmd);
-
-
-/* Initialize the keyboard command queue, clearing the head and tail pointers */
-static void kbd_queue_init()
-{
-	kcq_head = kcq_tail = kbd_cmd_queue;
-}
-
-/* Push a command to the end of the queue, returns 0 on success and -1 on failure */
-static int kbd_queue_push(uint8_t cmd)
-{
-	if (DIFF(kcq_head, kcq_tail) == CMD_QUEUE_LEN) {
-		/* queue is full, quit */
-		return -1;
-	}
-
-	/* push command to tail */
-	*kcq_tail = cmd;
-	kcq_tail = INC(kcq_tail);
-
-	return 0;
-}
-
-/* Pop a command from the head of hte queue, returns 0 on success and -1 on failure */
-static int kbd_queue_pop(uint8_t *cmd)
-{
-	if (DIFF(kcq_head, kcq_tail) == 0) {
-		/* queue is empty, quit */
-		return -1;
-	}
-
-	/* pop command from head */
-	*cmd = *kcq_head;
-	kcq_head = INC(kcq_head);
-
-	return 0;
-}
-
-/* Peek at the head of the queue, returns 0 on success and -1 on failure */
-static int kbd_queue_peek(uint8_t *cmd)
-{
-	if (DIFF(kcq_head, kcq_tail) == 0) {
-		/* queue is empty, quit */
-		return -1;
-	}
-
-	/* copy command from head */
-	*cmd = *kcq_head;
-
-	return 0;
-}
 
 void kbd_init()
 {
 	uint32_t read;
 
-	kbd_queue_init();
+	CIRC_BUF_INIT(kbd_cmd_queue);
+	CIRC_BUF_INIT(kbd_key_buf);
 
 	/* disable all PS/2 devices */
 	ps2_write_command(PS2_CMD_DISABLE_PORT1);
@@ -209,7 +152,7 @@ void kbd_init()
 	read = ps2_read_data();
 	if (read != 0) {
 		printf("Welp, we're borked for other reasons! [0x%x]\n", read);
-		//return;
+		return;
 	}
 
 	/* enable ps/2 port 1 */
@@ -227,8 +170,10 @@ void kbd_init()
 /* Sends the reset command to the keyboard */
 void kbd_reset()
 {
-	kbd_queue_push(PS2_CMD_RESET);
+	int ok;
+	CIRC_BUF_PUSH(kbd_cmd_queue, PS2_CMD_RESET, ok);
 	ps2_write_data(PS2_CMD_RESET);
+	(void)ok;
 }
 
 
@@ -237,31 +182,32 @@ void kbd_handle_interrupt()
 {
 	uint32_t value;
 	uint8_t cmd;
-	int queue_empty;
+	int ok;
 
 	/* check the queue for commands */
-	queue_empty = kbd_queue_peek(&cmd);
-	if (!queue_empty) {
+	CIRC_BUF_PEEK(kbd_cmd_queue, cmd, ok);
+	if (ok) {
 		switch (cmd) {
-			case PS2_KEY_RELEASED:
+			case KBD_KEY_RELEASED:
 			default:
 				/* just pull the data from the keyboard and discard it, we don't care */
 				ps2_read_data();
-				kbd_queue_pop(&cmd);
+				CIRC_BUF_POP(kbd_cmd_queue, cmd, ok);
 				break;
 		}
 	}
 	else {
 		/* read from the port */
 		value = ps2_read_data();
-		if (value == PS2_KEY_RELEASED) {
+		if (value == KBD_KEY_RELEASED) {
 			/* if released, read garbage */
-			kbd_queue_push(PS2_KEY_RELEASED);
+			CIRC_BUF_PUSH(kbd_cmd_queue, KBD_KEY_RELEASED, ok);
 		}
 		else {
 			/* just echo the key value for now, we'll handle things specifically later */
 			putc(scancodes[value]);
 			update_cursor();
+			CIRC_BUF_PUSH(kbd_key_buf, scancodes[value], ok);
 		}
 	}
 }
