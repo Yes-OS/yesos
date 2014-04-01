@@ -6,14 +6,14 @@
 
 #include "types.h"
 
-#define KBD_KEY_LCTRL	0x14
-#define KBD_KEY_RCTRL	0x94
-#define KBD_KEY_LALT	0x11
-#define KBD_KEY_RALT	0x91
-#define KBD_KEY_LSUPER	0x9F
-#define KBD_KEY_RSUPER	0xA7
-#define KBD_KEY_LSHIFT	0x12
-#define KBD_KEY_RSHIFT	0x59
+/* #define KBD_KEY_LCTRL	0x14 */
+/* #define KBD_KEY_RCTRL	0x94 */
+/* #define KBD_KEY_LALT	0x11 */
+/* #define KBD_KEY_RALT	0x91 */
+/* #define KBD_KEY_LSUPER	0x9F */
+/* #define KBD_KEY_RSUPER	0xA7 */
+/* #define KBD_KEY_LSHIFT	0x12 */
+/* #define KBD_KEY_RSHIFT	0x59 */
 
 
 /* define virtual keys */
@@ -70,6 +70,7 @@
 #define KBD_KEY_COMMA				0x2E
 #define KBD_KEY_PERIOD				0x2F
 #define KBD_KEY_FSLASH				0x30
+#define KBD_KEY_SPACE				0x31
 
 #define KBD_KEY_RETURN				0x70
 #define KBD_KEY_TAB					0x71
