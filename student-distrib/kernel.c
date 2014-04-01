@@ -154,6 +154,18 @@ entry (unsigned long magic, unsigned long addr)
 	clear();
 
 	printf("\n\nWelcome to Yes OS\n\n");
+	printf("----------------------------------------\n");
+	printf("YYY    YYY      EEEEEEEEEE       SSSSSSSSS                                  \n");
+	printf(" YY    YY       EE              SS                                          \n");
+	printf("  YY  YY        EE              SS                                          \n");
+	printf("    YY          EE              SS                                          \n");
+	printf("    YY          EEEEEE           SSSSSSSS          OOOOOOOO        SSSSSSSS \n");
+	printf("    YY          EE                      SS        OO      OO      SS        \n");
+	printf("    YY          EE                      SS        OO      OO       SSSSSSSS \n");
+	printf("    YY          EE                      SS        OO      OO              SS\n");
+	printf("    YY          EEEEEEEEEE      SSSSSSSSS     oo   OOOOOOOO       SSSSSSSSS \n");
+
+
 	printf("Initializing subsystems\n");
 
 	/* Init the PIC */
@@ -178,24 +190,23 @@ entry (unsigned long magic, unsigned long addr)
 	enable_irq(KBD_IRQ_PORT);
 	printf("done\n");
 
-	/*NEW: Initialize paging. Much wow! */
+	printf("    Initializing File System... ");
+	fs_init();
+	printf("done\n");
+
 	printf("    Initializing Paging... ");
 	paging_init();
 	printf("done\n");
 	
-	printf("    Initializing File System... ");
-	fs_init();
-	printf("done\n");
 
 	/* Enable interrupts */
 	/* Do not enable the following until after you have set up your
 	 * IDT correctly otherwise QEMU will triple fault and simple close
 	 * without showing you any output */
-	printf("    STI: Enabling Interrupts... ");
+	printf("    Enabling Interrupts (STI)... ");
 	sti();
 	printf("done\n");
-
-	printf("\nWelcome!\n");
+	printf("----------------------------------------");
 
 	/* Execute the first program (`shell') ... */
 

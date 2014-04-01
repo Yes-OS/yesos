@@ -106,82 +106,43 @@ void fs_init(void);
  */
 uint32_t fs_read(file_t* file, uint8_t* buf, int count);
 
-/*  Read-only file system.
- *  Not implemented (yet ;] ).
- *  Return -1
- */
-uint32_t fs_write(void);
+/*  Read-only file system. Not implemented. */
+uint32_t fs_write(file_t* file, uint8_t* buf, int count);
 
-/*  Filler function. File system already open
- *  Return 0;
- */
+/*  Filler functions. File system not opened/closed */
 uint32_t fs_open(void);
-
-/*  Filler function. File system does not close
- *  Return 0;
- */
 uint32_t fs_close(void);
 
 
 /*	Read Directory Entry by Name
- *	Parameters:	fname 	- the name of the file.
- *				dentry	- pointer to directory entry of file to set name.
  *
  *  Fill 'dentry_t' block passed in with:
  *		-file name, file type, and inode number
- *
- *	Return 0 on success, -1 on failure.
- *	
  */
 int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry);
 
 /*	Read Directory Entry by Name
- *	Parameters:	fname 	- the name of the file.
- *				dentry	- pointer to directory entry of file to set name.
  *
  *  Fill 'dentry_t' block passed in with:
  *		-file name, file type, and inode number
- *
- *	Return 0 on success, -1 on failure.
- *	
  */
 int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry);
 
 /*	Read Data
- *	Parameters:	inode	- the index node of the data.
- *				offset	- how many bytes to begin reading at?
- *				buf		- data array to read.
- *				length  - size of array.
- *
+
  *  Reads up to 'length' bytes from position 'offset'
  *	  in the file with 'inode' number into the given 'buf' buffer.
- *
- *  Return  # of bytes read and placed into buffer
- *			0 when end of file reached.
- *			-1 on failure.
- *
  */
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length);
 
-/*  Traverse the boot block
- *  Return the current file name to read from the boot block
- */
+/*  Traverse the boot block and read out file name */
 uint32_t dir_read(file_t* file, uint8_t* buf, int count);
 
-/*  Read-only file system.
- *  Not implemented (yet ;] ).
- *  Return -1
- */
-uint32_t dir_write(void);
+/*  Read-only file system. Not implemented. */
+uint32_t dir_write(file_t* file, uint8_t* buf, int count);
 
-/*  Filler function. Directory already open
- *  Return 0;
- */
+/*  Filler functions. Directory not opened/closed */
 uint32_t dir_open(void);
-
-/*  Filler function. Directory does not close
- *  Return 0;
- */
 uint32_t dir_close(void);
 
 

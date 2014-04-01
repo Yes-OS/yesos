@@ -44,7 +44,7 @@ uint32_t fs_read(file_t* file, uint8_t* buf, int count)
  *  Not implemented (yet ;] ).
  *  Return -1
  */
-uint32_t fs_write(void)
+uint32_t fs_write(file_t* file, uint8_t* buf, int count)
 {
 	return -1;
 }
@@ -232,18 +232,35 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 
 }
 
+/* Used to read the directory */
+uint8_t read_flag = 0;
+uint8_t index = 0;
+
+
 /*  Traverse the boot block
- *  Return the current file name to read from the boot block
+ *  Fill the current file name to read from the boot block into the buffer
+ *  Return 0 on success; -1 on fail
  */
 uint32_t dir_read(file_t* file, uint8_t* buf, int count)
 {
 	/* Check for current location in boot block */
+	if (buf == 0) return -1;
 	
-	/* If first read, return 0th file_name */
+	
+	/* If first read, don't move one more yet */
+	if (read_flag == 0){
+		read_flag = 1;
+	} else {
+		index++;
+	}
+	
+	/* If at the end of the directory */
+	if (index == 63) return 0;
 	
 	/* If second+ read, increment then return file_name */
+	strncpy((int8_t*)buf, (int8_t*)boot_block->entries[index].file_name, FILE_NAME_SIZE);
 	
-	return -1;
+	return 0;
 	
 }
 
@@ -251,7 +268,7 @@ uint32_t dir_read(file_t* file, uint8_t* buf, int count)
  *  Not implemented (yet ;] ).
  *  Return -1
  */
-uint32_t dir_write(void)
+uint32_t dir_write(file_t* file, uint8_t* buf, int count)
 {
 	return -1;
 }
