@@ -153,8 +153,8 @@ entry (unsigned long magic, unsigned long addr)
 
 	clear();
 
-	printf("\n\nWelcome to Yes OS\n\n");
 	printf("----------------------------------------\n");
+	printf("Welcome to\n\n");
 	printf("YYY    YYY      EEEEEEEEEE       SSSSSSSSS                                  \n");
 	printf(" YY    YY       EE              SS                                          \n");
 	printf("  YY  YY        EE              SS                                          \n");
@@ -164,7 +164,8 @@ entry (unsigned long magic, unsigned long addr)
 	printf("    YY          EE                      SS        OO      OO       SSSSSSSS \n");
 	printf("    YY          EE                      SS        OO      OO              SS\n");
 	printf("    YY          EEEEEEEEEE      SSSSSSSSS     oo   OOOOOOOO       SSSSSSSSS \n");
-
+	printf("----------------------------------------\n");
+	
 
 	printf("Initializing subsystems\n");
 
@@ -209,7 +210,10 @@ entry (unsigned long magic, unsigned long addr)
 	printf("----------------------------------------");
 
 	/* Execute the first program (`shell') ... */
-
+	
+	/* **NEW** Test the filesystem */
+	test_fs_all();
+	
     
 	/* Spin (nicely, so we don't chew up cycles) */
 	halt();
