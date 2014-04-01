@@ -13,6 +13,8 @@
 #include "paging.h"
 #include "vga.h"
 #include "term.h"
+#include "file_sys.h"
+#include "testing.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -71,6 +73,11 @@ entry (unsigned long magic, unsigned long addr)
 			mod_count++;
 		}
 	}
+
+	/* file system stuff */
+	module_t* temp = (module_t*)mbi->mods_addr;
+	mbi_val = (boot_block_t *)temp->mod_start;
+
 	/* Bits 4 and 5 are mutually exclusive! */
 	if (CHECK_FLAG (mbi->flags, 4) && CHECK_FLAG (mbi->flags, 5))
 	{
@@ -178,6 +185,10 @@ entry (unsigned long magic, unsigned long addr)
 	enable_irq(KBD_IRQ_PORT);
 	printf("done\n");
 
+	printf("    Initializing File System... ");
+	fs_init();
+	printf("done\n");
+
 	/*NEW: Initialize paging. Much wow! */
 	printf("    Initializing Paging... ");
 	paging_init();
@@ -202,6 +213,20 @@ entry (unsigned long magic, unsigned long addr)
 
 	puts("\n\n");
 	update_cursor();
+
+	clear();
+
+	int8_t test_result;
+	test_result = _test_read();
+	test_result = test_fs_all();
+	printf("Result (test_fs_all): %d\n", test_result);
+
+	if (!test_result) {
+		printf("testing SUCCESSFUL!\n");
+	}
+	else {
+		printf("testing FAILED!\n");
+	}
 
 	while (1) {
 		bread = term_read(STDIN, buffer, sizeof(buffer)/sizeof(buffer[0]));
