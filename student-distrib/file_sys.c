@@ -12,9 +12,16 @@
  * Inputs:	pointer to fs head
  * Outputs:	none
  */
+ uint32_t* node_head, * data_head;
+ boot_block_t * boot_block;
+ 
 void fs_init(uint32_t * beg)
 {
 	fs_head = beg;
+	
+	boot_block = (boot_block_t *)fs_head;
+	node_head = boot_block + ADDRESSES_PER_BLOCK;
+	data_head = node_head + (boot_block->num_nodes)*ADDRESSES_PER_BLOCK;
 }
 
 /* 
@@ -63,16 +70,26 @@ uint32_t fs_close(/**/)
 int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry)
 {
 	//Check for non-existant file or invalid index
-	if(true)
-	{
-		return -1;
+	
+	/*start from dentry index 1 because index 0 is current directory*/
+	uint8_t i = 1;
+	
+	while(i <= boot_block->num_entries){
+	
+		if(!(strncmp(fname, boot_block->entries[i].file_name, FILE_NAME_SIZE))){
+		
+			dentry->file_name =	fname;
+			dentry->file_type = boot_block->entries[i].file_type;
+			dentry->inode_num = i;
+		
+			return 0;
+		}
+		
+		i++;
+		
 	}
 
-//	dentry->file_name = fname;
-
-// use memcpy
-
-	return 0;
+	return -1;
 }
 
 /*	Read Directory Entry by Name
@@ -93,15 +110,18 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry)
 //		dentry->inode_num = index;
 
 	//Check for non-existant file or invalid index
-	if(true)
+	if(index <= boot_block->num_nodes)
 	{
-		return -1;
+	
+		dentry->file_name =	boot_block->entries[index].file_name;
+		dentry->file_type = boot_block->entries[index].file_type;
+		dentry->inode_num = boot_block->entries[index].inode_num;
+	
+		return 0;
+		
 	}
 
-
-// use memcpy
-
-	return 0;
+	return -1;
 }
 
 /*	Read Data
@@ -120,25 +140,69 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry)
  */
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length)
 {
-	unsigned int num_bytes_read;
-	unsigned int end_of_file; //placeholder
-	
-	num_bytes_read = 1234;
-	end_of_file = 1;
+	//unsigned int num_bytes_read;
+	uint32_t bytes_read = 0;
 	
 	//Check that the given inode is within the valid range
-	if(true)
+	if(inode > boot_block->num_nodes)
 	{
-		return -1
+		return -1;
 	}
-
-// use memcpy
-
-	if(end_of_file)
+	
+	index_node_t* my_inode = node_head + inode * ADDRESSES_PER_BLOCK; 
+	
+	//	If the offset is beyond the block length, 0 bytes were written.
+	if(my_inode->byte_length < offset)
 	{
 		return 0;
 	}
 	
-	return (num_bytes_read);
+	//	How many data blocks have been read.
+	uint32_t db_index = offset/BLOCK_SIZE;
+	uint32_t first_db = 1;
+	
+	//	Iterate through the data blocks until bytes_read >= length or end is reached
+	while( (bytes_read < length) && (bytes_read+offset < my_inode->byte_length) )
+	{
+		//	Find data block from inode data block number.
+		data_block_t * data_block = (data_block_t *)(data_head + (my_inode->data_blocks[db_index]) * ADDRESSES_PER_BLOCK);
+		
+		//	Calculate bytes unread and data left to read.
+		uint32_t bytes_unread = length - bytes_read;
+		uint32_t data_unread = (my_inode->byte_length) - (db_index*BLOCK_SIZE);
+		
+		//	If bytes unread is at least block size and data unread also is at least block size, just read block size.
+		if(bytes_unread >= BLOCK_SIZE && data_unread >= BLOCK_SIZE)
+		{
+			memcpy(buf+bytes_read, data_block+offset, BLOCK_SIZE);
+			bytes_read += BLOCK_SIZE;
+		}
+		//	If bytes unread is less than data in block, just read bytes unread.
+		else if(bytes_unread < data_unread)
+		{
+			if(bytes_unread < BLOCK_SIZE-offset)
+			{
+				memcpy(buf+bytes_read, data_block+offset, bytes_unread);
+				bytes_read += bytes_unread;
+			}
+			else
+			{
+				memcpy(buf+bytes_read, data_block+offset, bytes_unread);
+				bytes_read += bytes_unread;
+			}
+		}
+		//	If bytes unread is more than data in block, just read data left in block.
+		else
+		{
+			memcpy(buf+bytes_read, data_block+offset, data_unread);
+			bytes_read += data_unread;
+		}
+		
+		first_db = 0;
+		db_index++;
+
+	}
+	
+	return bytes_read;
 
 }

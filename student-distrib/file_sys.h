@@ -18,6 +18,9 @@
 #define FILE_TYPE_DIR		1;
 #define FILE_TYPE_REG		2;
 
+#define BLOCK_SIZE			4096;
+#define ADDRESSES_PER_BLOCK	1024;
+
 /* beginning of the file system */
 extern uint32_t* fs_head;
 
@@ -32,7 +35,7 @@ typedef struct file {
     uint32_t inode_ptr;
     uint32_t file_pos;
     uint32_t flags;
-} file_t;
+} __attribute__((packed)) file_t;
 
 /*	Index Node Struct
  *	4096-bytes
@@ -42,11 +45,21 @@ typedef struct index_node
 	//	4 bytes - length in bytes
 	//	4 bytes per data block #
 
-	uint32_t block_length;
-	uint32_t * data_block;	//used to traverse blocks
+	uint32_t byte_length;
+	uint32_t data_blocks[BLOCK_SIZE / sizeof(uint32_t) - 1];	//used to traverse blocks
 
-} index_node_t;
+} __attribute__((packed)) index_node_t;
 
+/*	Data Block Struct
+ *	4096-bytes
+ */
+typedef struct data_block
+{
+	//	4096 bytes of data
+
+	uint8_t data[BLOCK_SIZE];	//data in data block
+
+} __attribute__((packed)) data_block_t;
 
 /*	Directory Entry Struct
  *	64-bytes
@@ -58,11 +71,12 @@ typedef struct dentry
 	//	4 bytes	 - inode number (ignored for type 0 and 1)
 	//	24 bytes - reserved 
 
-	uint8_t * file_name;
+	uint8_t file_name[32];
 	uint32_t file_type;
 	uint32_t inode_num;
+	uint8_t reserved[24];
 
-} dentry_t;
+} __attribute__((packed)) dentry_t;
 
 
 /*	Boot Block
@@ -79,10 +93,11 @@ typedef struct boot_block
 	uint32_t num_entries;
 	uint32_t num_nodes;
 	uint32_t num_blocks;
-	dentry_t * entries; //used to traverse dir. entries
-	//	array size stored in 'num_entries'
+	uint8_t reserved[52];
+	dentry_t entries[63]; //used to traverse dir. entries
+	
 		
-} boot_block_t;
+} __attribute__((packed)) boot_block_t;
 
 
 /* ________Function prototypes________ */
