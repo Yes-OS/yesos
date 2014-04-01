@@ -34,11 +34,15 @@ int32_t term_read(int32_t fd, void *buf, int32_t nbytes)
 /* if fd is STDOUT, proceed as normal, otherwise fail */
 int32_t term_write(int32_t fd, const void *buf, int32_t nbytes)
 {
+	int idx;
+
 	if (fd != STDOUT) {
 		return -1;
 	}
 
-	puts((int8_t *)buf);
+	for (idx = 0; idx < nbytes; idx++) {
+		putc(((int8_t *)buf)[idx]);
+	}
 
-	return nbytes;
+	return idx;
 }
