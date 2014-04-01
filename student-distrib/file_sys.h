@@ -9,17 +9,18 @@
 #include "types.h"
 #include "lib.h"
 #include "x86_desc.h"
+#include "multiboot.h"
 
 #ifndef ASM
 
-#define FILE_NAME_SIZE 		32;
+#define FILE_NAME_SIZE 		32
 
-#define FILE_TYPE_RTC		0;
-#define FILE_TYPE_DIR		1;
-#define FILE_TYPE_REG		2;
+#define FILE_TYPE_RTC		0
+#define FILE_TYPE_DIR		1
+#define FILE_TYPE_REG		2
 
-#define BLOCK_SIZE			4096;
-#define ADDRESSES_PER_BLOCK	1024;
+#define BLOCK_SIZE			4096
+#define ADDRESSES_PER_BLOCK	1024
 
 
 /* ________Data Structures________ */
@@ -37,21 +38,19 @@ typedef struct file {
 /*	Index Node Struct
  *	4096-bytes
  */
-typedef struct index_node
-{
+typedef struct index_node{
 	//	4 bytes - length in bytes
 	//	4 bytes per data block #
 
 	uint32_t byte_length;
-	uint32_t data_blocks[BLOCK_SIZE / sizeof(uint32_t) - 1];	//used to traverse blocks
+	uint32_t data_blocks[ADDRESSES_PER_BLOCK - 1];
 
 } __attribute__((packed)) index_node_t;
 
 /*	Data Block Struct
  *	4096-bytes
  */
-typedef struct data_block
-{
+typedef struct data_block{
 	//	4096 bytes of data
 
 	uint8_t data[BLOCK_SIZE];	//data in data block
@@ -61,8 +60,7 @@ typedef struct data_block
 /*	Directory Entry Struct
  *	64-bytes
  */
-typedef struct dentry
-{
+typedef struct dentry{
 	//	32 bytes - file name
 	//	4 bytes	 - files type	(0, 1, or 2)
 	//	4 bytes	 - inode number (ignored for type 0 and 1)
@@ -79,8 +77,7 @@ typedef struct dentry
 /*	Boot Block
  *	4096 bytes
  */
-typedef struct boot_block
-{
+typedef struct boot_block{
 	//	4 bytes - number of directory entries
 	//	4 bytes - number of index nodes (inodes)
 	//	4 bytes - number of data blocks
@@ -99,30 +96,29 @@ typedef struct boot_block
 
 /* ________Function prototypes________ */
 
-/*
- *
- */
 void fs_init(void);
 
-/* 
- *
+/*  Read data from specified file into specified buffer
+ *  Return amount read.
  */
-uint32_t fs_read(uint8_t* buf, int count);
+uint32_t fs_read(file_t* file, uint8_t* buf, int count);
 
-/* 
- *
+/*  Read-only file system.
+ *  Not implemented (yet ;] ).
+ *  Return -1
  */
-uint32_t fs_write(/**/);
+uint32_t fs_write(void);
 
-/* 
- *
+/*  Filler function. File system already open
+ *  Return 0;
  */
-uint32_t fs_open(/**/);
+uint32_t fs_open(void);
 
-/* 
- *
+/*  Filler function. File system does not close
+ *  Return 0;
  */
-uint32_t fs_close(/**/);
+uint32_t fs_close(void);
+
 
 /*	Read Directory Entry by Name
  *	Parameters:	fname 	- the name of the file.
@@ -134,8 +130,7 @@ uint32_t fs_close(/**/);
  *	Return 0 on success, -1 on failure.
  *	
  */
-int32_t read_dentry_by_name(const uint8_t* fname, dentry_t* dentry);
-
+int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry);
 
 /*	Read Directory Entry by Name
  *	Parameters:	fname 	- the name of the file.
@@ -164,6 +159,28 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry);
  *
  */
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length);
+
+/*  Traverse the boot block
+ *  Return the current file name to read from the boot block
+ */
+uint32_t dir_read(file_t* file, uint8_t* buf, int count);
+
+/*  Read-only file system.
+ *  Not implemented (yet ;] ).
+ *  Return -1
+ */
+uint32_t dir_write(void);
+
+/*  Filler function. Directory already open
+ *  Return 0;
+ */
+uint32_t dir_open(void);
+
+/*  Filler function. Directory does not close
+ *  Return 0;
+ */
+uint32_t dir_close(void);
+
 
 
 #endif /* ASM           */

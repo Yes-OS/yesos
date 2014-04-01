@@ -24,7 +24,7 @@ void fs_init(void)
 	module_t* temp = (module_t*)mbi->mods_addr;
 	boot_block = (boot_block_t *)temp->mod_start;
 	
-	node_head = (uint32_t)(boot_block + 1);
+	node_head = (uint32_t*)(boot_block + 1);
 	data_head = node_head + (boot_block->num_nodes)*ADDRESSES_PER_BLOCK;
 }
 
@@ -79,18 +79,26 @@ uint32_t fs_close(void)
  */
 int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry)
 {
-	//Check for non-existant file or invalid index
+	dentry_t* temp;
+	
+	//Check for non-existent file or invalid index
 	
 	/*start from dentry index 1 because index 0 is current directory*/
 	uint8_t i = 1;
 	
 	while(i <= boot_block->num_entries){
 	
-		if(!(strncmp(fname, boot_block->entries[i].file_name, FILE_NAME_SIZE))){
+		if(!(strncmp( (int8_t*)fname, (int8_t*)(boot_block->entries[i]).file_name, (uint32_t)FILE_NAME_SIZE))){
 		
-			dentry->file_name =	fname;
-			dentry->file_type = boot_block->entries[i].file_type;
-			dentry->inode_num = i;
+			temp = &((boot_block->entries)[i]);
+			
+			dentry->file_name = temp->file_name;
+			dentry->file_type = temp->file_type;
+			dentry->inode_num = temp->inode_num;
+		
+			// dentry->file_name = fname;
+			// dentry->file_type = (boot_block->entries[i]).file_type;
+			// dentry->inode_num = i;
 		
 			return 0;
 		}
@@ -159,7 +167,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 		return -1;
 	}
 	
-	index_node_t* my_inode = (node_head + inode * ADDRESSES_PER_BLOCK); 
+	index_node_t* my_inode = (index_node_t*)(node_head + inode * ADDRESSES_PER_BLOCK); 
 	
 	//	If the offset is beyond the block length, 0 bytes were written.
 	if(my_inode->byte_length < offset)
@@ -236,6 +244,7 @@ uint32_t dir_read(file_t* file, uint8_t* buf, int count)
 	
 	/* If second+ read, increment then return file_name */
 	
+	return -1;
 	
 }
 

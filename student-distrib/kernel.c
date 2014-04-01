@@ -11,6 +11,7 @@
 #include "rtc.h"
 #include "kbd.h"
 #include "paging.h"
+#include "file_sys.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
