@@ -12,6 +12,7 @@
 #include "kbd.h"
 #include "paging.h"
 #include "file_sys.h"
+#include "testing.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -212,7 +213,9 @@ entry (unsigned long magic, unsigned long addr)
 	/* Execute the first program (`shell') ... */
 	
 	/* **NEW** Test the filesystem */
-	test_fs_all();
+	uint8_t test_result;
+	test_result = test_fs_all();
+	printf("test_fs_all result %d", test_result);
 	
     
 	/* Spin (nicely, so we don't chew up cycles) */

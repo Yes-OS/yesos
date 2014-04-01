@@ -12,7 +12,7 @@ uint32_t test_buf[128];
  */
 uint8_t _test_read(void)
 {
-
+	return -1;
 }
 
 
@@ -20,7 +20,7 @@ uint8_t _test_read(void)
  */
 uint8_t _test_file_sys(void)
 {
-
+	return -1;
 }
 
 
@@ -28,7 +28,7 @@ uint8_t _test_file_sys(void)
  */
 uint8_t _test_directory(void)
 {
-
+	return -1;
 }
 
 
