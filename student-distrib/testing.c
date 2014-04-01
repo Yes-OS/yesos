@@ -37,7 +37,7 @@ int8_t _test_read(void)
 	
 	
 	/*__Read dentry by index test__*/
-	/*printf("Testing read_dentry_by_index\n");
+	printf("Testing read_dentry_by_index\n");
 	
 	int32_t inode_test = test_dentry->inode_num;
 	dentry_t* test_dentry2;
@@ -55,7 +55,7 @@ int8_t _test_read(void)
 	printf("inode_num: %u\n",test_dentry2->inode_num);
 		
 	printf("Done with read_dentry_by_index testing\n");
-	*/
+	
 
 	return 0;
 
