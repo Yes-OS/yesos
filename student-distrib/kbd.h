@@ -6,13 +6,20 @@
 
 #include "types.h"
 
+#define KBD_KEY_LCTRL	0x14
+#define KBD_KEY_RCTRL	0x94
+#define KBD_KEY_LALT	0x11
+#define KBD_KEY_RALT	0x91
+#define KBD_KEY_LSUPER	0x9F
+#define KBD_KEY_RSUPER	0xA7
+#define KBD_KEY_LSHIFT	0x12
+#define KBD_KEY_RSHIFT	0x59
+
 #ifndef ASM
 
 void kbd_init();
 void kbd_reset();
 void kbd_handle_interrupt();
-
-int32_t kbd_read(uint8_t *buf, int32_t nbytes);
 
 #endif
 

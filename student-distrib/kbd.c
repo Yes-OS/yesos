@@ -5,6 +5,7 @@
 #include "lib.h"
 #include "vga.h"
 #include "queue.h"
+#include "term.h"
 #include "kbd.h"
 
 /* the PS/2 ports */
@@ -92,23 +93,21 @@ static inline uint32_t ps2_read_data()
 }
 
 /* the scancode to ascii table */
-#define SCAN_ENTRIES 256
-const static char scancodes[SCAN_ENTRIES] = {
+#define SCAN_ENTRIES 512
+const static uint16_t scancodes[SCAN_ENTRIES] = {
 	#include "scancodes.h"
 };
 
 /* sent when a key is sent */
 #define KBD_KEY_RELEASED			0xf0
-
-
-/* Defines a circular buffer for keypresses */
-#define KBD_BUF_SIZE 128
-DECLARE_CIRC_BUF(int8_t, kbd_key_buf, KBD_BUF_SIZE);
+#define KBD_KEY_EMUL0				0xe0
+#define KBD_KEY_EMUL1				0xe1
 
 
 /* Defines a circular FIFO command queue for the PS/2 keyboard */
 #define CMD_QUEUE_LEN 64
 DECLARE_CIRC_BUF(uint8_t, kbd_cmd_queue, CMD_QUEUE_LEN);
+uint8_t emul = 0;
 
 
 void kbd_init()
@@ -116,7 +115,8 @@ void kbd_init()
 	uint32_t read;
 
 	CIRC_BUF_INIT(kbd_cmd_queue);
-	CIRC_BUF_INIT(kbd_key_buf);
+	/* awful hack to handle first 0xAA sent */
+	CIRC_BUF_PUSH(kbd_cmd_queue, PS2_CMD_RESET, read);
 
 	/* disable all PS/2 devices */
 	ps2_write_command(PS2_CMD_DISABLE_PORT1);
@@ -171,6 +171,7 @@ void kbd_init()
 void kbd_reset()
 {
 	int ok;
+	emul = 0;
 	CIRC_BUF_PUSH(kbd_cmd_queue, PS2_CMD_RESET, ok);
 	ps2_write_data(PS2_CMD_RESET);
 	(void)ok;
@@ -189,6 +190,11 @@ void kbd_handle_interrupt()
 	if (ok) {
 		switch (cmd) {
 			case KBD_KEY_RELEASED:
+				/* send the key release event to the terminal */
+				value = ps2_read_data();
+				term_handle_keypress(scancodes[value], 0);
+				CIRC_BUF_POP(kbd_cmd_queue, cmd, ok);
+				break;
 			default:
 				/* just pull the data from the keyboard and discard it, we don't care */
 				ps2_read_data();
@@ -199,21 +205,32 @@ void kbd_handle_interrupt()
 	else {
 		/* read from the port */
 		value = ps2_read_data();
-		if (value == KBD_KEY_RELEASED) {
-			/* if released, read garbage */
-			CIRC_BUF_PUSH(kbd_cmd_queue, KBD_KEY_RELEASED, ok);
-		}
-		else {
-			/* just echo the key value for now, we'll handle things specifically later */
-			putc(scancodes[value]);
-			update_cursor();
-			CIRC_BUF_PUSH(kbd_key_buf, scancodes[value], ok);
+		switch (value) {
+			case KBD_KEY_RELEASED:
+				CIRC_BUF_PUSH(kbd_cmd_queue, KBD_KEY_RELEASED, ok);
+				break;
+			case KBD_KEY_EMUL0:
+				emul = 1;
+				break;
+			case KBD_KEY_EMUL1:
+				emul = 2;
+				break;
+			default:
+				/* combine multibyte */
+				value = (value & 0x7f) | ((value & 0x80) << 1);
+				if (emul == 1) {
+					value |= 0x80;
+				}
+				else if (emul && --emul) {
+					return;
+				}
+
+				value = scancodes[value];
+				if (value) {
+					term_handle_keypress(value, 1);
+				}
+				break;
 		}
 	}
 }
 
-int32_t kbd_read(uint8_t *buf, int32_t nbytes)
-{
-	(void)buf; (void)nbytes;
-	return -1;
-}
