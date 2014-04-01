@@ -6,11 +6,10 @@
 
 #include "file_sys.h"
 
-uint32_t* node_head;
-uint32_t* data_head;
-
-extern multiboot_info_t *mbi;
-boot_block_t * boot_block;
+/*Global variables for File_sys functions*/
+static uint32_t* node_head;
+static uint32_t* data_head;
+static boot_block_t * boot_block;
 
  
 /* Sets up the head pointer for the file system
@@ -92,7 +91,7 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry)
 		
 			temp = &((boot_block->entries)[i]);
 			
-			dentry->file_name = temp->file_name;
+			strncpy((int8_t *)dentry->file_name, (int8_t*)temp->file_name, FILE_NAME_SIZE);
 			dentry->file_type = temp->file_type;
 			dentry->inode_num = temp->inode_num;
 		
@@ -131,7 +130,7 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry)
 	if(index <= boot_block->num_nodes)
 	{
 	
-		dentry->file_name =	boot_block->entries[index].file_name;
+		strncpy((int8_t*)dentry->file_name, (int8_t*)boot_block->entries[index].file_name, FILE_NAME_SIZE);
 		dentry->file_type = boot_block->entries[index].file_type;
 		dentry->inode_num = boot_block->entries[index].inode_num;
 	

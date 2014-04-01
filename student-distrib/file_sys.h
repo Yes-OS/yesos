@@ -22,6 +22,7 @@
 #define BLOCK_SIZE			4096
 #define ADDRESSES_PER_BLOCK	1024
 
+extern multiboot_info_t* mbi;
 
 /* ________Data Structures________ */
 
