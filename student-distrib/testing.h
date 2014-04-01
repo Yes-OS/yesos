@@ -25,11 +25,11 @@
 /* ________Function prototypes________ */
 
 
-uint8_t _test_read(void);
-uint8_t _test_file_sys(void);
-uint8_t _test_directory(void);
+int8_t _test_read(void);
+int8_t _test_file_sys(void);
+int8_t _test_directory(void);
 
-extern uint8_t test_fs_all (void);
+int8_t test_fs_all (void);
 
 
 #endif /* ASM           */

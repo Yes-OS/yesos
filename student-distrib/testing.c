@@ -6,29 +6,65 @@
 
 #include "testing.h"
 
-uint32_t test_buf[128];
 
 /* Read tests 
+ * Three functions
  */
-uint8_t _test_read(void)
+int8_t _test_read(void)
 {
-	return -1;
+	return 0;
 }
 
 
 /* File system tests 
+ * read, write, open, close
  */
-uint8_t _test_file_sys(void)
+int8_t _test_file_sys(void)
 {
-	return -1;
+	/* reset fs pointers */
+	fs_init();
+
+	/* Hold error count for this test section */
+	int8_t file_sys_count;
+	file_sys_count = 0;
+	
+	/* test file open/close/write */
+	file_sys_count += fs_open(); 			//ret 0 on success
+	file_sys_count += fs_close(); 			//ret 0 on success
+	file_sys_count += fs_write(0, 0, 0); 	//ret -1 on 'success'
+	if (file_sys_count == -1) file_sys_count = 0;
+	if (file_sys_count != 0) return file_sys_count; //return if failure this far
+	
+	/* test file sys read */
+	printf("fs read test not implemented yet")
+	
+	return file_sys_count;
 }
 
 
 /* Directory tests 
+ * read, write, open, close
  */
-uint8_t _test_directory(void)
+int8_t _test_directory(void)
 {
-	return -1;
+	/* reset fs pointers */
+	fs_init();
+
+	/* Hold error count for this test section */
+	int8_t direc_count;
+	direc_count = 0;
+	
+	/* test directory open/close/write */
+	direc_count += dir_open(); 			//ret 0 on success
+	direc_count += dir_close(); 		//ret 0 on success
+	direc_count += dir_write(0, 0, 0); 	//ret -1 on 'success'
+	if (direc_count == -1) direc_count = 0;
+	if (direc_count != 0) return direc_count; //return if failure this far
+	
+	/* test directory read */
+	printf("Direc read test not implemented yet")
+	
+	return direc_count;
 }
 
 
@@ -37,9 +73,9 @@ uint8_t _test_directory(void)
  *  Return 0 when all tests return no error
  *  Return -1 else
  */
-uint8_t test_fs_all (void)
+int8_t test_fs_all (void)
 {
-	uint8_t error_count;
+	int8_t error_count;
 	error_count = 0;
 	
 	printf("Read tests:...\n");
@@ -52,7 +88,7 @@ uint8_t test_fs_all (void)
 	printf("File system tests done.\n");
 	
 	
-	printf("Directory tests:...");
+	printf("Directory tests:...\n");
 	error_count += _test_directory();
 	printf("Directory tests done.\n");
 

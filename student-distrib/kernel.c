@@ -18,15 +18,15 @@
 /* Check if the bit BIT in FLAGS is set. */
 #define CHECK_FLAG(flags,bit)   ((flags) & (1 << (bit)))
 
+/* Install OS flag, in case we suspect qemu/gdb to be acting out */
+#define I_LOVE_EWS 0
+
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
 void
 entry (unsigned long magic, unsigned long addr)
 {
 	multiboot_info_t *mbi;
-	
-	module_t* temp = (module_t*)mbi->mods_addr;
-	mbi_val = (boot_block_t *)temp->mod_start;
 
 	/* Clear the screen. */
 	clear();
@@ -72,6 +72,13 @@ entry (unsigned long magic, unsigned long addr)
 			mod_count++;
 		}
 	}
+	
+#if I_LOVE_EWS == 0
+	/* File system head */
+	module_t* temp = (module_t*)mbi->mods_addr;
+	mbi_val = (boot_block_t *)temp->mod_start;
+#endif
+	
 	/* Bits 4 and 5 are mutually exclusive! */
 	if (CHECK_FLAG (mbi->flags, 4) && CHECK_FLAG (mbi->flags, 5))
 	{
@@ -111,6 +118,7 @@ entry (unsigned long magic, unsigned long addr)
 					(unsigned) mmap->length_low);
 	}
 
+	
 	/* Construct an LDT entry in the GDT */
 	{
 		seg_desc_t the_ldt_desc;
@@ -151,6 +159,8 @@ entry (unsigned long magic, unsigned long addr)
 		tss.esp0 = 0x800000;
 		ltr(KERNEL_TSS);
 	}
+	
+#if I_LOVE_EWS == 0
 
 	clear();
 
@@ -192,7 +202,7 @@ entry (unsigned long magic, unsigned long addr)
 	enable_irq(KBD_IRQ_PORT);
 	printf("done\n");
 
-	printf("    Initializing File System... ");
+	printf("    Initializing File System Driver... ");
 	fs_init();
 	printf("done\n");
 
@@ -208,16 +218,27 @@ entry (unsigned long magic, unsigned long addr)
 	printf("    Enabling Interrupts (STI)... ");
 	sti();
 	printf("done\n");
-	printf("----------------------------------------");
+	printf("----------------------------------------\n");
 
 	/* Execute the first program (`shell') ... */
 	
-	/* **NEW** Test the filesystem */
-	uint8_t test_result;
-	test_result = test_fs_all();
-	printf("test_fs_all result %d", test_result);
 	
-    
+	
+	/* **NEW** Test the filesystem */
+	clear();
+	
+	int8_t test_result;
+	test_result = test_fs_all();
+	printf("Result (test_fs_all): %d\n", test_result);
+	
+	if (test_result == 0){
+		printf("Test SUCCESSFUL!");
+	} else {
+		printf("Test FAILED!");
+	}
+	
+#endif
+
 	/* Spin (nicely, so we don't chew up cycles) */
 	halt();
 }

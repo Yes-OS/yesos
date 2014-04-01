@@ -95,10 +95,6 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry)
 			dentry->file_type = temp->file_type;
 			dentry->inode_num = temp->inode_num;
 		
-			// dentry->file_name = fname;
-			// dentry->file_type = (boot_block->entries[i]).file_type;
-			// dentry->inode_num = i;
-		
 			return 0;
 		}
 		
