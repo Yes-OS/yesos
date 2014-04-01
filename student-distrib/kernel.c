@@ -27,7 +27,11 @@ void
 entry (unsigned long magic, unsigned long addr)
 {
 	multiboot_info_t *mbi;
+<<<<<<< .mine
+	
+=======
 
+>>>>>>> .r15878
 	/* Clear the screen. */
 	clear();
 
@@ -72,6 +76,12 @@ entry (unsigned long magic, unsigned long addr)
 			mod_count++;
 		}
 	}
+<<<<<<< .mine
+	
+	module_t* temp = (module_t*)mbi->mods_addr;
+	mbi_val = (boot_block_t *)temp->mod_start;
+	
+=======
 	
 #if I_LOVE_EWS == 0
 	/* File system head */
@@ -79,6 +89,7 @@ entry (unsigned long magic, unsigned long addr)
 	mbi_val = (boot_block_t *)temp->mod_start;
 #endif
 	
+>>>>>>> .r15878
 	/* Bits 4 and 5 are mutually exclusive! */
 	if (CHECK_FLAG (mbi->flags, 4) && CHECK_FLAG (mbi->flags, 5))
 	{
@@ -117,7 +128,7 @@ entry (unsigned long magic, unsigned long addr)
 					(unsigned) mmap->length_high,
 					(unsigned) mmap->length_low);
 	}
-
+	
 	
 	/* Construct an LDT entry in the GDT */
 	{
@@ -159,8 +170,12 @@ entry (unsigned long magic, unsigned long addr)
 		tss.esp0 = 0x800000;
 		ltr(KERNEL_TSS);
 	}
+<<<<<<< .mine
+	
+=======
 	
 #if I_LOVE_EWS == 0
+>>>>>>> .r15878
 
 	clear();
 
@@ -225,11 +240,14 @@ entry (unsigned long magic, unsigned long addr)
 	
 	
 	/* **NEW** Test the filesystem */
+
 	clear();
-	
+		
 	int8_t test_result;
-	test_result = test_fs_all();
+	test_result = _test_read();
+	//test_result = test_fs_all();
 	printf("Result (test_fs_all): %d\n", test_result);
+
 	
 	if (test_result == 0){
 		printf("Test SUCCESSFUL!");
