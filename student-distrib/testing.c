@@ -36,7 +36,7 @@ int8_t _test_file_sys(void)
 	if (file_sys_count != 0) return file_sys_count; //return if failure this far
 	
 	/* test file sys read */
-	printf("fs read test not implemented yet")
+	printf("fs read test not implemented yet");
 	
 	return file_sys_count;
 }
@@ -62,7 +62,7 @@ int8_t _test_directory(void)
 	if (direc_count != 0) return direc_count; //return if failure this far
 	
 	/* test directory read */
-	printf("Direc read test not implemented yet")
+	printf("Direc read test not implemented yet");
 	
 	return direc_count;
 }
