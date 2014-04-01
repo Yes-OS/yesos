@@ -159,7 +159,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 	
 	//	How many data blocks have been read.
 	uint32_t db_index = offset/BLOCK_SIZE;
-	uint32_t first_db = 1;
+	uint32_t db_first = 1;
 	
 	//	Iterate through the data blocks until bytes_read >= length or end is reached
 	while( (bytes_read < length) && (bytes_read+offset < my_inode->byte_length) )
@@ -169,36 +169,44 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 		
 		//	Calculate bytes unread and data left to read.
 		uint32_t bytes_unread = length - bytes_read;
-		uint32_t data_unread = (my_inode->byte_length) - (db_index*BLOCK_SIZE);
+		uint32_t data_unread = (my_inode->byte_length) - bytes_read - offset;
 		
 		//	If bytes unread is at least block size and data unread also is at least block size, just read block size.
 		if(bytes_unread >= BLOCK_SIZE && data_unread >= BLOCK_SIZE)
 		{
-			memcpy(buf+bytes_read, data_block+offset, BLOCK_SIZE);
-			bytes_read += BLOCK_SIZE;
+			if(db_first)
+			{
+				memcpy(buf+bytes_read, data_block+offset, BLOCK_SIZE-offset);
+				bytes_read += BLOCK_SIZE-offset;
+			}
+			else
+			{
+				memcpy(buf+bytes_read, data_block, BLOCK_SIZE);
+				bytes_read += BLOCK_SIZE;
+			}
 		}
 		//	If bytes unread is less than data in block, just read bytes unread.
 		else if(bytes_unread < data_unread)
 		{
 			if(bytes_unread < BLOCK_SIZE-offset)
 			{
-				memcpy(buf+bytes_read, data_block+offset, bytes_unread);
+				memcpy(buf+bytes_read, data_block+offset*db_first, bytes_unread);
 				bytes_read += bytes_unread;
 			}
 			else
 			{
-				memcpy(buf+bytes_read, data_block+offset, bytes_unread);
-				bytes_read += bytes_unread;
+				memcpy(buf+bytes_read, data_block+offset*db_first, BLOCK_SIZE-offset);
+				bytes_read += BLOCK_SIZE-offset;
 			}
 		}
 		//	If bytes unread is more than data in block, just read data left in block.
 		else
 		{
-			memcpy(buf+bytes_read, data_block+offset, data_unread);
+			memcpy(buf+bytes_read, data_block+offset*db_first, data_unread);
 			bytes_read += data_unread;
 		}
 		
-		first_db = 0;
+		db_first = 0;
 		db_index++;
 
 	}
