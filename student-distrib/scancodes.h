@@ -13,7 +13,7 @@
 /* 40 */'\0',	KBD_KEY_COMMA,	KBD_KEY_K,	KBD_KEY_I,	KBD_KEY_O,	KBD_KEY_0,	KBD_KEY_9,	'\0',
 /* 48 */'\0',	KBD_KEY_PERIOD,	KBD_KEY_FSLASH,	KBD_KEY_L,	KBD_KEY_SEMICOLON,	KBD_KEY_P,	KBD_KEY_MINUS,	'\0',
 /* 50 */'\0',	'\0',	KBD_KEY_SQUOTE,	'\0',	KBD_KEY_LBRACKET,	KBD_KEY_EQUALS,	'\0',	'\0',
-/* 58 */'\0',	KBD_KEY_RSHIFT,	KBD_KEY_RETURN,	KBD_KEY_RBRACKET,	'\0',	KBD_KEY_BSLASH,	'\0',	'\0',
+/* 58 */KBD_KEY_CAPS,	KBD_KEY_RSHIFT,	KBD_KEY_RETURN,	KBD_KEY_RBRACKET,	'\0',	KBD_KEY_BSLASH,	'\0',	'\0',
 /* 60 */'\0',	'\0',	'\0',	'\0',	'\0',	'\0',	KBD_KEY_BKSP,	'\0',
 /* 68 */'\0',	'\0',	'\0',	'\0',	'\0',	'\0',	'\0',	'\0',
 /* 70 */'\0',	'\0',	'\0',	'\0',	'\0',	'\0',	'\0',	'\0',
