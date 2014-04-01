@@ -22,16 +22,16 @@
 #define KBD_KEY_ESC					0x01
 #define KBD_KEY_BTICK				0x02
 
-#define KBD_KEY_0					0x03
-#define KBD_KEY_1					0x04
-#define KBD_KEY_2					0x05
-#define KBD_KEY_3					0x06
-#define KBD_KEY_4					0x07
-#define KBD_KEY_5					0x08
-#define KBD_KEY_6					0x09
-#define KBD_KEY_7					0x0A
-#define KBD_KEY_8					0x0B
-#define KBD_KEY_9					0x0C
+#define KBD_KEY_1					0x03
+#define KBD_KEY_2					0x04
+#define KBD_KEY_3					0x05
+#define KBD_KEY_4					0x06
+#define KBD_KEY_5					0x07
+#define KBD_KEY_6					0x08
+#define KBD_KEY_7					0x09
+#define KBD_KEY_8					0x0A
+#define KBD_KEY_9					0x0B
+#define KBD_KEY_0					0x0C
 
 #define KBD_KEY_Q					0x0D
 #define KBD_KEY_W					0x0E
