@@ -6,10 +6,11 @@
 
 #include "file_sys.h"
 
-/*Global variables for File_sys functions*/
+/*Variables for File_sys functions*/
 static uint32_t* node_head;
 static uint32_t* data_head;
 static boot_block_t * boot_block;
+boot_block_t* mbi_val;
 
  
 /* Sets up the head pointer for the file system
@@ -20,8 +21,7 @@ static boot_block_t * boot_block;
  */ 
 void fs_init(void)
 {
-	module_t* temp = (module_t*)mbi->mods_addr;
-	boot_block = (boot_block_t *)temp->mod_start;
+	boot_block = mbi_val;
 	
 	node_head = (uint32_t*)(boot_block + 1);
 	data_head = node_head + (boot_block->num_nodes)*ADDRESSES_PER_BLOCK;

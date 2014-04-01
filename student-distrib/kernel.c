@@ -23,6 +23,9 @@ void
 entry (unsigned long magic, unsigned long addr)
 {
 	multiboot_info_t *mbi;
+	
+	module_t* temp = (module_t*)mbi->mods_addr;
+	mbi_val = (boot_block_t *)temp->mod_start;
 
 	/* Clear the screen. */
 	clear();
