@@ -7,8 +7,6 @@
 
 #include "types.h"
 
-#define VIDEO 0xB8000
-
 int32_t printf(int8_t *format, ...);
 void putc(uint8_t c);
 int32_t puts(int8_t *s);
@@ -74,7 +72,7 @@ static inline uint32_t inl(port)
 /* Writes a byte to a port */
 #define outb(data, port)                \
 do {                                    \
-	asm volatile("outb  %b1, (%w0)"     \
+	__asm volatile("outb  %b1, (%w0)"     \
 			:                           \
 			: "d" (port), "a" (data)    \
 			: "memory", "cc" );         \

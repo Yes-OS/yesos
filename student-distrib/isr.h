@@ -15,15 +15,15 @@ typedef struct registers {
 	uint32_t eip, cs, eflags, user_esp, ss;
 } __attribute__((packed)) registers_t;
 
-extern void isr_impl(registers_t);
+void isr_impl(registers_t);
 
-extern void set_intr_gate(uint8_t,uint32_t);
-extern void set_system_gate(uint8_t,uint32_t);
-extern void set_system_intr_gate(uint8_t,uint32_t);
-extern void set_trap_gate(uint8_t,uint32_t);
-extern void set_task_gate(uint8_t,uint16_t);
+void set_intr_gate(uint8_t,uint32_t);
+void set_system_gate(uint8_t,uint32_t);
+void set_system_intr_gate(uint8_t,uint32_t);
+void set_trap_gate(uint8_t,uint32_t);
+void set_task_gate(uint8_t,uint16_t);
 
-extern void install_interrupts();
+void install_interrupts();
 
 #endif
 

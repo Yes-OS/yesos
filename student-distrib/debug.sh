@@ -16,7 +16,7 @@ cp ./orig.img /tmp/mp3/
 mount -o loop,offset=32256 /tmp/mp3/orig.img /mnt/tmpmp3
 cp -f /tmp/mp3/bootimg /mnt/tmpmp3/
 cp -f /tmp/mp3/filesys_img /mnt/tmpmp3/
-while ! umount /mnt/tmpmp3 >/dev/null 2>&1 ; do sleep 1 ; done
+while ! umount /mnt/tmpmp3 >/dev/null 2>&1 ; do true; done
 cp -f /tmp/mp3/orig.img ./mp3.img
 rm -rf /tmp/mp3
 rmdir /mnt/tmpmp3

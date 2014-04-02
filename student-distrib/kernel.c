@@ -11,6 +11,8 @@
 #include "rtc.h"
 #include "kbd.h"
 #include "paging.h"
+#include "vga.h"
+#include "term.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -22,6 +24,8 @@ void
 entry (unsigned long magic, unsigned long addr)
 {
 	multiboot_info_t *mbi;
+	int8_t buffer[256];
+	int32_t bread;
 
 	/* Clear the screen. */
 	clear();
@@ -156,7 +160,7 @@ entry (unsigned long magic, unsigned long addr)
 	printf("    Initializing PIC... ");
 	i8259_init();
 	printf("done\n");
-	
+
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
 	 * PIC, any other initialization stuff... */
 
@@ -179,6 +183,10 @@ entry (unsigned long magic, unsigned long addr)
 	paging_init();
 	printf("done\n");
 
+	printf("    Initializing Terminal...");
+	term_open(NULL);
+	printf("done\n");
+
 	/* Enable interrupts */
 	/* Do not enable the following until after you have set up your
 	 * IDT correctly otherwise QEMU will triple fault and simple close
@@ -188,10 +196,15 @@ entry (unsigned long magic, unsigned long addr)
 	printf("done\n");
 
 	printf("\nWelcome!\n");
+	update_cursor();
+
+	while (1) {
+		bread = term_read(STDIN, buffer, sizeof(buffer)/sizeof(buffer[0]));
+		term_write(STDOUT, buffer, bread);
+	}
 
 	/* Execute the first program (`shell') ... */
 
-    
 	/* Spin (nicely, so we don't chew up cycles) */
 	halt();
 }
