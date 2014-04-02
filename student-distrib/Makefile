@@ -9,6 +9,7 @@ CFLAGS 	+= -Wall -fno-builtin -fno-stack-protector -nostdlib
 ASFLAGS +=
 LDFLAGS += -nostdlib -static
 CC=gcc -m32
+LD=ld -melf_i386
 
 #If you have any .h files in another directory, add -I<dir> to this line
 CPPFLAGS +=-nostdinc -g
@@ -26,7 +27,7 @@ mp3.img: bootimg
 	sudo chown $(shell id -un):$(shell id -gn) mp3.img
 
 bootimg: Makefile $(OBJS)
-	$(CC) $(LDFLAGS) $(OBJS) -Ttext=0x400000 -o bootimg
+	$(LD) $(LDFLAGS) $(OBJS) -Ttext=0x400000 -o bootimg
 
 dep: Makefile.dep
 
