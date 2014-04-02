@@ -13,8 +13,6 @@
 #include "paging.h"
 #include "vga.h"
 #include "term.h"
-#include "file_sys.h"
-#include "testing.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -59,7 +57,7 @@ entry (unsigned long magic, unsigned long addr)
 		printf ("cmdline = %s\n", (char *) mbi->cmdline);
 
 	if (CHECK_FLAG (mbi->flags, 3)) {
-		uint32_t mod_count = 0;
+		int mod_count = 0;
 		int i;
 		module_t* mod = (module_t*)mbi->mods_addr;
 		while(mod_count < mbi->mods_count) {
@@ -73,11 +71,6 @@ entry (unsigned long magic, unsigned long addr)
 			mod_count++;
 		}
 	}
-
-	/* file system stuff */
-	module_t* temp = (module_t*)mbi->mods_addr;
-	mbi_val = (boot_block_t *)temp->mod_start;
-
 	/* Bits 4 and 5 are mutually exclusive! */
 	if (CHECK_FLAG (mbi->flags, 4) && CHECK_FLAG (mbi->flags, 5))
 	{
@@ -185,10 +178,6 @@ entry (unsigned long magic, unsigned long addr)
 	enable_irq(KBD_IRQ_PORT);
 	printf("done\n");
 
-	printf("    Initializing File System... ");
-	fs_init();
-	printf("done\n");
-
 	/*NEW: Initialize paging. Much wow! */
 	printf("    Initializing Paging... ");
 	paging_init();
@@ -202,12 +191,14 @@ entry (unsigned long magic, unsigned long addr)
 	/* Do not enable the following until after you have set up your
 	 * IDT correctly otherwise QEMU will triple fault and simple close
 	 * without showing you any output */
-	printf("    Enabling Interrupts... ");
+	printf("    STI: Enabling Interrupts... ");
 	sti();
 	printf("done\n");
 
 	printf("\nWelcome!\n");
 	update_cursor();
+
+	rtc_rw_test();
 
 	puts("\n\n");
 	update_cursor();
