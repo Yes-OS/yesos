@@ -35,7 +35,7 @@ int32_t safe_strncpy(int8_t* dest, const int8_t* src, int32_t n);
 /* Port read functions */
 /* Inb reads a byte and returns its value as a zero-extended 32-bit
  * unsigned int */
-static inline uint32_t inb(uint8_t port)
+static inline uint32_t inb(uint16_t port)
 {
 	uint32_t val;
 	asm volatile("xorl %0, %0\n \
@@ -62,7 +62,7 @@ static inline uint32_t inw(uint16_t port)
 
 /* Reads four bytes from four consecutive ports, starting at "port",
  * concatenates them little-endian style, and returns them */
-static inline uint32_t inl(uint32_t port)
+static inline uint32_t inl(uint16_t port)
 {
 	uint32_t val;
 	asm volatile("inl   (%w1), %0"
