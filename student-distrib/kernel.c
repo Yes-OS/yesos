@@ -170,13 +170,17 @@ entry (unsigned long magic, unsigned long addr)
 
 	printf("    Initializing RTC... ");
 	rtc_init();
-	//enable_irq(RTC_IRQ_PORT);
+	enable_irq(RTC_IRQ_PORT);
 	printf("done\n");
-
+	
 	printf("    Initializing Keyboard... ");
 	kbd_init();
 	enable_irq(KBD_IRQ_PORT);
 	printf("done\n");
+	
+	/*printf("    Initializing File System... ");
+	fs_init();
+	printf("done\n");*/
 
 	/*NEW: Initialize paging. Much wow! */
 	printf("    Initializing Paging... ");
@@ -204,6 +208,14 @@ entry (unsigned long magic, unsigned long addr)
 	}
 
 	/* Execute the first program (`shell') ... */
+	
+	/*RTC TESTING HERE*/
+	//rtc_open_test();
+	rtc_rw_test();
+
+
+
+	
 
 	/* Spin (nicely, so we don't chew up cycles) */
 	halt();
