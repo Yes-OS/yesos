@@ -13,6 +13,8 @@
 #include "paging.h"
 #include "vga.h"
 #include "term.h"
+#include "file_sys.h"
+#include "testing.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -71,6 +73,11 @@ entry (unsigned long magic, unsigned long addr)
 			mod_count++;
 		}
 	}
+	
+	/* File system head */
+	module_t* temp = (module_t*)mbi->mods_addr;
+	mbi_val = (boot_block_t *)temp->mod_start;
+
 	/* Bits 4 and 5 are mutually exclusive! */
 	if (CHECK_FLAG (mbi->flags, 4) && CHECK_FLAG (mbi->flags, 5))
 	{
@@ -109,7 +116,8 @@ entry (unsigned long magic, unsigned long addr)
 					(unsigned) mmap->length_high,
 					(unsigned) mmap->length_low);
 	}
-
+	
+	
 	/* Construct an LDT entry in the GDT */
 	{
 		seg_desc_t the_ldt_desc;
@@ -150,10 +158,24 @@ entry (unsigned long magic, unsigned long addr)
 		tss.esp0 = 0x800000;
 		ltr(KERNEL_TSS);
 	}
+	
 
 	clear();
 
-	printf("\n\nWelcome to Yes OS\n\n");
+	printf("----------------------------------------\n");
+	printf("Welcome to\n\n");
+	printf("YYY    YYY      EEEEEEEEEE       SSSSSSSSS                                  \n");
+	printf(" YY    YY       EE              SS                                          \n");
+	printf("  YY  YY        EE              SS                                          \n");
+	printf("    YY          EE              SS                                          \n");
+	printf("    YY          EEEEEE           SSSSSSSS          OOOOOOOO        SSSSSSSS \n");
+	printf("    YY          EE                      SS        OO      OO      SS        \n");
+	printf("    YY          EE                      SS        OO      OO       SSSSSSSS \n");
+	printf("    YY          EE                      SS        OO      OO              SS\n");
+	printf("    YY          EEEEEEEEEE      SSSSSSSSS     oo   OOOOOOOO       SSSSSSSSS \n");
+	printf("----------------------------------------\n");
+	
+
 	printf("Initializing subsystems\n");
 
 	/* Init the PIC */
@@ -172,16 +194,20 @@ entry (unsigned long magic, unsigned long addr)
 	rtc_init();
 	enable_irq(RTC_IRQ_PORT);
 	printf("done\n");
-
+	
 	printf("    Initializing Keyboard... ");
 	kbd_init();
 	enable_irq(KBD_IRQ_PORT);
 	printf("done\n");
+	
+	/*printf("    Initializing File System... ");
+	fs_init();
+	printf("done\n");*/
 
-	/*NEW: Initialize paging. Much wow! */
 	printf("    Initializing Paging... ");
 	paging_init();
 	printf("done\n");
+	
 
 	printf("    Initializing Terminal...");
 	term_open(NULL);
@@ -191,16 +217,11 @@ entry (unsigned long magic, unsigned long addr)
 	/* Do not enable the following until after you have set up your
 	 * IDT correctly otherwise QEMU will triple fault and simple close
 	 * without showing you any output */
-	printf("    STI: Enabling Interrupts... ");
+	printf("    Enabling Interrupts (STI)... ");
 	sti();
 	printf("done\n");
 
 	printf("\nWelcome!\n");
-	update_cursor();
-
-	rtc_rw_test();
-
-	puts("\n\n");
 	update_cursor();
 
 	while (1) {
@@ -209,7 +230,7 @@ entry (unsigned long magic, unsigned long addr)
 	}
 
 	/* Execute the first program (`shell') ... */
-
+	
 	/* Spin (nicely, so we don't chew up cycles) */
 	halt();
 }
