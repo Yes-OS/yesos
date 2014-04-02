@@ -18,11 +18,18 @@ int8_t _test_read(void)
 	printf("Testing read_dentry_by_name\n");
 	
 	int32_t retval = 0;
+
 	int8_t* test_fname	= "grep"; //insert file name to test for here
 	dentry_t test_dentry;
 	int32_t inode_test = 12;	//inset index number to test for here
 	dentry_t test_dentry2;
 	
+	//	Test READ_DATA
+	int32_t inode = 13;
+	uint32_t offset = 1;
+	uint32_t length = 4000;
+	uint8_t buf[length];
+
 	
 	retval = read_dentry_by_name ((uint8_t*)test_fname, &test_dentry);
 	if(retval == -1){
@@ -33,7 +40,7 @@ int8_t _test_read(void)
 	printf("test_dentry values:\n");
 	
 	printf("Filename: %s\n",test_dentry.file_name);
-	printf("File type: %u\n",test_dentry.file_type);
+	printf("Should be 2: %u\n",test_dentry.file_type);
 	printf("inode_num: %u\n",test_dentry.inode_num);
 		
 	printf("Done with read_dentry_by_name testing\n");
@@ -50,10 +57,23 @@ int8_t _test_read(void)
 	printf("test_dentry2 values:\n");
 	
 	printf("Filename: %s\n",test_dentry2.file_name);
-	printf("File type: %u\n",test_dentry2.file_type);
+	printf("Should be 2: %u\n",test_dentry2.file_type);
 	printf("inode_num: %u\n",test_dentry2.inode_num);
 		
 	printf("Done with read_dentry_by_index testing\n");
+
+	/*__Test read data__*/
+	printf("Testing read_data\n");
+	
+	retval = read_data(inode, offset, buf, length);
+
+	printf("READ RETURN: %d \n", retval);
+	printf("\n%s\n", buf + offset);
+
+	if(retval == -1){
+		printf("read_data failed. Exiting Test.\n");
+		return -1;
+	}
 
 	return 0;
 
@@ -79,9 +99,7 @@ int8_t _test_file_sys(void)
 	if (file_sys_count == -1) file_sys_count = 0;
 	if (file_sys_count != 0) return file_sys_count; //return if failure this far
 	
-	/* test file sys read
-	 * uint32_t fs_write(file_t* file, uint8_t* buf, int count)
-	 */
+	/* test file sys read */
 	printf("HEY: fs read test not implemented yet\n");
 	
 	return file_sys_count;
@@ -107,9 +125,7 @@ int8_t _test_directory(void)
 	if (direc_count == -1) direc_count = 0;
 	if (direc_count != 0) return direc_count; //return if failure this far
 	
-	/* test directory read
-	 * uint32_t dir_read(file_t* file, uint8_t* buf, int count)
-	 */
+	/* test directory read */
 	printf("HEY: Direc read test not implemented yet\n");
 	
 	return direc_count;
@@ -126,9 +142,9 @@ int8_t test_fs_all (void)
 	int8_t error_count;
 	error_count = 0;
 	
-	printf("Read tests:...\n");
-	error_count += _test_read();
-	printf("Read tests done.\n");
+	// printf("Read tests:...\n");
+	// error_count += _test_read();
+	// printf("Read tests done.\n");
 	
 	
 	printf("File system tests:...\n");	
