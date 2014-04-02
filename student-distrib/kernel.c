@@ -59,7 +59,7 @@ entry (unsigned long magic, unsigned long addr)
 		printf ("cmdline = %s\n", (char *) mbi->cmdline);
 
 	if (CHECK_FLAG (mbi->flags, 3)) {
-		int mod_count = 0;
+		uint32_t mod_count = 0;
 		int i;
 		module_t* mod = (module_t*)mbi->mods_addr;
 		while(mod_count < mbi->mods_count) {
@@ -202,31 +202,15 @@ entry (unsigned long magic, unsigned long addr)
 	/* Do not enable the following until after you have set up your
 	 * IDT correctly otherwise QEMU will triple fault and simple close
 	 * without showing you any output */
-	printf("    STI: Enabling Interrupts... ");
+	printf("    Enabling Interrupts... ");
 	sti();
 	printf("done\n");
 
 	printf("\nWelcome!\n");
 	update_cursor();
 
-	rtc_rw_test();
-
 	puts("\n\n");
 	update_cursor();
-
-	clear();
-
-	int8_t test_result;
-	test_result = _test_read();
-	test_result = test_fs_all();
-	printf("Result (test_fs_all): %d\n", test_result);
-
-	if (!test_result) {
-		printf("testing SUCCESSFUL!\n");
-	}
-	else {
-		printf("testing FAILED!\n");
-	}
 
 	while (1) {
 		bread = term_read(STDIN, buffer, sizeof(buffer)/sizeof(buffer[0]));
