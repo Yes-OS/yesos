@@ -17,117 +17,121 @@ void isr_impl(registers_t regs)
 {
 	switch (regs.isrno) {
 
-        case 0:
+        case EXCEPTION_DIVIDE:
             printf("Interrupt occurred(0): divide_error");
             halt(); /* just halt for now */
             break;
 
-        case 1:
+        case EXCEPTION_DEBUG:
             printf("Interrupt occurred(1): debug");
             halt(); /* just halt for now */
             break;
 
-        case 2:
+        case EXCEPTION_NMI:
             printf("Interrupt occurred(2): nmi");
             halt(); /* just halt for now */
             break;
 
-        case 3:
+        case EXCEPTION_BREAKPOINT:
             printf("Interrupt occurred(3): breakpoint");
             halt(); /* just halt for now */
             break;
 
-        case 4:
+        case EXCEPTION_OVERFLOW:
             printf("Interrupt occurred(4): overflow");
             halt(); /* just halt for now */
             break;
 
-        case 5:
+        case EXCEPTION_BOUND:
             printf("Interrupt occurred(5): bound");
             halt(); /* just halt for now */
             break;
 
-        case 6:
+        case EXCEPTION_INVALID_OPCODE:
             printf("Interrupt occurred(6): invalid_opcode");
             halt(); /* just halt for now */
             break;
 
-        case 7:
+        case EXCEPTION_DEV_NOT_AVAIL:
             printf("Interrupt occurred(7): device_not_available");
             halt(); /* just halt for now */
             break;
 
-        case 8:
+        case EXCEPTION_DOUBLE_FAULT:
             printf("Interrupt occurred(8): double_fault");
             halt(); /* just halt for now */
             break;
 
-        case 9:
+        case EXCEPTION_COPROC_SEG_OVERRUN:
             printf("Interrupt occurred(9): coprocessor_segment_overrun");
             halt(); /* just halt for now */
             break;
 
-        case 10:
+        case EXCEPTION_INVALID_TSS:
             printf("Interrupt occurred(10): invalid_tss");
             halt(); /* just halt for now */
             break;
 
-        case 11:
+        case EXCEPTION_SEG_NOT_PRES:
             printf("Interrupt occurred(11): segment_not_present");
             halt(); /* just halt for now */
             break;
 
-        case 12:
+        case EXCEPTION_STACK_FAULT:
             printf("Interrupt occurred(12): stack_fault");
             halt(); /* just halt for now */
             break;
 
-        case 13:
+        case EXCEPTION_GENERAL_PROTECTION:
             printf("Interrupt occurred(13): general_protection");
             halt(); /* just halt for now */
             break;
 
-        case 14:
+        case EXCEPTION_PAGE_FAULT:
             printf("Interrupt occurred(14): page_fault");
             halt(); /* just halt for now */
             break;
 
-        case 16:
+        case EXCEPTION_COPROC_ERROR:
             printf("Interrupt occurred(16): coprocessor_error");
             halt(); /* just halt for now */
             break;
 
-        case 17:
+        case EXCEPTION_ALIGNMENT_CHECK:
             printf("Interrupt occurred(17): alignment_check");
             halt(); /* just halt for now */
             break;
 
-        case 18:
+        case EXCEPTION_MACHINE_CHECK:
             printf("Interrupt occurred(18): machine_check");
             halt(); /* just halt for now */
             break;
 
-        case 19:
+        case EXCEPTION_SIMD_COPROC_ERR:
             printf("Interrupt occurred(19): simd_coprocessor_error");
             halt(); /* just halt for now */
             break;
 
-		/* these are IRQs for which we have no specific handling code, here for debugging purposes */
-		case 32:
-		case 34:
-		case 35:
-		case 36:
-		case 37:
-		case 38:
-		case 39:
-		case 41:
-		case 42:
-		case 43:
-		case 44:
-		case 45:
-		case 46:
-		case 47:
-			printf("Unhandled IRQ number %d\n", regs.isrno - IRQ_START);
+		/*
+		 * These are IRQs for which we have no specific handling code, here for debugging purposes.
+		 * NOTE: These generally shouldn't be reached, since their respective lines will be masked
+		 *       the PIC.
+		 */
+		case IRQ0:
+		case IRQ2:
+		case IRQ3:
+		case IRQ4:
+		case IRQ5:
+		case IRQ6:
+		case IRQ7:
+		case IRQ9:
+		case IRQ10:
+		case IRQ11:
+		case IRQ12:
+		case IRQ13:
+		case IRQ14:
+		case IRQ15:
+			printf("Unhandled IRQ(%d)\n", regs.isrno - IRQ_START);
 			send_eoi(regs.isrno - IRQ_START);
 			break;
 
