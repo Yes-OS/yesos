@@ -7,254 +7,77 @@
 #include "isr_stub.h"
 #include "x86_desc.h"
 
+# Macro definition for creating an interrupt stub with no hardware error
+#define MKINTSTUB_NOERR(name, number) \
+.globl name                          ;\
+name:                                ;\
+	cli                              ;\
+	pushl	$0                       ;\
+	pushl	$number                  ;\
+	jmp		isr_stub
+
+# Macro definition for creating an interrupt stub with a hardware error
+#define MKINTSTUB(name, number) \
+.globl name                    ;\
+name:                          ;\
+	cli                        ;\
+	pushl	$0                 ;\
+	pushl	$number            ;\
+	jmp		isr_stub
+
+
 .text
-
-.globl divide_error, debug, nmi, breakpoint, overflow, bound
-.globl invalid_opcode, device_not_available, double_fault, coprocessor_segment_overrun
-.globl invalid_tss, segment_not_present, stack_fault, general_protection, page_fault
-.globl coprocessor_error, alignment_check, machine_check, simd_coprocessor_error
-.globl null_int
-
-# Interrupt requests
-.globl irq0, irq1, irq2, irq3, irq4, irq5, irq6, irq7
-.globl irq8, irq9, irq10, irq11, irq12, irq13, irq14, irq15
 
 .align 4
 
-divide_error:
-	cli
-	pushl	$0					# dummy error code
-	pushl	$EXCEPTION_DIVIDE	# isr number
-	jmp		isr_stub
+# sets up the initial stubs for the exceptions
+MKINTSTUB_NOERR	(divide_error, EXCEPTION_DIVIDE)
+MKINTSTUB_NOERR	(debug, EXCEPTION_DEBUG)
+MKINTSTUB_NOERR	(nmi, EXCEPTION_NMI)
+MKINTSTUB_NOERR	(breakpoint, EXCEPTION_BREAKPOINT)
+MKINTSTUB_NOERR	(overflow, EXCEPTION_OVERFLOW)
+MKINTSTUB_NOERR	(bound, EXCEPTION_BOUND)
+MKINTSTUB_NOERR	(invalid_opcode, EXCEPTION_INVALID_OPCODE)
+MKINTSTUB_NOERR	(device_not_available, EXCEPTION_DEV_NOT_AVAIL)
+MKINTSTUB_NOERR	(double_fault, EXCEPTION_DOUBLE_FAULT)
+MKINTSTUB_NOERR	(coprocessor_segment_overrun, EXCEPTION_COPROC_SEG_OVERRUN)
+MKINTSTUB		(invalid_tss, EXCEPTION_INVALID_TSS)
+MKINTSTUB		(segment_not_present, EXCEPTION_SEG_NOT_PRES)
+MKINTSTUB		(stack_fault, EXCEPTION_STACK_FAULT)
+MKINTSTUB		(general_protection, EXCEPTION_GENERAL_PROTECTION)
+MKINTSTUB		(page_fault, EXCEPTION_PAGE_FAULT)
+MKINTSTUB_NOERR	(coprocessor_error, EXCEPTION_COPROC_ERROR)
+MKINTSTUB		(alignment_check, EXCEPTION_ALIGNMENT_CHECK)
+MKINTSTUB_NOERR	(machine_check, EXCEPTION_MACHINE_CHECK)
+MKINTSTUB_NOERR	(simd_coprocessor_error, EXCEPTION_SIMD_COPROC_ERR)
+
+# null interrupt installed in the interrupts we don't explicitly handle
+MKINTSTUB_NOERR	(null_int, EXCEPTION_NULL)
+
+# the interrupt requests
+MKINTSTUB_NOERR	(irq0, IRQ0)
+MKINTSTUB_NOERR	(irq1, IRQ_KBD)
+MKINTSTUB_NOERR	(irq2, IRQ2)
+MKINTSTUB_NOERR	(irq3, IRQ3)
+MKINTSTUB_NOERR	(irq4, IRQ4)
+MKINTSTUB_NOERR	(irq5, IRQ5)
+MKINTSTUB_NOERR	(irq6, IRQ6)
+MKINTSTUB_NOERR	(irq7, IRQ7)
+MKINTSTUB_NOERR	(irq8, IRQ_RTC)
+MKINTSTUB_NOERR	(irq9, IRQ9)
+MKINTSTUB_NOERR	(irq10, IRQ10)
+MKINTSTUB_NOERR	(irq11, IRQ11)
+MKINTSTUB_NOERR	(irq12, IRQ12)
+MKINTSTUB_NOERR	(irq13, IRQ13)
+MKINTSTUB_NOERR	(irq14, IRQ14)
+MKINTSTUB_NOERR	(irq15, IRQ15)
 
 
-debug:
-	cli
-	pushl	$0					# dummy error code
-	pushl	$EXCEPTION_DEBUG	# isr number
-	jmp		isr_stub
-
-
-nmi:
-	cli
-	pushl	$0					# dummy error code
-	pushl	$EXCEPTION_NMI		# isr number
-	jmp		isr_stub
-
-
-breakpoint:
-	cli
-	pushl	$0						# dummy error code
-	pushl	$EXCEPTION_BREAKPOINT	# isr number
-	jmp		isr_stub
-
-
-overflow:
-	cli
-	pushl	$0						# dummy error code
-	pushl	$EXCEPTION_OVERFLOW		# isr number
-	jmp		isr_stub
-
-
-bound:
-	cli
-	pushl	$0					# dummy error code
-	pushl	$EXCEPTION_BOUND	# isr number
-	jmp		isr_stub
-
-
-invalid_opcode:
-	cli
-	pushl	$0							# dummy error code
-	pushl	$EXCEPTION_INVALID_OPCODE	# isr number
-	jmp		isr_stub
-
-
-device_not_available:
-	cli
-	pushl	$0							# dummy error code
-	pushl	$EXCEPTION_DEV_NOT_AVAIL	# isr number
-	jmp		isr_stub
-
-
-double_fault:
-	cli
-	pushl	$0							# dummy error code
-	pushl	$EXCEPTION_DOUBLE_FAULT		# isr number
-	jmp		isr_stub
-
-
-coprocessor_segment_overrun:
-	cli
-	pushl	$0								# dummy error code
-	pushl	$EXCEPTION_COPROC_SEG_OVERRUN	# isr number
-	jmp		isr_stub
-
-
-invalid_tss:
-	cli
-	pushl	$EXCEPTION_INVALID_TSS			# isr number
-	jmp		isr_stub
-
-
-segment_not_present:
-	cli
-	pushl	$EXCEPTION_SEG_NOT_PRES			# isr number
-	jmp		isr_stub
-
-
-stack_fault:
-	cli
-	pushl	$EXCEPTION_STACK_FAULT			# isr number
-	jmp		isr_stub
-
-
-general_protection:
-	cli
-	pushl	$EXCEPTION_GENERAL_PROTECTION	# isr number
-	jmp		isr_stub
-
-
-page_fault:				#when page fault occurs, CR2 holds address that was attempted to be accessed.
-	cli
-	pushl	$EXCEPTION_PAGE_FAULT			# isr number
-	jmp		isr_stub
-
-
-coprocessor_error:
-	cli
-	pushl	$0							# dummy error code
-	pushl	$EXCEPTION_COPROC_ERROR		# isr number
-	jmp		isr_stub
-
-
-alignment_check:
-	cli
-	pushl	$EXCEPTION_ALIGNMENT_CHECK	# isr number
-	jmp		isr_stub
-
-
-machine_check:
-	cli
-	pushl	$0							# dummy error code
-	pushl	$EXCEPTION_MACHINE_CHECK	# isr number
-	jmp		isr_stub
-
-
-simd_coprocessor_error:
-	cli
-	pushl	$0							# dummy error code
-	pushl	$EXCEPTION_SIMD_COPROC_ERR	# isr number
-	jmp		isr_stub
-
-null_int:
-	cli
-	pushl	$0			# dummy error code
-	pushl	$-1			# broke
-	jmp		isr_stub
-
-
-irq0:
-	cli
-	pushl	$0			# dummy error code
-	pushl	$IRQ0		# isr number
-	jmp		isr_stub
-
-irq1:
-	cli
-	pushl	$0			# dummy error code
-	pushl	$IRQ_KBD	# isr number
-	jmp		isr_stub
-
-irq2:
-	cli
-	pushl	$0			# dummy error code
-	pushl	$IRQ2		# isr number
-	jmp		isr_stub
-
-irq3:
-	cli
-	pushl	$0			# dummy error code
-	pushl	$IRQ3		# isr number
-	jmp		isr_stub
-
-irq4:
-	cli
-	pushl	$0			# dummy error code
-	pushl	$IRQ4		# isr number
-	jmp		isr_stub
-
-irq5:
-	cli
-	pushl	$0			# dummy error code
-	pushl	$IRQ5		# isr number
-	jmp		isr_stub
-
-irq6:
-	cli
-	pushl	$0			# dummy error code
-	pushl	$IRQ6		# isr number
-	jmp		isr_stub
-
-irq7:
-	cli
-	pushl	$0			# dummy error code
-	pushl	$IRQ7		# isr number
-	jmp		isr_stub
-
-irq8:
-	cli
-	pushl	$0			# dummy error code
-	pushl	$IRQ_RTC	# isr number
-	jmp		isr_stub
-
-irq9:
-	cli
-	pushl	$0			# dummy error code
-	pushl	$IRQ9		# isr number
-	jmp		isr_stub
-
-irq10:
-	cli
-	pushl	$0			# dummy error code
-	pushl	$IRQ10		# isr number
-	jmp		isr_stub
-
-irq11:
-	cli
-	pushl	$0			# dummy error code
-	pushl	$IRQ11		# isr number
-	jmp		isr_stub
-
-irq12:
-	cli
-	pushl	$0			# dummy error code
-	pushl	$IRQ12		# isr number
-	jmp		isr_stub
-
-irq13:
-	cli
-	pushl	$0			# dummy error code
-	pushl	$IRQ13		# isr number
-	jmp		isr_stub
-
-irq14:
-	cli
-	pushl	$0			# dummy error code
-	pushl	$IRQ14		# isr number
-	jmp		isr_stub
-
-irq15:
-	cli
-	pushl	$0			# dummy error code
-	pushl	$IRQ15		# isr number
-	jmp		isr_stub
-
-
+# isr_stub sets up the stack for interrupt handlers and calls a general c function to handle the rest
 isr_stub:
 	pushal
 
-						# push segments
+	# push segments
 	xorl	%eax, %eax
 	movw	%gs, %ax
 	pushl	%eax
@@ -273,7 +96,7 @@ isr_stub:
 
 	call	isr_impl
 
-						# restore segments
+	# restore segments
 	popl	%eax
 	movw	%ax, %ds
 	popl	%eax
