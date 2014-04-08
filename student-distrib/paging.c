@@ -7,21 +7,8 @@
 #include "vga.h"
 #include "x86_desc.h"
 
-/* method used, 1 for old, 0 for new */
-#define METHOD 0
-
-#if METHOD == 1
-
-/*create a page directory and table pointer*/
-unsigned int page_directory[NUM_ENTRIES] 	__attribute__((aligned(PAGE_SIZE))); /*must align to page size!*/
-unsigned int page_table[NUM_ENTRIES] 		__attribute__((aligned(PAGE_SIZE)));
-
-#else
-
 pde_t page_directory[NUM_ENTRIES]	__attribute__((aligned(PAGE_SIZE)));
 pte_t page_table[NUM_ENTRIES]	__attribute__((aligned(PAGE_SIZE)));
-
-#endif
 
 /* define some actions to set/clear status bits */
 
@@ -73,151 +60,52 @@ pte_t page_table[NUM_ENTRIES]	__attribute__((aligned(PAGE_SIZE)));
 
 
 /* helper functions */
-void _directory_init(void);
-void _table_init(void);
-void _enable_paging(void);
-void install_pages();
+static void clear_page_dir();
+static void clear_page_table();
+static void install_pages();
 
 /* define some empty values, useful for initialization */
-static const pte_t empty_page_entry = {{.val = 0L}};
-static const pde_t empty_dir_entry = {{.val = 0L}};
+static const pte_t empty_page_entry = {{.val = 0UL}};
+static const pde_t empty_dir_entry = {{.val = 0UL}};
 
 
-/*main function
- *
- *
- */
-void paging_init(void){
-#if METHOD == 1
-															printf("Page Directory: %x\n", page_directory);
-	/*create and initialize the page directory (and contents)*/
-	_directory_init();
-
-	/* config cr0 and cr3 */
-	_enable_paging();
-#else
+/* initializes paging */
+void paging_init(void)
+{
 	install_pages();
-#endif
 }
 
-#if METHOD == 1
-/*helper function:
- *
- *
- */
-void _directory_init(){
-
-	unsigned int i;
-
-	for(i = 0; i < NUM_ENTRIES; i++){
-		page_directory[i] = EMPTY; //zero
-	}
-	
-	/*Map the first two entries*/
-	
-	/*create and initialize the first page table */			printf("Page Table:  %x\n", page_table);
-	_table_init();	
-
-	/*put page table in page directory*/
-	page_directory[0] = (unsigned int)page_table;
-	page_directory[0] |= SET_RW_P;
-
-	/*map second entry to our 4mb kernel-space*/
-	page_directory[1] = (SET_4MB | SET_RW_P); //0x80
-
-}
-
-
-/*helper function:
- *	create a page table
- *
- */
-void _table_init(){
-
-	unsigned int i;
-	unsigned int page_address = PAGE_SIZE;	//4096 - the second Page_table entry
-
-		
-	/*first 4kb of memory is not present*/
-	page_table[0] = 0;
-	
-	for(i = 1; i < NUM_ENTRIES; i++){
-		page_table[i] = page_address | SET_RW_P;
-		page_address += PAGE_SIZE;
-	}
-
-
-}
-
-
-/*helper function:
- *	Enable Paging
- *	Set cr0, cr3, and cr4 as needed
- *	Reference: IA32: 2.5, 3.6.1, 3.7.1
- */
-void _enable_paging(){
-
-	/* register value holder */
-	unsigned int cr0_temp, cr4_temp;
-	cr0_temp = cr4_temp = 0;
-	
-	/* Strategy:
-	 *	Set cr3 > cr4 > cr0
-	 */
-	
-    /*CR3: Set cr3 to base of page directory*/
-	asm volatile("movl %0, %%cr3"
-				:                       /*no outputs*/
-				:"r"(page_directory)    /*inputs*/
-				);
-        
-	/*CR4: Extract register cr4*/							printf("cr4_temp(zero):   %x\n", cr4_temp);
-    asm volatile("movl %%cr4, %0"
-                :"=r"(cr4_temp)         /*outputs*/
-                :                       /*no inputs*/
-                );											printf("cr4_temp(after):  %x\n", cr4_temp);
-				
-	/*CR4: Set PAE(5)=0 then PSE(4)=1 flags*/
-    cr4_temp &= 0xffffffdf;									printf("cr4_temp(and):    %x\n", cr4_temp);
-	cr4_temp |= 0x00000010;									printf("cr4_temp(or):     %x\n", cr4_temp);
-    asm volatile("movl %0, %%cr4"
-                :                       /*no outputs*/
-                :"r"(cr4_temp)          /*inputs*/
-                );
-
-	
-
-	/*CR0: Extract register cr0*/							printf("cr0_temp(zero):  %x\n", cr0_temp);
-    asm volatile("movl %%cr0, %0"
-                :"=r"(cr0_temp)         /*outputs*/
-                :                       /*no inputs*/
-                );											printf("cr0_temp(after): %x\n", cr0_temp);
-				
-	/*CR0: Set PE(0)=1 AND PG(31)=1 flags*/
-    cr0_temp |= 0x80000001;									printf("cr0_temp(or):    %x\n", cr0_temp);
-    asm volatile("movl %0, %%cr0"
-                :                       /*no outputs*/
-                :"r"(cr0_temp)          /*inputs*/
-                );
-	
-}
-#else
-
-void install_pages()
+/* clears the page directory for the kernel */
+static void clear_page_dir(pde_t directory[NUM_ENTRIES])
 {
 	int i;
 
 	/* clear page directory */
 	for (i = 0; i < NUM_ENTRIES; i++) {
 		/* install an empty entry */
-		page_directory[i] = empty_dir_entry;
+		directory[i] = empty_dir_entry;
 	}
+}
+
+/* clears the first page table */
+static void clear_page_table(pte_t table[NUM_ENTRIES])
+{
+	int i;
 
 	/* clear first page table */
 	for (i = 0; i < NUM_ENTRIES; i++) {
 		/* install an empty entry */
-		page_table[i] = empty_page_entry;
+		table[i] = empty_page_entry;
 	}
+}
+
+/* installs the 4MB page for the kernel, and maps 64k of video memory */
+static void install_pages()
+{
+	int i;
+
+	clear_page_dir(page_directory);
+	clear_page_table(page_table);
 
 	{
 		/* setup first page directory */
@@ -231,13 +119,14 @@ void install_pages()
 		page_directory[0] = first_page_dir;
 
 		/* setup video memory */
-		pte_t video_mem = empty_page_entry;
-		video_mem.present = 1;
-		video_mem.read_write = 1;
-		video_mem.user_supervisor = 1;
-		video_mem.page_base_addr = PAGE_BASE_ADDR(VIDEO);
-
-		page_table[PAGE_TABLE_IDX(VIDEO)] = video_mem;
+		pte_t video_mem_temp = empty_page_entry;
+		for (i = 0; i < 16; i++) {
+			video_mem_temp.present = 1;
+			video_mem_temp.read_write = 1;
+			video_mem_temp.user_supervisor = 1;
+			video_mem_temp.page_base_addr = PAGE_BASE_ADDR(VIDEO + i * 0x1000);
+			page_table[PAGE_TABLE_IDX(VIDEO + i * 0x1000)] = video_mem_temp;
+		}
 	}
 	
 	{
@@ -261,5 +150,3 @@ void install_pages()
 	/* enable paging */
 	set_pg_flag();
 }
-
-#endif
