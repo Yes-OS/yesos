@@ -7,6 +7,14 @@
 
 uint32_t rtc_intf;
 
+/* File operations jump table */
+void * rtc_fops[] = {
+  rtc_open,
+  rtc_read,
+  rtc_write,
+  rtc_close
+};
+
 /* initialize the RTC */
 void rtc_init(void)
 {
