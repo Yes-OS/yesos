@@ -8,6 +8,24 @@
 #define BIG_NUM 1073741823
 #define NEG_NUM -1073741823
 
+/* call_sys
+ * This function calls the system call #(num)
+ * num is the syscall number to be called
+ * returns 0 on success, -1 on failure
+ */
+int call_sys(int num)
+{
+	int fail;
+	asm volatile
+    (
+        "movl %1, %%eax\n\t"
+        "int $0x80"
+        : "=a"(fail)
+        : "g"(num)
+    );
+	return fail;
+}
+
 /* TEST 1 err_neg_fd
  * tries to call syscalls with file descriptor < 0
  * prints "[TEST_NAME]: PASS" if behavior is EXPECTED
@@ -89,6 +107,12 @@ int err_open_lots(void) {
 			cnt++;
         }
     }
+    //close all fds that were just opened.
+    for(i = 2; i < 8; i++)
+    {
+    	ece391_close(i);
+    }
+    
 	if (cnt == 1) {
 		ece391_fdputs(1, (uint8_t*)"err_open_lots: PASS\n");
 		return 0;
@@ -100,7 +124,7 @@ int err_open_lots(void) {
 
 
 /* TEST 4 err_open
- * tries to close a file with (2 < fd < 7)
+ * tries to open slightly incorrect filenames
  * prints "[TEST_NAME]: PASS" if behavior is EXPECTED
  *     and then returns 0
  * prints "[TEST_NAME]: FAIL" if behavior is UNEXPECTED
@@ -171,7 +195,7 @@ int err_unopened(void) {
 	} else {
 		ece391_fdputs (1, (uint8_t*)"err_unopened: PASS\n");
 	}
-	return 2;
+	return fail;
 }
 
 /* TEST 6 err_vidmap
@@ -184,12 +208,12 @@ int err_unopened(void) {
 int err_vidmap(void) {
 	int fail = 0; // 0 if success, != 0 if fail
 	// test with NULL pointer
-	if (-1 != ece391_vidmap(0x0)) {
+	if (-1 != ece391_vidmap((uint8_t **) 0x0)) {
 		ece391_fdputs (1, (uint8_t*)"Null pointer fail\n");
         fail = 2;
 	}
 	
-	if (-1 != ece391_vidmap(0x400000)) {
+	if (-1 != ece391_vidmap((uint8_t **) 0x400000)) {
 		ece391_fdputs (1, (uint8_t*)"Kernel pointer fail fail\n");
 		fail = 2;
 	}
@@ -260,24 +284,11 @@ int err_vidmap(void) {
 	}
 	
 	if (fail) {
-		ece391_fdputs (1, (uint8_t*)"err_stdin_out: FAIL\n");
+		ece391_fdputs (1, (uint8_t*)"err_syscall_num: FAIL\n");
 	} else {
-		ece391_fdputs (1, (uint8_t*)"err_stdin_out: PASS\n");
+		ece391_fdputs (1, (uint8_t*)"err_syscall_num: PASS\n");
 	}
  
-	return fail;
- }
- 
- int call_sys(int num)
- {
-	int fail;
-	asm volatile
-    (
-        "movl %1, %%eax\n\t"
-        "int $0x80"
-        : "=a"(fail)
-        : "g"(num)
-    );
 	return fail;
  }
 
