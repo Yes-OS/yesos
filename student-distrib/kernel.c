@@ -201,9 +201,9 @@ entry (unsigned long magic, unsigned long addr)
 	enable_irq(KBD_IRQ_PORT);
 	printf("done\n");
 	
-	printf("    Initializing File System... ");
+	/*printf("    Initializing File System... ");
 	fs_init();
-	printf("done\n");
+	printf("done\n");*/
 
 	printf("    Initializing Paging... ");
 	paging_init();
@@ -225,13 +225,10 @@ entry (unsigned long magic, unsigned long addr)
 	printf("\nWelcome!\n");
 	update_cursor();
 
-	do_syscall(SYS_OPEN);
-	do_syscall(SYS_READ);
-	do_syscall(SYS_WRITE);
-	do_syscall(SYS_CLOSE);
-	do_syscall(SYS_EXEC);
-	do_syscall(SYS_HALT);
-
+	/*test copy_data for EIP*/
+	printf("Testing EIP\n");
+	test_EIP();
+	
 	while (1) {
 		bread = term_read(STDIN, buffer, sizeof(buffer)/sizeof(buffer[0]));
 		term_write(STDOUT, buffer, bread);

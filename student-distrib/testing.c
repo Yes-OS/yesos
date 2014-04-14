@@ -11,8 +11,7 @@
 /* Read tests 
  * Three functions
  */
-int8_t _test_read(void)
-{
+int8_t _test_read(void){
 
 	/*__Read dentry by name test__*/
 	printf("Testing read_dentry_by_name\n");
@@ -83,8 +82,7 @@ int8_t _test_read(void)
 /* File system tests 
  * read, write, open, close
  */
-int8_t _test_file_sys(void)
-{
+int8_t _test_file_sys(void){
 	/* reset fs pointers */
 	fs_init();
 
@@ -109,8 +107,7 @@ int8_t _test_file_sys(void)
 /* Directory tests 
  * read, write, open, close
  */
-int8_t _test_directory(void)
-{
+int8_t _test_directory(void){
 	/* reset fs pointers */
 	fs_init();
 
@@ -132,13 +129,12 @@ int8_t _test_directory(void)
 }
 
 
-/*  Perform all tests
+/*  Perform all file system tests
  *
  *  Return 0 when all tests return no error
  *  Return -1 else
  */
-int8_t test_fs_all (void)
-{
+int8_t test_fs_all(void){
 	int8_t error_count;
 	error_count = 0;
 	
@@ -158,3 +154,72 @@ int8_t test_fs_all (void)
 
 	return error_count;
 }
+
+int8_t test_EIP(void)
+{
+	uint32_t temp_EIP;
+	uint32_t retval;
+	file_t test_file;
+	
+	test_file.file_op = 0;
+	test_file.file_pos = 0;
+	test_file.flags = 0;
+	
+	int8_t* test_fname	= "ls"; 		//insert file name to test for here
+	dentry_t test_dentry;
+	
+	retval = read_dentry_by_name ((uint8_t*)test_fname, &test_dentry);
+	
+	test_file.inode_ptr = test_dentry.inode_num;
+	
+	retval = file_loader(&test_file, &temp_EIP);
+	if(retval == -1) {
+		printf("file_loader FAIL\n");
+		return 0;
+	}
+	
+	printf("EIP: %u\n", temp_EIP);
+	
+	return 0;
+
+}
+
+/* void _test_array_typedef(void){
+	
+	test_t foo1;
+	test_t foo2[TEST_SIZE];
+	
+	int i, j;
+	
+	//navigate array struct
+	for (i = 0; i < ARRAYSIZE(foo1.element); i++){
+		foo1.element[i] = i;
+		printf("%d", foo1.element[i]);
+	} printf("Done(1) \n");
+	
+ 	//navigate array of array structs
+	for (j = 0; j < ARRAYSIZE(foo2); j++){
+		for (i = 0; i < ARRAYSIZE(foo1.element); i++){
+			foo2[j].element[i] = i;
+			printf("%d", foo2[j].element[i]);
+		}
+	} printf("Done(2) \n");
+	
+	
+} */
+
+/*  Sandbox tests
+ *
+ *	Used to test misc functionality
+ */
+/* int8_t test_misc(void){
+
+	int8_t error_count;
+	error_count = 0;
+
+	printf("Typedef of array test:...\n");	
+	error_count += _test_array_typedef();
+	printf("Typedef of array test done.\n");
+	
+	return error_count;
+} */

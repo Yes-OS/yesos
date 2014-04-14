@@ -2,6 +2,11 @@
  *              with the file system.
  * 
  * vim:ts=4 sw=4 noexpandtab
+ *
+ * TO DO:
+ *		-Add functionality:
+ *			copy a program image from the disk blocks into continuous physical memory
+ *			set up the stack properly and return to user-level
  */
 
 #include "file_sys.h"
@@ -15,8 +20,8 @@ void * fs_fops[] = {
 };
 
 /*Variables for File_sys functions*/
-static uint32_t* node_head;
-static uint32_t* data_head;
+static index_node_t* node_head;
+static data_block_t* data_head;
 static boot_block_t * boot_block;
 boot_block_t* mbi_val;
 
@@ -31,8 +36,8 @@ void fs_init(void)
 {
 	boot_block = mbi_val;
 	
-	node_head = (uint32_t*)(boot_block + 1);
-	data_head = node_head + (boot_block->num_nodes)*ADDRESSES_PER_BLOCK;
+	node_head = (index_node_t*)boot_block + 1;
+	data_head = (data_block_t*)node_head + boot_block->num_nodes;
 }
 
 /*  Read data from specified file into specified buffer
@@ -134,7 +139,7 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry)
 //		dentry->inode_num = index;
 
 	//Check for non-existant file or invalid index
-	if(index <= boot_block->num_nodes)
+	if(index <= boot_block->num_entries)
 	{
 	
 		strncpy((int8_t*)dentry->file_name, (int8_t*)boot_block->entries[index].file_name, FILE_NAME_SIZE);
@@ -173,7 +178,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 		return -1;
 	}
 	
-	index_node_t* my_inode = (index_node_t*)(node_head + inode * ADDRESSES_PER_BLOCK); 
+	index_node_t* my_inode = &node_head[inode]; 
 	
 	//	If the offset is beyond the block length, 0 bytes were written.
 	if(my_inode->byte_length < offset)
@@ -189,7 +194,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 	while( (bytes_read < length) && (bytes_read+offset < my_inode->byte_length) )
 	{
 		//	Find data block from inode data block number.
-		data_block_t * data_block = (data_block_t *)(data_head + (my_inode->data_blocks[db_index]) * ADDRESSES_PER_BLOCK);
+		data_block_t * data_block = data_head + my_inode->data_blocks[db_index];
 		
 		//	Calculate bytes unread and data left to read.
 		uint32_t bytes_unread = length - bytes_read;
@@ -293,5 +298,59 @@ uint32_t dir_open(void)
  */
 uint32_t dir_close(void)
 {
+	return 0;
+}
+
+/*
+ * read a passed file
+ * get EIP
+ * copy file to physical memory using its own virtual space
+ *
+ * returns 0 on success (for now)
+ *		  -1 on failure
+ */
+uint32_t file_loader(file_t* file, uint32_t* EIP){
+
+	/* --read the file--
+	 * Get the size of the file as we need to copy the entire thing 
+	 */
+	uint32_t bytes_remaining = node_head[file->inode_ptr].byte_length;
+	uint32_t curEIP, temp_read;
+	uint32_t buf_length = 4000;	//buffer size that works for our read_data implementation
+	uint32_t bytes_read = 0;
+	uint8_t file_buf[buf_length];
+	
+	/* populate file's page directory
+	 * 		use memcpy to new page in new page directory
+	 * 		should fill one page table (no more than 4MB a task)
+	 */
+	
+	while(bytes_remaining > 0) {
+		temp_read = read_data(file->inode_ptr, bytes_read, file_buf, buf_length);
+		/*if(temp_read == -1) {
+			printf("Invalid inode value\n");
+			return -1;
+		}*/
+		memcpy((uint32_t*)(USER_SPACE + EXEC_OFFSET + bytes_read), file_buf, temp_read);
+		bytes_read += temp_read;
+		bytes_remaining -= temp_read;
+	}
+	
+	/* --get EIP--
+	 * (128MB < valid < 132MB)
+	 */ 
+	 
+	/*EIP is bytes 24-27 of executable*/
+	curEIP = *(uint32_t*)(USER_SPACE + EXEC_OFFSET + 24);						
+	if(curEIP < USER_SPACE + EXEC_OFFSET || curEIP > USER_SPACE + MB_4_OFFSET) {
+		printf("Invalid EIP: Not an executable\n");
+		return -1;
+	}
+	
+	*EIP = curEIP;
+	 
+	
+	
+	
 	return 0;
 }

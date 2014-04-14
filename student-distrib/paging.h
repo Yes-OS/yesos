@@ -13,8 +13,10 @@
 #define SET_RW		0x02
 #define SET_RW_P	0x03
 #define SET_4MB		0x80
+#define MAX_PROCESSES 2
 
 #define KERNEL_MEM	0x400000
+#define USER_MEM	0x08048000
 
 /* Tests if a given directory entry is for a 4MB page */
 #define PDE_IS_4MB(entry)	((entry).page_size == 1)
@@ -88,6 +90,15 @@ typedef struct pte {
 		} __attribute__((packed));
 	};
 } pte_t;
+
+typedef struct pd {
+	pde_t entry[NUM_ENTRIES];
+} pd_t;
+
+typedef struct pt {
+	pte_t entry[NUM_ENTRIES]; 
+} pt_t;
+
 
 #endif
 
