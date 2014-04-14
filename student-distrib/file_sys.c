@@ -301,40 +301,48 @@ uint32_t dir_close(void)
  * returns 0 on success (for now)
  *		  -1 on failure
  */
-uint32_t file_loader(file_t* file){
+uint32_t file_loader(file_t* file, uint32_t* EIP){
 
 	/* --read the file--
-	 * Get the size of the file and do operations only as "large" as we need to 
-	 * 		also check for read failure
+	 * Get the size of the file as we need to copy the entire thing 
 	 */
-	uint32_t FILE_SIZE_B = ((index_node_t*)(node_head + (file->inode_ptr) * ADDRESSES_PER_BLOCK))->byte_length;
-	if( FILE_SIZE_B > (BLOCK_SIZE*ADDRESSES_PER_BLOCK) ) return -1;
+	uint32_t bytes_remaining = ((index_node_t*)(node_head + (file->inode_ptr) * ADDRESSES_PER_BLOCK))->byte_length;
+	uint32_t curEIP, temp_read;
+	uint32_t buf_length = 128;
+	uint32_t bytes_read = 0;
+	uint8_t file_buf[buf_length];
 	
-	uint32_t file_bytes_read = 0;
-	uint8_t file_buf[FILE_SIZE_B];
-	
-	file_bytes_read = fs_read(file, file_buf,  FILE_SIZE_B);
-		
-	if (file_bytes_read != FILE_SIZE_B) return -1;
-	
-	
-	/* --get EIP--
-	 * (128MB < valid < 132MB)
-	 * use helper located in lib.h
-	 */
-	uint32_t curEIP;
-	curEIP = getEIP();
-	
-	if (curEIP < USER_SPACE || curEIP > USER_SPACE+MB_4_OFFSET){
-		return -1;
-	} else {
-		
 	/* populate file's page directory
 	 * 		use memcpy to new page in new page directory
 	 * 		should fill one page table (no more than 4MB a task)
 	 */
-		memcpy( (uint32_t*)USER_SPACE, (uint32_t*)curEIP, FILE_SIZE_B );
+	
+	while(bytes_remaining > 0) {
+		temp_read = read_data(file->inode_ptr, bytes_read, file_buf, buf_length);
+		if(temp_read == -1) {
+			printf("Invalid inode value\n");
+			return -1;
+		}
+		memcpy((uint32_t*)(USER_SPACE + EXEC_OFFSET + bytes_read), file_buf, temp_read);
+		bytes_read += temp_read;
+		bytes_remaining -= temp_read;
 	}
+	
+	/* --get EIP--
+	 * (128MB < valid < 132MB)
+	 */ 
+	 
+	/*EIP is bytes 24-27 of executable*/
+	curEIP = *(uint32_t*)(USER_SPACE + EXEC_OFFSET + 24);						
+	if(curEIP < USER_SPACE + EXEC_OFFSET || curEIP > USER_SPACE + MB_4_OFFSET) {
+		printf("Invalid EIP: Not an executable\n");
+		return -1;
+	}
+	
+	*EIP = curEIP;
+	 
+	
+	
 	
 	return 0;
 }

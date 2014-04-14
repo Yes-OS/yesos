@@ -224,12 +224,16 @@ entry (unsigned long magic, unsigned long addr)
 	printf("\nWelcome!\n");
 	update_cursor();
 
+	/*test copy_data for EIP*/
+	test_EIP();
+	
 	while (1) {
 		bread = term_read(STDIN, buffer, sizeof(buffer)/sizeof(buffer[0]));
 		term_write(STDOUT, buffer, bread);
 	}
 
 	/* Execute the first program (`shell') ... */
+	
 	
 	/* Spin (nicely, so we don't chew up cycles) */
 	halt();

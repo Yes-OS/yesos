@@ -38,6 +38,7 @@ int8_t _test_file_sys(void);
 int8_t _test_directory(void);
 
 int8_t test_fs_all (void);
+int8_t test_EIP(void);
 
 /* void _test_array_typedef(void); */
 

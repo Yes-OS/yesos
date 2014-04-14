@@ -25,6 +25,7 @@
 /* User Space virtual addressing values */
 #define USER_SPACE			0x08000000
 #define MB_4_OFFSET			0x00400000
+#define EXEC_OFFSET			0x00048000
 
 
 
@@ -121,7 +122,7 @@ uint32_t dir_open(void);
 uint32_t dir_close(void);
 
 // ** NEW ** //
-uint32_t file_loader(file_t* file);
+uint32_t file_loader(file_t* file, uint32_t* EIP);
 
 
 #endif /* ASM           */

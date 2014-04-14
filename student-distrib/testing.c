@@ -155,6 +155,29 @@ int8_t test_fs_all(void){
 	return error_count;
 }
 
+int8_t test_EIP(void)
+{
+	uint32_t temp_EIP;
+	uint32_t retval;
+	file_t* test_file;
+	
+	test_file->file_op = 0;
+	test_file->inode_ptr = 12;
+	test_file->file_pos = 0;
+	test_file->flags = 0;
+	
+	retval = file_loader(test_file,&temp_EIP);
+	if(retval == -1) {
+		printf("file_loader FAIL\n");
+		return 0;
+	}
+	
+	printf("EIP: %u", temp_EIP);
+	
+	return 0;
+
+}
+
 /* void _test_array_typedef(void){
 	
 	test_t foo1;
