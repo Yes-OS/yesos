@@ -101,7 +101,6 @@ int32_t sys_exec(const uint8_t *command)
 		file.file_op = term_fops;
 		file.file_pos = 0;
 		file.inode_ptr = 0;
-		pcb
 	}
 
 	return 0;

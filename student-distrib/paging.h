@@ -40,7 +40,6 @@
 
 /*Initialize paging*/
 void paging_init(void);
-void install_user_page(uint32_t index);
 
 /* type definitions */
 
