@@ -9,12 +9,12 @@
 #include "term.h"
 
 /* File operations jump table */
-void * term_fops = {
+void * term_fops[] = {
 	term_open,
 	term_read,
 	term_write,
 	term_close
-}
+};
 
 
 /* Defines a circular buffer for keypresses */

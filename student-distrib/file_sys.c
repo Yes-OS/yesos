@@ -7,12 +7,12 @@
 #include "file_sys.h"
 
 /* File operations jump table */
-void * file_sys_fops = {
-	file_sys_open,
-	file_sys_read,
-	file_sys_write,
-	file_sys_close
-}
+void * fs_fops[] = {
+	fs_open,
+	fs_read,
+	fs_write,
+	fs_close
+};
 
 /*Variables for File_sys functions*/
 static uint32_t* node_head;
