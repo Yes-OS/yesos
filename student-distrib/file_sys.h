@@ -30,7 +30,7 @@
  * 16-bytes
  */
 typedef struct file {
-    uint32_t file_op;
+    void* file_op;
     uint32_t inode_ptr;
     uint32_t file_pos;
     uint32_t flags;
