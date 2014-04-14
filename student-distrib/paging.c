@@ -64,8 +64,8 @@ pt_t page_table __attribute__((aligned(PAGE_SIZE)));
 
 
 /* helper functions */
-static void clear_page_dir(pd_t directory);
-static void clear_page_table();
+static void clear_page_dir(pd_t* directory);
+static void clear_page_table(pt_t* table);
 static void install_pages();
 static void install_vid_page(uint32_t index);
 static void install_kernel_page(uint32_t index);
@@ -85,9 +85,9 @@ static void install_vid_page(uint32_t index)
 	first_page_dir.present = 1;
 	first_page_dir.read_write = 0;
 	first_page_dir.user_supervisor = 1;
-	first_page_dir.pt_base_addr = PAGE_BASE_ADDR((uint32_t)page_table.element[0].val);
+	first_page_dir.pt_base_addr = PAGE_BASE_ADDR((uint32_t)&page_table);
 
-	page_directories[index].element[0] = first_page_dir;
+	page_directories[index].entry[0] = first_page_dir;
 	
 	/* setup video memory */
 	pte_t video_mem_temp = empty_page_entry;
@@ -96,7 +96,7 @@ static void install_vid_page(uint32_t index)
 		video_mem_temp.read_write = 1;
 		video_mem_temp.user_supervisor = 1;
 		video_mem_temp.page_base_addr = PAGE_BASE_ADDR(VIDEO + i * 0x1000);
-		page_table.element[PAGE_TABLE_IDX(VIDEO + i * 0x1000)] = video_mem_temp;
+		page_table.entry[PAGE_TABLE_IDX(VIDEO + i * 0x1000)] = video_mem_temp;
 	}
 }
 
@@ -111,7 +111,7 @@ static void install_kernel_page(uint32_t index)
 		kernel_mem.page_size = 1;
 		kernel_mem.page_base_addr_4mb = PAGE_BASE_ADDR_4MB(KERNEL_MEM);
 
-		page_directories[index].element[PAGE_DIR_IDX(KERNEL_MEM)] = kernel_mem;	
+		page_directories[index].entry[PAGE_DIR_IDX(KERNEL_MEM)] = kernel_mem;	
 }
 
 /* initializes paging */
@@ -121,26 +121,26 @@ void paging_init(void)
 }
 
 /* clears the page directory for the kernel */
-static void clear_page_dir(pd_t directory)
+static void clear_page_dir(pd_t* directory)
 {
 	int i;
 
 	/* clear page directory */
 	for (i = 0; i < NUM_ENTRIES; i++) {
 		/* install an empty entry */
-		directory.element[i] = empty_dir_entry;
+		directory->entry[i] = empty_dir_entry;
 	}
 }
 
 /* clears the first page table */
-static void clear_page_table(pt_t table)
+static void clear_page_table(pt_t* table)
 {
 	int i;
 
 	/* clear first page table */
 	for (i = 0; i < NUM_ENTRIES; i++) {
 		/* install an empty entry */
-		table.element[i] = empty_page_entry;
+		table->entry[i] = empty_page_entry;
 	}
 }
 
@@ -152,17 +152,17 @@ static void install_pages()
 	int i;
 
 	for(i = 0; i < MAX_PROCESSES + 1; i++) {
-		clear_page_dir(page_directories[i]);
+		clear_page_dir(&page_directories[i]);
 		install_kernel_page(i);
 	}
 	
-	clear_page_table(page_table);
+	clear_page_table(&page_table);
 	install_vid_page(0);
 
 	/* set up registers */
 	clr_pae_flag();
 	set_pse_flag();
-	set_pdbr(page_directories[0].element[0]);
+	set_pdbr(page_directories);
 
 	/* enable paging */
 	set_pg_flag();

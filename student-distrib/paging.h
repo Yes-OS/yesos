@@ -91,11 +91,11 @@ typedef struct pte {
 } pte_t;
 
 typedef struct pd {
-	pde_t element[NUM_ENTRIES];
+	pde_t entry[NUM_ENTRIES];
 } pd_t;
 
 typedef struct pt {
-	pte_t element[NUM_ENTRIES]; 
+	pte_t entry[NUM_ENTRIES]; 
 } pt_t;
 
 
