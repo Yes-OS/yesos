@@ -126,7 +126,7 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry)
 //		dentry->inode_num = index;
 
 	//Check for non-existant file or invalid index
-	if(index <= boot_block->num_nodes)
+	if(index <= boot_block->num_entries)
 	{
 	
 		strncpy((int8_t*)dentry->file_name, (int8_t*)boot_block->entries[index].file_name, FILE_NAME_SIZE);
