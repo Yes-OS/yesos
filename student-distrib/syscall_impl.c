@@ -10,6 +10,8 @@
 
 #define MAX_CMD_LEN 33
 
+static uint8_t nprocs = 0;
+
 typedef int32_t open_t(const uint8_t *filename);
 typedef int32_t read_t(int32_t fd, void *buf, int32_t nbytes);
 typedef int32_t write_t(int32_t fd, const void *buf, int32_t nbytes);
@@ -62,6 +64,7 @@ int32_t sys_exec(const uint8_t *command)
 	dentry_t dentry;
 	file_t file;
 	int32_t status;
+	uint32_t eip;
 
 	for (i = 0, c = command; i < MAX_CMD_LEN && *c == (uint8_t)' '; i++, c++) {
 		/* skip beginning spaces */
@@ -74,7 +77,7 @@ int32_t sys_exec(const uint8_t *command)
 	file_name[fcnt] = '\0';
 
 	status = read_dentry_by_name(file_name, &dentry);
-	if (status != 0) {
+	if (!status) {
 		return status;
 	}
 
@@ -83,6 +86,10 @@ int32_t sys_exec(const uint8_t *command)
 	file.file_pos = 0;
 	file.inode_ptr = dentry.inode_num;
 
+	status = file_loader(&file, &eip);
+	if (!status) {
+		return status;
+	}
 
 	return 0;
 }
