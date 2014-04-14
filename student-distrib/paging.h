@@ -38,6 +38,16 @@
 
 #ifndef ASM
 
+/* sets page directory base register (cr3) */
+#define set_pdbr(base)               \
+	do {                             \
+		asm volatile (               \
+				"movl    %0, %%cr3"  \
+				: : "r" ((base))     \
+				: "memory"    \
+			);                       \
+	} while (0)
+
 /*Initialize paging*/
 void paging_init(void);
 
@@ -98,6 +108,8 @@ typedef struct pd {
 typedef struct pt {
 	pte_t entry[NUM_ENTRIES]; 
 } pt_t;
+
+extern pd_t page_directories[MAX_PROCESSES + 1];
 
 
 #endif

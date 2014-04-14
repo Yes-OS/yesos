@@ -8,6 +8,7 @@
 #include "file_sys.h"
 #include "syscall.h"
 #include "x86_desc.h"
+#include "paging.h"
 
 #define MAX_CMD_LEN 33
 
@@ -73,13 +74,13 @@ int32_t sys_exec(const uint8_t *command)
 	}
 
 	/* copy command name */
-	for (; i < MAX_CMD_LEN && *c != ' '; i++, c++) {
+	for (; i < MAX_CMD_LEN && *c != ' ' && *c != '\0'; i++, c++) {
 		file_name[fcnt++] = *c;
 	}
 	file_name[fcnt] = '\0';
 
 	status = read_dentry_by_name(file_name, &dentry);
-	if (!status) {
+	if (status) {
 		return status;
 	}
 
@@ -88,8 +89,10 @@ int32_t sys_exec(const uint8_t *command)
 	file.file_pos = 0;
 	file.inode_ptr = dentry.inode_num;
 
+
+
 	status = file_loader(&file, &eip);
-	if (!status) {
+	if (status) {
 		return status;
 	}
 
@@ -110,8 +113,22 @@ int32_t sys_exec(const uint8_t *command)
 	}
 
 	tss.ss0 = KERNEL_DS;
-	tss.esp0 = (uint32_t)pcb + 0x0001FF0;
+	tss.esp0 = (uint32_t)pcb + 0x00001FF0;
 
+	set_pdbr(&page_directories[1]);
+
+	asm volatile (
+			"pushl    %0\n"
+			"pushl    %1\n"
+			"pushfl\n"
+			"movl     %%cs, %%eax\n"
+			"pushl    %%eax\n"
+			"pushl    %2\n"
+			"iret"
+			: : "g"(USER_DS), "g"(USER_MEM + 0x00001FF0), "g"(eip)
+			: "eax", "memory", "cc");
+
+	/* never reached */
 	return 0;
 }
 

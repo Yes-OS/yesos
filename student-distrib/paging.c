@@ -52,15 +52,6 @@ pt_t page_table __attribute__((aligned(PAGE_SIZE)));
 			);                                 \
 	} while (0)
 
-/* sets page directory base register (cr3) */
-#define set_pdbr(base)               \
-	do {                             \
-		asm volatile (               \
-				"movl    %0, %%cr3"  \
-				: : "r" ((base))     \
-				: "memory"    \
-			);                       \
-	} while (0)
 
 
 /* helper functions */
@@ -127,7 +118,7 @@ static void install_user_page(uint32_t index)
 	user_mem.read_write = 1;
 	user_mem.user_supervisor = 1;
 	user_mem.page_size = 1;
-	user_mem.page_base_addr_4mb = PAGE_BASE_ADDR_4MB(USER_MEM + (index - 1) * 0x400000);
+	user_mem.page_base_addr_4mb = PAGE_BASE_ADDR_4MB(KERNEL_MEM+0x0400000);
 	
 	page_directories[index].entry[PAGE_DIR_IDX(USER_MEM)] = user_mem;
 	
@@ -173,9 +164,7 @@ static void install_pages()
 	for(i = 0; i < MAX_PROCESSES + 1; i++) {
 		clear_page_dir(&page_directories[i]);
 		install_kernel_page(i);
-		if (i > 0) {
-			install_user_page(i);
-		}
+		install_user_page(i);
 	}
 	
 	clear_page_table(&page_table);
@@ -184,7 +173,7 @@ static void install_pages()
 	/* set up registers */
 	clr_pae_flag();
 	set_pse_flag();
-	set_pdbr(page_directories);
+	set_pdbr(&page_directories[0]);
 
 	/* enable paging */
 	set_pg_flag();

@@ -225,10 +225,12 @@ entry (unsigned long magic, unsigned long addr)
 	printf("\nWelcome!\n");
 	update_cursor();
 
-	while (1) {
+	/*while (1) {
 		bread = term_read(STDIN, buffer, sizeof(buffer)/sizeof(buffer[0]));
 		term_write(STDOUT, buffer, bread);
-	}
+	}*/
+
+	sys_exec((uint8_t*)"sh");
 
 	/* Execute the first program (`shell') ... */
 	
