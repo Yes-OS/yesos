@@ -8,6 +8,15 @@
 #include "queue.h"
 #include "term.h"
 
+/* File operations jump table */
+void * term_fops = {
+	term_open,
+	term_read,
+	term_write,
+	term_close
+}
+
+
 /* Defines a circular buffer for keypresses */
 #define KBD_BUF_SIZE 129
 DECLARE_CIRC_BUF(int8_t, term_key_buf, KBD_BUF_SIZE);
