@@ -16,6 +16,7 @@
 #define MAX_PROCESSES 2
 
 #define KERNEL_MEM	0x400000
+#define USER_MEM	0x08048000
 
 /* Tests if a given directory entry is for a 4MB page */
 #define PDE_IS_4MB(entry)	((entry).page_size == 1)

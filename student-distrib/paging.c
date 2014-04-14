@@ -69,6 +69,7 @@ static void clear_page_table(pt_t* table);
 static void install_pages();
 static void install_vid_page(uint32_t index);
 static void install_kernel_page(uint32_t index);
+static void install_user_page(uint32_t index);
 
 /* define some empty values, useful for initialization */
 static const pte_t empty_page_entry = {{.val = 0UL}};
@@ -114,6 +115,24 @@ static void install_kernel_page(uint32_t index)
 		page_directories[index].entry[PAGE_DIR_IDX(KERNEL_MEM)] = kernel_mem;	
 }
 
+static void install_user_page(uint32_t index)
+{
+	if(index <= 0) {
+		return;
+	}
+	
+	pde_t user_mem = empty_dir_entry;
+
+	user_mem.present = 1;
+	user_mem.read_write = 1;
+	user_mem.user_supervisor = 1;
+	user_mem.page_size = 1;
+	user_mem.page_base_addr_4mb = PAGE_BASE_ADDR_4MB(USER_MEM);
+	
+	page_directories[index].entry[PAGE_DIR_IDX(USER_MEM)] = user_mem;
+	
+}
+
 /* initializes paging */
 void paging_init(void)
 {
@@ -154,6 +173,7 @@ static void install_pages()
 	for(i = 0; i < MAX_PROCESSES + 1; i++) {
 		clear_page_dir(&page_directories[i]);
 		install_kernel_page(i);
+		install_user_page(i);
 	}
 	
 	clear_page_table(&page_table);
