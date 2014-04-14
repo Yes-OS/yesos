@@ -206,13 +206,11 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 		{
 			if(bytes_unread < BLOCK_SIZE-offset)
 			{
-				printf("\nCase 3\n");
 				memcpy(buf+bytes_read, &(data_block->data[offset*db_first]), bytes_unread);
 				bytes_read += bytes_unread;
 			}
 			else
 			{
-				printf("\nCase 4\n");
 				memcpy(buf+bytes_read, &(data_block->data[offset*db_first]), BLOCK_SIZE-offset);
 				bytes_read += BLOCK_SIZE-offset;
 			}
