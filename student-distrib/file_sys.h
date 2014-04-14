@@ -22,6 +22,11 @@
 #define BLOCK_SIZE			4096
 #define ADDRESSES_PER_BLOCK	1024
 
+/* User Space virtual addressing values */
+#define USER_SPACE			0x08000000
+#define MB_4_OFFSET			0x00400000
+#define EXEC_OFFSET			0x00048000
+
 
 
 /* ________Data Structures________ */
@@ -101,50 +106,23 @@ extern boot_block_t* mbi_val;
 
 void fs_init(void);
 
-/*  Read data from specified file into specified buffer
- *  Return amount read.
- */
 uint32_t fs_read(file_t* file, uint8_t* buf, int count);
-
-/*  Read-only file system. Not implemented. */
 uint32_t fs_write(file_t* file, uint8_t* buf, int count);
-
-/*  Filler functions. File system not opened/closed */
 uint32_t fs_open(void);
 uint32_t fs_close(void);
 
 
-/*	Read Directory Entry by Name
- *
- *  Fill 'dentry_t' block passed in with:
- *		-file name, file type, and inode number
- */
 int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry);
-
-/*	Read Directory Entry by Name
- *
- *  Fill 'dentry_t' block passed in with:
- *		-file name, file type, and inode number
- */
 int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry);
-
-/*	Read Data
-
- *  Reads up to 'length' bytes from position 'offset'
- *	  in the file with 'inode' number into the given 'buf' buffer.
- */
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length);
 
-/*  Traverse the boot block and read out file name */
 uint32_t dir_read(file_t* file, uint8_t* buf, int count);
-
-/*  Read-only file system. Not implemented. */
 uint32_t dir_write(file_t* file, uint8_t* buf, int count);
-
-/*  Filler functions. Directory not opened/closed */
 uint32_t dir_open(void);
 uint32_t dir_close(void);
 
+// ** NEW ** //
+uint32_t file_loader(file_t* file, uint32_t* EIP);
 
 
 #endif /* ASM           */

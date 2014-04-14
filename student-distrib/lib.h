@@ -72,6 +72,38 @@ static inline uint32_t inl(uint16_t port)
 	return val;
 }
 
+/* Accesses the stack (assumes stack already set up) to
+ * extract EIP since it is not a regularly-accessible register 
+ *
+ *	Notes and strategy: 
+ *		Cannot access EIP normally.
+ *		Want to use assembly "call" to change EIP and decrement by
+ *			whatever value needed to go to EIP>call>before call
+ *
+ *	Piazza post: 814 is relevant...not terribly useful
+ *				 800 is more useful, but sys calls are not implemented yet (Apr 14th)
+ *  http://stackoverflow.com/questions/4062403/how-to-check-the-eip-value-with-assembly-language
+ *
+ */
+ 
+static inline uint32_t getEIP(void)
+{
+	return 0x08000000;
+	
+/*
+ 	uint32_t val;
+	asm volatile("call get_eip
+				  get_eip:
+					decl %2, %%esp
+					mov %%esp, %0
+					ret"
+			: "=a"(val)
+			: "memory" );
+	return val;
+*/
+
+}
+
 /* Writes a byte to a port */
 #define outb(data, port)                \
 do {                                    \
