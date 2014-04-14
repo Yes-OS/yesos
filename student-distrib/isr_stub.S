@@ -11,7 +11,6 @@
 #define MKINTSTUB_NOERR(name, number) \
 .globl name                          ;\
 name:                                ;\
-	cli                              ;\
 	pushl	$0                       ;\
 	pushl	$number                  ;\
 	jmp		isr_stub
@@ -20,7 +19,6 @@ name:                                ;\
 #define MKINTSTUB(name, number) \
 .globl name                    ;\
 name:                          ;\
-	cli                        ;\
 	pushl	$0                 ;\
 	pushl	$number            ;\
 	jmp		isr_stub
@@ -108,6 +106,5 @@ isr_stub:
 
 	popal
 	addl	$8, %esp	# clean up error code and ISR number
-	sti
 	iret
 

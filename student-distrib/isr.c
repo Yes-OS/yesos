@@ -10,6 +10,7 @@
 #include "types.h"
 #include "kbd.h"
 #include "rtc.h"
+#include "syscall.h"
 
 
 /* implements the interrupt service request */
@@ -159,7 +160,6 @@ void isr_impl(registers_t regs)
 			break;
 
 	}
-	
 }
 
 void set_intr_gate(uint8_t n, uint32_t addr)
@@ -255,7 +255,7 @@ void set_trap_gate(uint8_t n, uint32_t addr)
 	new_idt_entry.reserved2 = 1;
 	new_idt_entry.reserved3 = 0;
 
-	/* Can be called by user level code */
+	/* Cannot be called by user level code */
 	new_idt_entry.dpl = 0;
 	new_idt_entry.seg_selector = KERNEL_CS;
 
@@ -281,43 +281,46 @@ void install_interrupts()
 	}
 
 	/* initialize exceptions */
-	set_trap_gate(0,  (uint32_t)&divide_error);
-	set_trap_gate(1,  (uint32_t)&debug);
-	set_trap_gate(2,  (uint32_t)&nmi);
-	set_trap_gate(3,  (uint32_t)&breakpoint);
-	set_trap_gate(4,  (uint32_t)&overflow);
-	set_trap_gate(5,  (uint32_t)&bound);
-	set_trap_gate(6,  (uint32_t)&invalid_opcode);
-	set_trap_gate(7,  (uint32_t)&device_not_available);
-	set_trap_gate(8,  (uint32_t)&double_fault);
-	set_trap_gate(9,  (uint32_t)&coprocessor_segment_overrun);
-	set_trap_gate(10, (uint32_t)&invalid_tss);
-	set_trap_gate(11, (uint32_t)&segment_not_present);
-	set_trap_gate(12, (uint32_t)&stack_fault);
-	set_trap_gate(13, (uint32_t)&general_protection);
-	set_trap_gate(14, (uint32_t)&page_fault);
-	set_trap_gate(16, (uint32_t)&coprocessor_error);
-	set_trap_gate(17, (uint32_t)&alignment_check);
-	set_trap_gate(18, (uint32_t)&machine_check);
-	set_trap_gate(19, (uint32_t)&simd_coprocessor_error);
+	set_intr_gate(0,  (uint32_t)&divide_error);
+	set_intr_gate(1,  (uint32_t)&debug);
+	set_intr_gate(2,  (uint32_t)&nmi);
+	set_system_intr_gate(3,  (uint32_t)&breakpoint);
+	set_system_gate(4,  (uint32_t)&overflow);
+	set_system_gate(5,  (uint32_t)&bound);
+	set_intr_gate(6,  (uint32_t)&invalid_opcode);
+	set_intr_gate(7,  (uint32_t)&device_not_available);
+	set_intr_gate(8,  (uint32_t)&double_fault);
+	set_intr_gate(9,  (uint32_t)&coprocessor_segment_overrun);
+	set_intr_gate(10, (uint32_t)&invalid_tss);
+	set_intr_gate(11, (uint32_t)&segment_not_present);
+	set_intr_gate(12, (uint32_t)&stack_fault);
+	set_intr_gate(13, (uint32_t)&general_protection);
+	set_intr_gate(14, (uint32_t)&page_fault);
+	set_intr_gate(16, (uint32_t)&coprocessor_error);
+	set_intr_gate(17, (uint32_t)&alignment_check);
+	set_intr_gate(18, (uint32_t)&machine_check);
+	set_intr_gate(19, (uint32_t)&simd_coprocessor_error);
 
 	/* initialize irqs */
-	set_trap_gate(32, (uint32_t)&irq0);
-	set_trap_gate(33, (uint32_t)&irq1);
-	set_trap_gate(34, (uint32_t)&irq2);
-	set_trap_gate(35, (uint32_t)&irq3);
-	set_trap_gate(36, (uint32_t)&irq4);
-	set_trap_gate(37, (uint32_t)&irq5);
-	set_trap_gate(38, (uint32_t)&irq6);
-	set_trap_gate(39, (uint32_t)&irq7);
-	set_trap_gate(40, (uint32_t)&irq8);
-	set_trap_gate(41, (uint32_t)&irq9);
-	set_trap_gate(42, (uint32_t)&irq10);
-	set_trap_gate(43, (uint32_t)&irq11);
-	set_trap_gate(44, (uint32_t)&irq12);
-	set_trap_gate(45, (uint32_t)&irq13);
-	set_trap_gate(46, (uint32_t)&irq14);
-	set_trap_gate(47, (uint32_t)&irq15);
+	set_intr_gate(32, (uint32_t)&irq0);
+	set_intr_gate(33, (uint32_t)&irq1);
+	set_intr_gate(34, (uint32_t)&irq2);
+	set_intr_gate(35, (uint32_t)&irq3);
+	set_intr_gate(36, (uint32_t)&irq4);
+	set_intr_gate(37, (uint32_t)&irq5);
+	set_intr_gate(38, (uint32_t)&irq6);
+	set_intr_gate(39, (uint32_t)&irq7);
+	set_intr_gate(40, (uint32_t)&irq8);
+	set_intr_gate(41, (uint32_t)&irq9);
+	set_intr_gate(42, (uint32_t)&irq10);
+	set_intr_gate(43, (uint32_t)&irq11);
+	set_intr_gate(44, (uint32_t)&irq12);
+	set_intr_gate(45, (uint32_t)&irq13);
+	set_intr_gate(46, (uint32_t)&irq14);
+	set_intr_gate(47, (uint32_t)&irq15);
+
+	/* initialize system call vector*/
+	set_system_gate(0x80, (uint32_t)&enter_syscall);
 
 	/* load IDT */
 	lidt(idt_desc_ptr);

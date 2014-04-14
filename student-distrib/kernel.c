@@ -15,6 +15,7 @@
 #include "term.h"
 #include "file_sys.h"
 #include "testing.h"
+#include "syscall.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -192,7 +193,7 @@ entry (unsigned long magic, unsigned long addr)
 
 	printf("    Initializing RTC... ");
 	rtc_init();
-	enable_irq(RTC_IRQ_PORT);
+	//enable_irq(RTC_IRQ_PORT);
 	printf("done\n");
 	
 	printf("    Initializing Keyboard... ");
@@ -223,6 +224,13 @@ entry (unsigned long magic, unsigned long addr)
 
 	printf("\nWelcome!\n");
 	update_cursor();
+
+	do_syscall(SYS_OPEN);
+	do_syscall(SYS_READ);
+	do_syscall(SYS_WRITE);
+	do_syscall(SYS_CLOSE);
+	do_syscall(SYS_EXEC);
+	do_syscall(SYS_HALT);
 
 	while (1) {
 		bread = term_read(STDIN, buffer, sizeof(buffer)/sizeof(buffer[0]));
