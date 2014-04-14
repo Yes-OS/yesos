@@ -12,8 +12,8 @@
 #include "file_sys.h"
 
 /*Variables for File_sys functions*/
-static uint32_t* node_head;
-static uint32_t* data_head;
+static index_node_t* node_head;
+static data_block_t* data_head;
 static boot_block_t * boot_block;
 boot_block_t* mbi_val;
 
@@ -28,8 +28,8 @@ void fs_init(void)
 {
 	boot_block = mbi_val;
 	
-	node_head = (uint32_t*)(boot_block + 1);
-	data_head = node_head + (boot_block->num_nodes)*ADDRESSES_PER_BLOCK;
+	node_head = (index_node_t*)boot_block + 1;
+	data_head = (data_block_t*)node_head + boot_block->num_nodes;
 }
 
 /*  Read data from specified file into specified buffer
@@ -170,7 +170,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 		return -1;
 	}
 	
-	index_node_t* my_inode = (index_node_t*)(node_head + inode * ADDRESSES_PER_BLOCK); 
+	index_node_t* my_inode = &node_head[inode]; 
 	
 	//	If the offset is beyond the block length, 0 bytes were written.
 	if(my_inode->byte_length < offset)
@@ -186,7 +186,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 	while( (bytes_read < length) && (bytes_read+offset < my_inode->byte_length) )
 	{
 		//	Find data block from inode data block number.
-		data_block_t * data_block = (data_block_t *)(data_head + (my_inode->data_blocks[db_index]) * ADDRESSES_PER_BLOCK);
+		data_block_t * data_block = data_head + my_inode->data_blocks[db_index];
 		
 		//	Calculate bytes unread and data left to read.
 		uint32_t bytes_unread = length - bytes_read;
@@ -306,7 +306,7 @@ uint32_t file_loader(file_t* file, uint32_t* EIP){
 	/* --read the file--
 	 * Get the size of the file as we need to copy the entire thing 
 	 */
-	uint32_t bytes_remaining = ((index_node_t*)(node_head + (file->inode_ptr) * ADDRESSES_PER_BLOCK))->byte_length;
+	uint32_t bytes_remaining = node_head[file->inode_ptr].byte_length;
 	uint32_t curEIP, temp_read;
 	uint32_t buf_length = 128;
 	uint32_t bytes_read = 0;

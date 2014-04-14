@@ -225,7 +225,14 @@ entry (unsigned long magic, unsigned long addr)
 	update_cursor();
 
 	/*test copy_data for EIP*/
+	/*
+	printf("Testing EIP\n");
 	test_EIP();
+	*/
+	
+	/*test file_sys*/
+	_test_read();
+	_test_file_sys();
 	
 	while (1) {
 		bread = term_read(STDIN, buffer, sizeof(buffer)/sizeof(buffer[0]));
