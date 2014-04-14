@@ -28,6 +28,8 @@
 #define EXEC_OFFSET			0x00048000
 
 
+extern void *fs_fops[];
+
 
 /* ________Data Structures________ */
 

@@ -65,6 +65,7 @@ int32_t sys_exec(const uint8_t *command)
 	file_t file;
 	int32_t status;
 	uint32_t eip;
+	pcb_t *pcb;
 
 	for (i = 0, c = command; i < MAX_CMD_LEN && *c == (uint8_t)' '; i++, c++) {
 		/* skip beginning spaces */
@@ -89,6 +90,18 @@ int32_t sys_exec(const uint8_t *command)
 	status = file_loader(&file, &eip);
 	if (!status) {
 		return status;
+	}
+
+	pcb = get_proc_pcb();
+
+	{
+		/* set up fops */
+		file_t file;
+		file.flags = 0;
+		file.file_op = term_fops;
+		file.file_pos = 0;
+		file.inode_ptr = 0;
+		pcb
 	}
 
 	return 0;
