@@ -2,6 +2,10 @@
  * vim:ts=4 sw=4 noexpandtab
  */
 
+#ifndef _PROC_H_
+#define _PROC_H_
+
+#include "file_sys.h"
 
 //	PCB STATE DEFINTIONS
 #define TASK_RUNNING			0		//	process is executing or waiting to execute.
@@ -15,7 +19,8 @@
 //	FILE ARRAY DEFINTIONS
 #define FILE_ARRAY_LENGTH		8		
 
-typedef struct
+#ifndef ASM
+typedef struct pcb
 {
 	//	Process State
 	uint32_t state;
@@ -27,6 +32,9 @@ typedef struct
 	file_t file_array[FILE_ARRAY_LENGTH];
 
 	//	Process Parent
-	pcb_t * parent;
+	struct pcb * parent;
 
-}	pcb_t;
+} pcb_t;
+#endif
+
+#endif
