@@ -13,6 +13,7 @@
 #define SET_RW		0x02
 #define SET_RW_P	0x03
 #define SET_4MB		0x80
+#define MAX_PROCESSES 2
 
 #define KERNEL_MEM	0x400000
 
@@ -89,6 +90,8 @@ typedef struct pte {
 	};
 } pte_t;
 
+typedef pde_t[NUM_ENTRIES] pd_t;
+typedef pte_t[NUM_ENTIRES] pt_t;
 #endif
 
 #endif /* _PAGING_H */

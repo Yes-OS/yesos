@@ -15,100 +15,178 @@
 /* implements the interrupt service request */
 void isr_impl(registers_t regs)
 {
+
+
 	switch (regs.isrno) {
 
         case EXCEPTION_DIVIDE:
             printf("Interrupt occurred(0): divide_error");
+			if(regs.eip > USER_SPACE && USER_SPACE + MB_4_OFFSET < reg.eip) {
+			//sys_halt called here	
+			break;
+			}
             halt(); /* just halt for now */
             break;
 
         case EXCEPTION_DEBUG:
             printf("Interrupt occurred(1): debug");
+			if(regs.eip > USER_SPACE && USER_SPACE + MB_4_OFFSET < reg.eip) {
+			//sys_halt called here	
+			break;
+			}
             halt(); /* just halt for now */
             break;
 
         case EXCEPTION_NMI:
             printf("Interrupt occurred(2): nmi");
+			if(regs.eip > USER_SPACE && USER_SPACE + MB_4_OFFSET < reg.eip) {
+			//sys_halt called here	
+			break;
+			}
             halt(); /* just halt for now */
             break;
 
         case EXCEPTION_BREAKPOINT:
             printf("Interrupt occurred(3): breakpoint");
+			if(regs.eip > USER_SPACE && USER_SPACE + MB_4_OFFSET < reg.eip) {
+			//sys_halt called here	
+			break;
+			}
             halt(); /* just halt for now */
             break;
 
         case EXCEPTION_OVERFLOW:
             printf("Interrupt occurred(4): overflow");
+			if(regs.eip > USER_SPACE && USER_SPACE + MB_4_OFFSET < reg.eip) {
+			//sys_halt called here	
+			break;
+			}
             halt(); /* just halt for now */
             break;
 
         case EXCEPTION_BOUND:
             printf("Interrupt occurred(5): bound");
+			if(regs.eip > USER_SPACE && USER_SPACE + MB_4_OFFSET < reg.eip) {
+			//sys_halt called here	
+			break;
+			}
             halt(); /* just halt for now */
             break;
 
         case EXCEPTION_INVALID_OPCODE:
             printf("Interrupt occurred(6): invalid_opcode");
+			if(regs.eip > USER_SPACE && USER_SPACE + MB_4_OFFSET < reg.eip) {
+			//sys_halt called here	
+			break;
+			}
             halt(); /* just halt for now */
             break;
 
         case EXCEPTION_DEV_NOT_AVAIL:
             printf("Interrupt occurred(7): device_not_available");
+			if(regs.eip > USER_SPACE && USER_SPACE + MB_4_OFFSET < reg.eip) {
+			//sys_halt called here	
+			break;
+			}
             halt(); /* just halt for now */
             break;
 
         case EXCEPTION_DOUBLE_FAULT:
             printf("Interrupt occurred(8): double_fault");
+			if(regs.eip > USER_SPACE && USER_SPACE + MB_4_OFFSET < reg.eip) {
+			//sys_halt called here	
+			break;
+			}
             halt(); /* just halt for now */
             break;
 
         case EXCEPTION_COPROC_SEG_OVERRUN:
             printf("Interrupt occurred(9): coprocessor_segment_overrun");
+			if(regs.eip > USER_SPACE && USER_SPACE + MB_4_OFFSET < reg.eip) {
+			//sys_halt called here	
+			break;
+			}
             halt(); /* just halt for now */
             break;
 
         case EXCEPTION_INVALID_TSS:
             printf("Interrupt occurred(10): invalid_tss");
+			if(regs.eip > USER_SPACE && USER_SPACE + MB_4_OFFSET < reg.eip) {
+			//sys_halt called here	
+			break;
+			}
             halt(); /* just halt for now */
             break;
 
         case EXCEPTION_SEG_NOT_PRES:
             printf("Interrupt occurred(11): segment_not_present");
+			if(regs.eip > USER_SPACE && USER_SPACE + MB_4_OFFSET < reg.eip) {
+			//sys_halt called here	
+			break;
+			}
             halt(); /* just halt for now */
             break;
 
         case EXCEPTION_STACK_FAULT:
             printf("Interrupt occurred(12): stack_fault");
+			if(regs.eip > USER_SPACE && USER_SPACE + MB_4_OFFSET < reg.eip) {
+			//sys_halt called here	
+			break;
+			}
             halt(); /* just halt for now */
             break;
 
         case EXCEPTION_GENERAL_PROTECTION:
             printf("Interrupt occurred(13): general_protection");
+			if(regs.eip > USER_SPACE && USER_SPACE + MB_4_OFFSET < reg.eip) {
+			//sys_halt called here	
+			break;
+			}
             halt(); /* just halt for now */
             break;
 
         case EXCEPTION_PAGE_FAULT:
             printf("Interrupt occurred(14): page_fault");
+			if(regs.eip > USER_SPACE && USER_SPACE + MB_4_OFFSET < reg.eip) {
+			//sys_halt called here	
+			break;
+			}
             halt(); /* just halt for now */
             break;
 
         case EXCEPTION_COPROC_ERROR:
             printf("Interrupt occurred(16): coprocessor_error");
+			if(regs.eip > USER_SPACE && USER_SPACE + MB_4_OFFSET < reg.eip) {
+			//sys_halt called here	
+			break;
+			}
             halt(); /* just halt for now */
             break;
 
         case EXCEPTION_ALIGNMENT_CHECK:
             printf("Interrupt occurred(17): alignment_check");
+			if(regs.eip > USER_SPACE && USER_SPACE + MB_4_OFFSET < reg.eip) {
+			//sys_halt called here	
+			break;
+			}
             halt(); /* just halt for now */
             break;
 
         case EXCEPTION_MACHINE_CHECK:
             printf("Interrupt occurred(18): machine_check");
+			if(regs.eip > USER_SPACE && USER_SPACE + MB_4_OFFSET < reg.eip) {
+			//sys_halt called here	
+			break;
+			}
             halt(); /* just halt for now */
             break;
 
         case EXCEPTION_SIMD_COPROC_ERR:
             printf("Interrupt occurred(19): simd_coprocessor_error");
+			if(regs.eip > USER_SPACE && USER_SPACE + MB_4_OFFSET < reg.eip) {
+			//sys_halt called here	
+			break;
+			}
             halt(); /* just halt for now */
             break;
 
