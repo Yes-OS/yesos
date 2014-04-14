@@ -319,10 +319,10 @@ uint32_t file_loader(file_t* file, uint32_t* EIP){
 	
 	while(bytes_remaining > 0) {
 		temp_read = read_data(file->inode_ptr, bytes_read, file_buf, buf_length);
-		if(temp_read == -1) {
+		/*if(temp_read == -1) {
 			printf("Invalid inode value\n");
 			return -1;
-		}
+		}*/
 		memcpy((uint32_t*)(USER_SPACE + EXEC_OFFSET + bytes_read), file_buf, temp_read);
 		bytes_read += temp_read;
 		bytes_remaining -= temp_read;

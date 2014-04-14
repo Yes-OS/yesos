@@ -117,9 +117,9 @@ static void install_kernel_page(uint32_t index)
 
 static void install_user_page(uint32_t index)
 {
-	if(index <= 0) {
+	/*if(index <= 0) {
 		return;
-	}
+	}*/
 	
 	pde_t user_mem = empty_dir_entry;
 

@@ -162,9 +162,15 @@ int8_t test_EIP(void)
 	file_t test_file;
 	
 	test_file.file_op = 0;
-	test_file.inode_ptr = 12;
 	test_file.file_pos = 0;
 	test_file.flags = 0;
+	
+	int8_t* test_fname	= "ls"; 		//insert file name to test for here
+	dentry_t test_dentry;
+	
+	retval = read_dentry_by_name ((uint8_t*)test_fname, &test_dentry);
+	
+	test_file.inode_ptr = test_dentry.inode_num;
 	
 	retval = file_loader(&test_file, &temp_EIP);
 	if(retval == -1) {
