@@ -2,6 +2,11 @@
  *              with the file system.
  * 
  * vim:ts=4 sw=4 noexpandtab
+ *
+ * TO DO:
+ *		-Add functionality:
+ *			copy a program image from the disk blocks into continuous physical memory
+ *			set up the stack properly and return to user-level
  */
 
 #include "file_sys.h"
@@ -192,7 +197,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 		{
 			if(db_first)
 			{
-				memcpy(buf+bytes_read, data_block+offset, BLOCK_SIZE-offset);
+				memcpy(buf+bytes_read, data_block+offset/BLOCK_SIZE, BLOCK_SIZE-offset);
 				bytes_read += BLOCK_SIZE-offset;
 			}
 			else
@@ -206,19 +211,19 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 		{
 			if(bytes_unread < BLOCK_SIZE-offset)
 			{
-				memcpy(buf+bytes_read, data_block+offset*db_first, bytes_unread);
+				memcpy(buf+bytes_read, data_block+offset*db_first/BLOCK_SIZE, bytes_unread);
 				bytes_read += bytes_unread;
 			}
 			else
 			{
-				memcpy(buf+bytes_read, data_block+offset*db_first, BLOCK_SIZE-offset);
+				memcpy(buf+bytes_read, data_block+offset*db_first/BLOCK_SIZE, BLOCK_SIZE-offset);
 				bytes_read += BLOCK_SIZE-offset;
 			}
 		}
 		//	If bytes unread is more than data in block, just read data left in block.
 		else
 		{
-			memcpy(buf+bytes_read, data_block+offset*db_first, data_unread);
+			memcpy(buf+bytes_read, data_block+offset*db_first/BLOCK_SIZE, data_unread);
 			bytes_read += data_unread;
 		}
 		
@@ -285,5 +290,51 @@ uint32_t dir_open(void)
  */
 uint32_t dir_close(void)
 {
+	return 0;
+}
+
+/*
+ * read a passed file
+ * get EIP
+ * copy file to physical memory using its own virtual space
+ *
+ * returns 0 on success (for now)
+ *		  -1 on failure
+ */
+uint32_t file_loader(file_t* file){
+
+	/* --read the file--
+	 * Get the size of the file and do operations only as "large" as we need to 
+	 * 		also check for read failure
+	 */
+	uint32_t FILE_SIZE_B = ((index_node_t*)(node_head + (file->inode_ptr) * ADDRESSES_PER_BLOCK))->byte_length;
+	if( FILE_SIZE_B > (BLOCK_SIZE*ADDRESSES_PER_BLOCK) ) return -1;
+	
+	uint32_t file_bytes_read = 0;
+	uint8_t file_buf[FILE_SIZE_B];
+	
+	file_bytes_read = fs_read(file, file_buf,  FILE_SIZE_B);
+		
+	if (file_bytes_read != FILE_SIZE_B) return -1;
+	
+	
+	/* --get EIP--
+	 * (128MB < valid < 132MB)
+	 * use helper located in lib.h
+	 */
+	uint32_t curEIP;
+	curEIP = getEIP();
+	
+	if (curEIP < USER_SPACE || curEIP > USER_SPACE+MB_4_OFFSET){
+		return -1;
+	} else {
+		
+	/* populate file's page directory
+	 * 		use memcpy to new page in new page directory
+	 * 		should fill one page table (no more than 4MB a task)
+	 */
+		memcpy( (uint32_t*)USER_SPACE, (uint32_t*)curEIP, FILE_SIZE_B );
+	}
+	
 	return 0;
 }

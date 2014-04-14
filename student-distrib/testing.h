@@ -15,11 +15,19 @@
 #ifndef ASM
 
 /* ________Defines and Vars________ */
+#define TEST_SIZE 10
 
+/* ARRAYSIZE(arr) is like an overloaded version of sizeof() that accounts for pointers being passed in */
+#define IS_INDEXABLE(arg) (sizeof(arg[0]))
+#define IS_ARRAY(arg) (IS_INDEXABLE(arg) && (((void *) &arg) == ((void *) arg)))
+#define ARRAYSIZE(arr) (sizeof(arr) / (IS_ARRAY(arr) ? sizeof(arr[0]) : 0))
 
 
 /* ________Data Structures________ */
 
+/* typedef struct test {
+	int8_t element[TEST_SIZE];
+} test_t; */
 
 
 /* ________Function prototypes________ */
@@ -31,7 +39,9 @@ int8_t _test_directory(void);
 
 int8_t test_fs_all (void);
 
+/* void _test_array_typedef(void); */
 
-#endif /* ASM           */
+
+#endif /* ASM          */
 #endif /* _TESTING_H   */
 
