@@ -238,7 +238,6 @@ entry (unsigned long magic, unsigned long addr)
 
 	/* Execute the first program (`shell') ... */
 	
-	
 	/* Spin (nicely, so we don't chew up cycles) */
 	halt();
 }

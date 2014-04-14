@@ -11,6 +11,14 @@
 
 #include "file_sys.h"
 
+/* File operations jump table */
+void * fs_fops[] = {
+	fs_open,
+	fs_read,
+	fs_write,
+	fs_close
+};
+
 /*Variables for File_sys functions*/
 static index_node_t* node_head;
 static data_block_t* data_head;

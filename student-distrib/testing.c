@@ -29,7 +29,7 @@ int8_t _test_read(void){
 	uint32_t length = 4000;
 	uint8_t buf[length];
 
-	
+	printf("Testing read_dentry_by_name\n");
 	retval = read_dentry_by_name ((uint8_t*)test_fname, &test_dentry);
 	if(retval == -1){
 		printf("read_dentry_by_name failed. Exiting Test.\n");
@@ -67,7 +67,7 @@ int8_t _test_read(void){
 	retval = read_data(inode, offset, buf, length);
 
 	printf("READ RETURN: %d \n", retval);
-	printf("\n%s\n", buf + offset);
+	printf("\n%s\n", buf);
 
 	if(retval == -1){
 		printf("read_data failed. Exiting Test.\n");
