@@ -48,13 +48,32 @@ int32_t sys_close(int32_t fd)
 
 int32_t sys_exec(const uint8_t *command)
 {
-	uint8_t file[MAX_CMD_LEN];
-	int i;
+	uint8_t file_name[MAX_CMD_LEN];
+	int i, fcnt = 0;
 	const uint8_t *c;
+	dentry_t dentry;
+	file_t file;
+	int32_t status;
 
 	for (i = 0, c = command; i < MAX_CMD_LEN && *c == (uint8_t)' '; i++, c++) {
 		/* skip beginning spaces */
 	}
+
+	/* copy command name */
+	for (; i < MAX_CMD_LEN && *c != ' '; i++, c++) {
+		file_name[fcnt++] = *c;
+	}
+	file_name[fcnt] = '\0';
+
+	status = read_dentry_by_name(file_name, &dentry);
+	if (status != 0) {
+		return status;
+	}
+
+	file.flags = 0;
+	file.file_op = 0;
+	file.file_pos = 0;
+	file.inode_ptr = dentry.inode_num;
 
 
 	return 0;
