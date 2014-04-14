@@ -150,7 +150,7 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry)
 
 /*	Read Data
  *	Parameters:	inode	- the index node of the data.
- *				offset	- how many bytes to begin reading at?
+ *				offset	- how many bytes to begin reading at.
  *				buf		- data array to read.
  *				length  - size of array.
  *
@@ -198,35 +198,29 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 		//	If bytes unread is at least block size and data unread also is at least block size, just read block size.
 		if(bytes_unread >= BLOCK_SIZE && data_unread >= BLOCK_SIZE)
 		{
-			if(db_first)
-			{
-				memcpy(buf+bytes_read, data_block+offset/BLOCK_SIZE, BLOCK_SIZE-offset);
-				bytes_read += BLOCK_SIZE-offset;
-			}
-			else
-			{
-				memcpy(buf+bytes_read, data_block, BLOCK_SIZE);
-				bytes_read += BLOCK_SIZE;
-			}
+			memcpy(buf+bytes_read, ((int)data_block+offset*db_first), BLOCK_SIZE-offset);
+			bytes_read += BLOCK_SIZE-offset*db_first;
 		}
 		//	If bytes unread is less than data in block, just read bytes unread.
 		else if(bytes_unread < data_unread)
 		{
 			if(bytes_unread < BLOCK_SIZE-offset)
 			{
-				memcpy(buf+bytes_read, data_block+offset*db_first/BLOCK_SIZE, bytes_unread);
+				printf("\nCase 3\n");
+				memcpy(buf+bytes_read, ((int)data_block+offset*db_first), bytes_unread);
 				bytes_read += bytes_unread;
 			}
 			else
 			{
-				memcpy(buf+bytes_read, data_block+offset*db_first/BLOCK_SIZE, BLOCK_SIZE-offset);
+				printf("\nCase 4\n");
+				memcpy(buf+bytes_read, ((int)data_block+offset*db_first), BLOCK_SIZE-offset);
 				bytes_read += BLOCK_SIZE-offset;
 			}
 		}
 		//	If bytes unread is more than data in block, just read data left in block.
 		else
 		{
-			memcpy(buf+bytes_read, data_block+offset*db_first/BLOCK_SIZE, data_unread);
+			memcpy(buf+bytes_read, ((int)data_block+offset*db_first), data_unread);
 			bytes_read += data_unread;
 		}
 		
