@@ -224,6 +224,8 @@ entry (unsigned long magic, unsigned long addr)
 	printf("\nWelcome!\n");
 	update_cursor();
 
+	//_test_read();
+
 	while (1) {
 		bread = term_read(STDIN, buffer, sizeof(buffer)/sizeof(buffer[0]));
 		term_write(STDOUT, buffer, bread);
