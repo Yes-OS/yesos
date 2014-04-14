@@ -90,8 +90,15 @@ typedef struct pte {
 	};
 } pte_t;
 
-typedef pde_t[NUM_ENTRIES] pd_t;
-typedef pte_t[NUM_ENTIRES] pt_t;
+typedef struct pd {
+	pde_t element[NUM_ENTRIES];
+} pd_t;
+
+typedef struct pt {
+	pte_t element[NUM_ENTRIES]; 
+} pt_t;
+
+
 #endif
 
 #endif /* _PAGING_H */
