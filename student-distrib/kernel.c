@@ -201,9 +201,9 @@ entry (unsigned long magic, unsigned long addr)
 	enable_irq(KBD_IRQ_PORT);
 	printf("done\n");
 	
-	/*printf("    Initializing File System... ");
+	printf("    Initializing File System... ");
 	fs_init();
-	printf("done\n");*/
+	printf("done\n");
 
 	printf("    Initializing Paging... ");
 	paging_init();
