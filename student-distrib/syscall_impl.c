@@ -7,10 +7,11 @@
 #include "term.h"
 #include "file_sys.h"
 #include "syscall.h"
+#include "x86_desc.h"
 
 #define MAX_CMD_LEN 33
 
-static uint8_t nprocs = 0;
+/* static uint8_t nprocs = 0; */
 
 typedef int32_t open_t(const uint8_t *filename);
 typedef int32_t read_t(int32_t fd, void *buf, int32_t nbytes);
@@ -93,6 +94,8 @@ int32_t sys_exec(const uint8_t *command)
 	}
 
 	pcb = get_proc_pcb();
+	memset(pcb, 0, sizeof(*pcb));
+	pcb->pid = 1;
 
 	{
 		/* set up fops */
@@ -101,7 +104,13 @@ int32_t sys_exec(const uint8_t *command)
 		file.file_op = term_fops;
 		file.file_pos = 0;
 		file.inode_ptr = 0;
+
+		pcb->file_array[0] = file;
+		pcb->file_array[1] = file;
 	}
+
+	tss.ss0 = KERNEL_DS;
+	tss.esp0 = (uint32_t)pcb + 0x0001FF0;
 
 	return 0;
 }
