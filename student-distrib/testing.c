@@ -178,7 +178,7 @@ int8_t test_EIP(void)
 		return 0;
 	}
 	
-	printf("EIP: %u", temp_EIP);
+	printf("EIP: %u\n", temp_EIP);
 	
 	return 0;
 
