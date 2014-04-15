@@ -14,11 +14,6 @@
 
 /* static uint8_t nprocs = 0; */
 
-typedef int32_t open_t(const uint8_t *filename);
-typedef int32_t read_t(int32_t fd, void *buf, int32_t nbytes);
-typedef int32_t write_t(int32_t fd, const void *buf, int32_t nbytes);
-typedef int32_t close_t(int32_t fd);
-
 /* Gets the process's PCB */
 static inline pcb_t *get_proc_pcb()
 {
@@ -26,8 +21,8 @@ static inline pcb_t *get_proc_pcb()
 	asm (	"movl	$0xFFFFE000, %0		\n"
 			"andl	%%esp, %0"
 			: "=r"(pcb)
-			: 
-			: "memory"
+			:
+			:
 			);
 	return (pcb_t *)pcb;
 }
@@ -41,21 +36,21 @@ int32_t sys_read(int32_t fd, void *buf, int32_t nbytes)
 {
 	pcb_t* PCB = get_proc_pcb();
 	file_t file = PCB->file_array[fd];
-	return ((read_t*)file.file_op + 1)(fd, buf, nbytes);
+	return file.file_op->read(fd, buf, nbytes);
 }
 
 int32_t sys_write(int32_t fd, const void *buf, int32_t nbytes)
 {
 	pcb_t* PCB = get_proc_pcb();
 	file_t file = PCB->file_array[fd];
-	return ((write_t*)file.file_op + 2)(fd, buf, nbytes);
+	return file.file_op->write(fd, buf, nbytes);
 }
 
 int32_t sys_close(int32_t fd)
 {
 	pcb_t* PCB = get_proc_pcb();
 	file_t file = PCB->file_array[fd];
-	return ((close_t*)file.file_op + 3)(fd);
+	return file.file_op->close(fd);
 }
 
 int32_t sys_exec(const uint8_t *command)
@@ -104,7 +99,7 @@ int32_t sys_exec(const uint8_t *command)
 		/* set up fops */
 		file_t file;
 		file.flags = 0;
-		file.file_op = term_fops;
+		file.file_op = &term_fops;
 		file.file_pos = 0;
 		file.inode_ptr = 0;
 

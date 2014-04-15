@@ -12,11 +12,11 @@
 #include "file_sys.h"
 
 /* File operations jump table */
-void * fs_fops[] = {
-	fs_open,
-	fs_read,
-	fs_write,
-	fs_close
+fops_t fs_fops = {
+	.read  = (read_t *)&fs_read,
+	.write = (write_t *)&fs_write,
+	.open  = (open_t *)&fs_open,
+	.close = (close_t *)&fs_close,
 };
 
 /*Variables for File_sys functions*/

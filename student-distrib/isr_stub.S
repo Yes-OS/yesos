@@ -19,7 +19,6 @@ name:                                ;\
 #define MKINTSTUB(name, number) \
 .globl name                    ;\
 name:                          ;\
-	pushl	$0                 ;\
 	pushl	$number            ;\
 	jmp		isr_stub
 

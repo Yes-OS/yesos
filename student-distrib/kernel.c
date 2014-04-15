@@ -27,8 +27,6 @@ void
 entry (unsigned long magic, unsigned long addr)
 {
 	multiboot_info_t *mbi;
-	int8_t buffer[256];
-	int32_t bread;
 
 	/* Clear the screen. */
 	clear();
@@ -193,7 +191,7 @@ entry (unsigned long magic, unsigned long addr)
 
 	printf("    Initializing RTC... ");
 	rtc_init();
-	enable_irq(RTC_IRQ_PORT);
+	//enable_irq(RTC_IRQ_PORT);
 	printf("done\n");
 	
 	printf("    Initializing Keyboard... ");
@@ -225,15 +223,9 @@ entry (unsigned long magic, unsigned long addr)
 	printf("\nWelcome!\n");
 	update_cursor();
 
-	/*while (1) {
-		bread = term_read(STDIN, buffer, sizeof(buffer)/sizeof(buffer[0]));
-		term_write(STDOUT, buffer, bread);
-	}*/
-
+	/* Execute the first program (`shell') ... */
 	sys_exec((uint8_t*)"sh");
 
-	/* Execute the first program (`shell') ... */
-	
 	/* Spin (nicely, so we don't chew up cycles) */
 	halt();
 }

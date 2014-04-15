@@ -5,6 +5,7 @@
 #define _TERM_H_
 
 #include "types.h"
+#include "proc.h"
 
 /* define constant file descriptors */
 #define	STDIN	0
@@ -18,7 +19,7 @@ int32_t term_close(int32_t *fd);
 int32_t term_read(int32_t fd, void *buf, int32_t nbytes);
 int32_t term_write(int32_t fd, const void *buf, int32_t nbytes);
 void term_handle_keypress(uint16_t key, uint8_t status);
-extern void *term_fops[];
+extern fops_t term_fops;
 
 #endif
 

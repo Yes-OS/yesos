@@ -16,8 +16,8 @@
 /* implements the interrupt service request */
 void isr_impl(registers_t regs)
 {
-
-
+	uint32_t cr2;
+	uint32_t cr3;
 	switch (regs.isrno) {
 
         case EXCEPTION_DIVIDE:
@@ -147,7 +147,19 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_PAGE_FAULT:
-            printf("Interrupt occurred(14): page_fault");
+			asm("movl    %%cr2, %0"
+					: "=r"(cr2)
+					: :);
+			asm("movl    %%cr3, %0"
+					: "=r"(cr3)
+					: :);
+            printf("Interrupt occurred(14): page_fault\n");
+			printf("Details:\n");
+			printf("    Address: 0x%x\n", cr2);
+			printf("    Page was %spresent\n", regs.errno & 0x01 ? "" : "NOT ");
+			printf("    Accessed with a %s\n", regs.errno & 0x02 ? "write" : "read");
+			printf("    Accessed in %s mode\n", regs.errno & 0x04 ? "user" : "supervisor");
+			printf("    %saused by reserve bits set to 1 in page directory\n", regs.errno & 0x08 ? "C" : "Not c");
 			if(regs.eip > USER_SPACE && USER_SPACE + MB_4_OFFSET < regs.eip) {
 			//sys_halt called here	
 			break;

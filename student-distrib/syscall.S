@@ -44,8 +44,11 @@ exit_syscall:
 syscall_table:
 	.long	0 # Unused
 
-	.extern	sys_open
-	.long	sys_open
+	.extern	sys_halt
+	.long	sys_halt
+
+	.extern	sys_exec
+	.long	sys_exec
 
 	.extern	sys_read
 	.long	sys_read
@@ -53,12 +56,8 @@ syscall_table:
 	.extern	sys_write
 	.long	sys_write
 
+	.extern	sys_open
+	.long	sys_open
+
 	.extern	sys_close
 	.long	sys_close
-
-	.extern	sys_exec
-	.long	sys_exec
-
-	.extern	sys_halt
-	.long	sys_halt
-

@@ -5,8 +5,6 @@
 #ifndef _PROC_H_
 #define _PROC_H_
 
-#include "file_sys.h"
-
 //	PCB STATE DEFINTIONS
 #define TASK_RUNNING			0		//	process is executing or waiting to execute.
 #define TASK_INTERRUPTIBLE		1		//	process suspended until a condition becomes true.
@@ -20,6 +18,30 @@
 #define FILE_ARRAY_LENGTH		8		
 
 #ifndef ASM
+
+typedef int32_t open_t(const uint8_t *filename);
+typedef int32_t read_t(int32_t fd, void *buf, int32_t nbytes);
+typedef int32_t write_t(int32_t fd, const void *buf, int32_t nbytes);
+typedef int32_t close_t(int32_t fd);
+
+typedef struct fops {
+	read_t *read;
+	write_t *write;
+	open_t *open;
+	close_t *close;
+} fops_t;
+
+/* File descriptor structure
+ * 16-bytes
+ */
+typedef struct file {
+    struct fops* file_op;
+    uint32_t inode_ptr;
+    uint32_t file_pos;
+    uint32_t flags;
+} __attribute__((packed)) file_t;
+
+
 typedef struct pcb
 {
 	//	Process State
@@ -29,12 +51,13 @@ typedef struct pcb
 	uint32_t pid;
 
 	//	File Array
-	file_t file_array[FILE_ARRAY_LENGTH];
+	struct file file_array[FILE_ARRAY_LENGTH];
 
 	//	Process Parent
 	struct pcb * parent;
 
 } pcb_t;
+
 #endif
 
 #endif

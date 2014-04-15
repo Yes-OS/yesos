@@ -6,12 +6,12 @@
 
 #include "types.h"
 
-#define SYS_OPEN    1
-#define SYS_READ    2
-#define SYS_WRITE   3
-#define SYS_CLOSE   4
-#define SYS_EXEC    5
-#define SYS_HALT    6
+#define SYS_HALT    1
+#define SYS_EXECUTE 2
+#define SYS_READ    3
+#define SYS_WRITE   4
+#define SYS_OPEN    5
+#define SYS_CLOSE   6
 
 #define MAX_SYSCALL 6
 

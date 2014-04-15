@@ -7,13 +7,14 @@
 #include "kbd.h"
 #include "queue.h"
 #include "term.h"
+#include "proc.h"
 
 /* File operations jump table */
-void * term_fops[] = {
-	term_open,
-	term_read,
-	term_write,
-	term_close
+fops_t term_fops = {
+	.read  = (read_t *)&term_read,
+	.write = (write_t *)&term_write,
+	.open  = (open_t *)&term_open,
+	.close = (close_t *)&term_close,
 };
 
 

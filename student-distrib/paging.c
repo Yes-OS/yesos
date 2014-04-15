@@ -76,7 +76,7 @@ static void install_vid_page(uint32_t index)
 
 	first_page_dir.present = 1;
 	first_page_dir.read_write = 0;
-	first_page_dir.user_supervisor = 1;
+	first_page_dir.user_supervisor = 0;
 	first_page_dir.pt_base_addr = PAGE_BASE_ADDR((uint32_t)&page_table);
 
 	page_directories[index].entry[0] = first_page_dir;
@@ -86,7 +86,7 @@ static void install_vid_page(uint32_t index)
 	for (i = 0; i < 16; i++) {
 		video_mem_temp.present = 1;
 		video_mem_temp.read_write = 1;
-		video_mem_temp.user_supervisor = 1;
+		video_mem_temp.user_supervisor = 0;
 		video_mem_temp.page_base_addr = PAGE_BASE_ADDR(VIDEO + i * 0x1000);
 		page_table.entry[PAGE_TABLE_IDX(VIDEO + i * 0x1000)] = video_mem_temp;
 	}
@@ -99,7 +99,7 @@ static void install_kernel_page(uint32_t index)
 
 		kernel_mem.present = 1;
 		kernel_mem.read_write = 1;
-		kernel_mem.user_supervisor = 1;
+		kernel_mem.user_supervisor = 0;
 		kernel_mem.page_size = 1;
 		kernel_mem.page_base_addr_4mb = PAGE_BASE_ADDR_4MB(KERNEL_MEM);
 
@@ -166,9 +166,11 @@ static void install_pages()
 		install_kernel_page(i);
 		install_user_page(i);
 	}
-	
+
 	clear_page_table(&page_table);
 	install_vid_page(0);
+	install_vid_page(1);
+	install_vid_page(2);
 
 	/* set up registers */
 	clr_pae_flag();

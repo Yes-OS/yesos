@@ -10,6 +10,7 @@
 #include "lib.h"
 #include "x86_desc.h"
 #include "multiboot.h"
+#include "proc.h"
 
 #ifndef ASM
 
@@ -27,21 +28,10 @@
 #define MB_4_OFFSET			0x00400000
 #define EXEC_OFFSET			0x00048000
 
-
-extern void *fs_fops[];
+extern fops_t fs_fops;
 
 
 /* ________Data Structures________ */
-
-/* File descriptor structure
- * 16-bytes
- */
-typedef struct file {
-    void* file_op;
-    uint32_t inode_ptr;
-    uint32_t file_pos;
-    uint32_t flags;
-} __attribute__((packed)) file_t;
 
 /*	Index Node Struct
  *	4096-bytes
