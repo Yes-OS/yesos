@@ -72,7 +72,7 @@ entry (unsigned long magic, unsigned long addr)
 			mod_count++;
 		}
 	}
-	
+
 	/* File system head */
 	module_t* temp = (module_t*)mbi->mods_addr;
 	mbi_val = (boot_block_t *)temp->mod_start;
@@ -115,8 +115,8 @@ entry (unsigned long magic, unsigned long addr)
 					(unsigned) mmap->length_high,
 					(unsigned) mmap->length_low);
 	}
-	
-	
+
+
 	/* Construct an LDT entry in the GDT */
 	{
 		seg_desc_t the_ldt_desc;
@@ -157,7 +157,7 @@ entry (unsigned long magic, unsigned long addr)
 		tss.esp0 = 0x800000;
 		ltr(KERNEL_TSS);
 	}
-	
+
 
 	clear();
 
@@ -173,7 +173,7 @@ entry (unsigned long magic, unsigned long addr)
 	printf("    YY          EE                      SS        OO      OO              SS\n");
 	printf("    YY          EEEEEEEEEE      SSSSSSSSS     oo   OOOOOOOO       SSSSSSSSS \n");
 	printf("----------------------------------------\n");
-	
+
 
 	printf("Initializing subsystems\n");
 
@@ -193,12 +193,12 @@ entry (unsigned long magic, unsigned long addr)
 	rtc_init();
 	//enable_irq(RTC_IRQ_PORT);
 	printf("done\n");
-	
+
 	printf("    Initializing Keyboard... ");
 	kbd_init();
 	enable_irq(KBD_IRQ_PORT);
 	printf("done\n");
-	
+
 	printf("    Initializing File System... ");
 	fs_init();
 	printf("done\n");
@@ -206,7 +206,7 @@ entry (unsigned long magic, unsigned long addr)
 	printf("    Initializing Paging... ");
 	paging_init();
 	printf("done\n");
-	
+
 
 	printf("    Initializing Terminal...");
 	term_open(NULL);

@@ -43,7 +43,7 @@ keep_going:
 	movw    %cx, %gs
 
 	#do paging here?
-	
+
 	# Push the parameters that entry() expects (see kernel.c):
 	# eax = multiboot magic
 	# ebx = address of multiboot info struct

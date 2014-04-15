@@ -15,7 +15,7 @@
 #define EXIT_DEAD				6		//	execution terminated, process being removed.
 
 //	FILE ARRAY DEFINTIONS
-#define FILE_ARRAY_LENGTH		8		
+#define FILE_ARRAY_LENGTH		8
 
 #ifndef ASM
 

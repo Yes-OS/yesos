@@ -53,7 +53,7 @@ int err_neg_fd(void) {
 	} else {
 		ece391_fdputs (1, (uint8_t*)"err_neg_fd: PASS\n");
 	}
-	
+
 	return fail;
 }
 
@@ -85,7 +85,7 @@ int err_big_fd(void) {
 	} else {
 		ece391_fdputs (1, (uint8_t*)"err_big_fd: PASS\n");
 	}
-	
+
 	return fail;
 }
 
@@ -99,7 +99,7 @@ int err_big_fd(void) {
  */
 int err_open_lots(void) {
     int32_t i, cnt = 0;
-	
+
 	// fd = 0,1 taken, so we should be able to open 6 files (2,3,4,5,6,7)
 	// the last file open should fail
     for (i = 0; i < 7; i++) {
@@ -112,7 +112,7 @@ int err_open_lots(void) {
     {
     	ece391_close(i);
     }
-    
+
 	if (cnt == 1) {
 		ece391_fdputs(1, (uint8_t*)"err_open_lots: PASS\n");
 		return 0;
@@ -137,19 +137,19 @@ int err_open(void) {
 		ece391_fdputs (1, (uint8_t*)"'helloo' fail\n");
 		fail = 2;
     }
-	
+
 	// test with string that is short of filename by one character
 	if (-1 != ece391_open ((uint8_t*)"shel")) {
 		ece391_fdputs (1, (uint8_t*)"'shel' fail\n");
 		fail = 2;
 	}
-	
+
 	// test with empty string
 	if (-1 != ece391_open ((uint8_t*)"")) {
 		ece391_fdputs (1, (uint8_t*)"empty string fail\n");
 		fail = 2;
 	}
-	
+
 	if (fail) {
 		ece391_fdputs (1, (uint8_t*)"err_open: FAIL\n");
 	} else {
@@ -212,18 +212,18 @@ int err_vidmap(void) {
 		ece391_fdputs (1, (uint8_t*)"Null pointer fail\n");
         fail = 2;
 	}
-	
+
 	if (-1 != ece391_vidmap((uint8_t **) 0x400000)) {
 		ece391_fdputs (1, (uint8_t*)"Kernel pointer fail fail\n");
 		fail = 2;
 	}
-	
+
 	if (fail) {
 		ece391_fdputs (1, (uint8_t*)"err_vidmap: FAIL\n");
 	} else {
 		ece391_fdputs (1, (uint8_t*)"err_vidmap: PASS\n");
 	}
-	
+
 	return fail;
 }
 
@@ -234,11 +234,11 @@ int err_vidmap(void) {
  * prints "[TEST_NAME]: FAIL" if behavior is UNEXPECTED
  *     and then returns 2
  */
- 
+
  int err_stdin_out(void) {
 	int fail = 0;
 	uint8_t buf[32];
-	
+
 	if (-1 != ece391_write(0, buf, 31)) {
 			ece391_fdputs (1, (uint8_t*)"write to stdin fail\n");
 			fail = 2;
@@ -248,16 +248,16 @@ int err_vidmap(void) {
 			ece391_fdputs (1, (uint8_t*)"read from stdout fail\n");
 			fail = 2;
     }
-	
+
 	if (fail) {
 		ece391_fdputs (1, (uint8_t*)"err_stdin_out: FAIL\n");
 	} else {
 		ece391_fdputs (1, (uint8_t*)"err_stdin_out: PASS\n");
 	}
- 
+
 	return fail;
  }
- 
+
  /* TEST 8 err_syscall_num
  * call syscall 0, NEG_NUM, and BIG_NUM
  * prints "[TEST_NAME]: PASS" if behavior is EXPECTED
@@ -265,11 +265,11 @@ int err_vidmap(void) {
  * prints "[TEST_NAME]: FAIL" if behavior is UNEXPECTED
  *     and then returns 2
  */
- 
+
  int err_syscall_num(void)
  {
 	int fail = 0;
-	
+
 	if (-1 != call_sys(BIG_NUM)) {
 		ece391_fdputs (1, (uint8_t*)"syscall 0 fail\n");
 		fail = 2;
@@ -282,13 +282,13 @@ int err_vidmap(void) {
 		ece391_fdputs (1, (uint8_t*)"neg num syscall fail\n");
 		fail = 2;
 	}
-	
+
 	if (fail) {
 		ece391_fdputs (1, (uint8_t*)"err_syscall_num: FAIL\n");
 	} else {
 		ece391_fdputs (1, (uint8_t*)"err_syscall_num: PASS\n");
 	}
- 
+
 	return fail;
  }
 
@@ -305,7 +305,7 @@ int main ()
 		return 2;
     }
 	select = (int)(buf[0] - '0');
-	
+
 	switch(select) {
 		case 0:
 			fail += err_neg_fd();

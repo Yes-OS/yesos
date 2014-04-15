@@ -1,4 +1,4 @@
-/* paging.h - Defines constants and functions for paging  
+/* paging.h - Defines constants and functions for paging
  * vim:ts=4 sw=4 noexpandtab
  */
 
@@ -106,7 +106,7 @@ typedef struct pd {
 } pd_t;
 
 typedef struct pt {
-	pte_t entry[NUM_ENTRIES]; 
+	pte_t entry[NUM_ENTRIES];
 } pt_t;
 
 extern pd_t page_directories[MAX_PROCESSES + 1];

@@ -22,7 +22,7 @@ int main ()
     int garbage;
     int rtc_fd;
     uint8_t buf[BUFMAX];
-    
+
     // Clear buffer
     for(i = 0; i < BUFMAX; i++)
 	    buf[i]=' ';
@@ -56,7 +56,7 @@ int main ()
 		// Wait for RTC tick
 		ece391_read(rtc_fd, &garbage, 4);
 	}
-	
+
 	// Bounce back
     	for(j = LOOPMAX - 1; j >= STARTLOOP; j--)
     	{

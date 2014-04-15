@@ -2,7 +2,7 @@
  *              Main function to be called in kernel.c
  * vim:ts=4 sw=4 noexpandtab
  */
- 
+
 #ifndef _TESTING_H
 #define _TESTING_H
 

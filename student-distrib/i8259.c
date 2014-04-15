@@ -43,7 +43,7 @@ i8259_init(void)
 
 
 	//	Write masking values to master and slave
-	outb(master_mask, MASTER_8259_PORT + 1);	//PORT incremented by 1 because OCW1 is to be											
+	outb(master_mask, MASTER_8259_PORT + 1);	//PORT incremented by 1 because OCW1 is to be
 	outb(slave_mask, SLAVE_8259_PORT + 1);		//accepted in the next port, otherwise system crashes
 }
 
@@ -56,7 +56,7 @@ enable_irq(uint32_t irq_num)
 	}
 	else if(irq_num < 8)
 	{
-		master_mask = master_mask & ~(1 << irq_num);	
+		master_mask = master_mask & ~(1 << irq_num);
 		outb(master_mask, MASTER_8259_PORT + 1);	//PORT incremented by 1 because OCW1 is to be accepted in the next port
 	}
 	else if(irq_num < 16)

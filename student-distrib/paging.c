@@ -1,7 +1,7 @@
 /* paging.c - Sets up paging and virtual memory
  * vim:ts=4 sw=4 noexpandtab
  */
- 
+
 #include "paging.h"
 #include "lib.h"
 #include "vga.h"
@@ -9,7 +9,7 @@
 
 
 //+1 is for the kernel's Page Directory
-pd_t page_directories[MAX_PROCESSES + 1] __attribute__((aligned(PAGE_SIZE))); 
+pd_t page_directories[MAX_PROCESSES + 1] __attribute__((aligned(PAGE_SIZE)));
 
 //For Video Memory
 pt_t page_table __attribute__((aligned(PAGE_SIZE)));
@@ -70,7 +70,7 @@ static const pde_t empty_dir_entry = {{.val = 0UL}};
 static void install_vid_page(uint32_t index)
 {
 	int i;
-	
+
 	/* setup first page directory */
 	pde_t first_page_dir = empty_dir_entry;
 
@@ -80,7 +80,7 @@ static void install_vid_page(uint32_t index)
 	first_page_dir.pt_base_addr = PAGE_BASE_ADDR((uint32_t)&page_table);
 
 	page_directories[index].entry[0] = first_page_dir;
-	
+
 	/* setup video memory */
 	pte_t video_mem_temp = empty_page_entry;
 	for (i = 0; i < 16; i++) {
@@ -103,7 +103,7 @@ static void install_kernel_page(uint32_t index)
 		kernel_mem.page_size = 1;
 		kernel_mem.page_base_addr_4mb = PAGE_BASE_ADDR_4MB(KERNEL_MEM);
 
-		page_directories[index].entry[PAGE_DIR_IDX(KERNEL_MEM)] = kernel_mem;	
+		page_directories[index].entry[PAGE_DIR_IDX(KERNEL_MEM)] = kernel_mem;
 }
 
 static void install_user_page(uint32_t index)
@@ -111,7 +111,7 @@ static void install_user_page(uint32_t index)
 	/*if(index <= 0) {
 		return;
 	}*/
-	
+
 	pde_t user_mem = empty_dir_entry;
 
 	user_mem.present = 1;
@@ -119,9 +119,9 @@ static void install_user_page(uint32_t index)
 	user_mem.user_supervisor = 1;
 	user_mem.page_size = 1;
 	user_mem.page_base_addr_4mb = PAGE_BASE_ADDR_4MB(KERNEL_MEM+0x0400000);
-	
+
 	page_directories[index].entry[PAGE_DIR_IDX(USER_MEM)] = user_mem;
-	
+
 }
 
 /* initializes paging */

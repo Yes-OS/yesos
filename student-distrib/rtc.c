@@ -30,10 +30,10 @@ void rtc_init(void)
 	regB = inb(RTC_RAM_PORT);
 
 	regB = regB | 0x40;		//Enable bit 6 of register B to enable Periodic Interrupts (PIE)
-	
+
 	/*Set the same index, because reading from the port sets the index to register D*/
-	outb((DISABLE_NMI | REG_B), NMI_RTC_PORT);	
-	
+	outb((DISABLE_NMI | REG_B), NMI_RTC_PORT);
+
 	/*Set Register B with enabled PIE*/
 	outb(regB, RTC_RAM_PORT);
 
@@ -41,7 +41,7 @@ void rtc_init(void)
 	uint8_t enable = inb(NMI_RTC_PORT);
 	enable = enable & ENABLE_NMI;
 	outb(enable, NMI_RTC_PORT);
-	
+
 }
 
 
@@ -57,7 +57,7 @@ void rtc_handle_interrupt()
 	inb(RTC_RAM_PORT);
 
 	/*Call the test interrupts function to be sure of interrupts occurring */
-	//test_interrupts(); 
+	//test_interrupts();
 
 
 }
@@ -124,7 +124,7 @@ void rtc_modify_freq(uint32_t freq)
       break;
 
     default:
-	
+
       break;
 
   }
@@ -136,13 +136,13 @@ void rtc_modify_freq(uint32_t freq)
 /*Loops through until an RTC interrupt is generated*/
 int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes)
 {
-  
+
   rtc_intf = 1;
 
   while(rtc_intf == 1){
-  
+
     continue;
-	
+
   }
 
   return 0;
@@ -153,38 +153,38 @@ int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes)
 int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes)
 {
 
-  uint32_t sc = 0;			//shift counter variable 
+  uint32_t sc = 0;			//shift counter variable
   uint32_t freq = (uint32_t)buf;	//temp freq variable used for checking validity of requested freq
-  
+
   /*find the number of shifts taken to change freq to 0*/
   while(freq != 0){
-  
+
 	freq = freq >> 1;
 	sc++;
-	
+
   }
-  
+
   /*decrement freq by 1 for the sake of rtc_modify_freq implementation*/
   sc--;
-  
+
   /*check if the requested freq was a power of 2*/
   if((uint32_t)buf == (1 << sc)){
-  
+
 	rtc_modify_freq(sc);
 	return 0;
-	
+
   }
-  
+
   printf("Error: Invlaid Frequency Value\n");
   return -1;
-  
+
 }
 
 
 /*Modify rtc to default freq of 2Hz*/
 int32_t rtc_open(const uint8_t* filename)
 {
-  
+
   rtc_modify_freq(1); //sets the rtc to 2_Hz by default
   return 0;
 
@@ -205,7 +205,7 @@ void rtc_open_test(void)
 
 	uint8_t* rtc_test = 0;
 	rtc_open(rtc_test);
-	
+
 }
 
 /*Tests rtc_read and rtc_write functions*/
@@ -216,25 +216,25 @@ void rtc_rw_test(void)
 	uint32_t j = 0;
 	int32_t fd_test = 0;
 	int32_t nbytes_test = 4;
-	
+
 	while(i != 2048){
-	
+
 		rtc_read(fd_test, (void*)i, nbytes_test);
 		printf("RTC int occurred ");
-		
+
 		if(j == i){
 			rtc_write(fd_test, (void*)i, nbytes_test);
 			i *= 2;
-		
+
 			if(i == 2048){
 				printf("MAX FREQUENCY REACHED. STOPPING TEST");
-			}		
+			}
 		}
-		
+
 		j++;
-			
+
 	}
-	
+
 }
 
 

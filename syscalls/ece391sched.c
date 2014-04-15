@@ -14,7 +14,7 @@ int main ()
 	if (-1 == (cnt = ece391_read (0, buf, BUFSIZE-1))) {
         ece391_fdputs (1, (uint8_t*)"Can't read the number from keyboard.\n");
 		return 3;
-	}	
+	}
 
 	if ((ece391_strlen(buf) > 2) || ((ece391_strlen(buf) == 1) && (buf[0] < 48) || (buf[0] > 50)))
 	{
@@ -23,7 +23,7 @@ int main ()
 	}
 	else
 	{
-		switch(buf[0]){		
+		switch(buf[0]){
 			case 48:
 				cnt = 10;
 				break;
@@ -39,8 +39,8 @@ int main ()
 	for (val = 0; val < cnt; val++)
 	{
 		itoa(val+1, buf, 10);
-		ece391_fdputs (1, (uint8_t*) buf);		
-		ece391_fdputs (1, (uint8_t*) "\n");		
+		ece391_fdputs (1, (uint8_t*) buf);
+		ece391_fdputs (1, (uint8_t*) "\n");
 	}
     return 0;
 }

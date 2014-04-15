@@ -5,11 +5,11 @@
 
 struct mp1_blink_struct {
   unsigned short location;
-  char on_char; 
+  char on_char;
   char off_char;
   unsigned short on_length;
   unsigned short off_length;
   unsigned short countdown;
   unsigned short status;
   struct mp1_blink_struct* next;
-} __attribute((packed)); 
+} __attribute((packed));

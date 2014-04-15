@@ -1,4 +1,4 @@
-/* kbd.h, ps/2 keyboard driver implementation 
+/* kbd.h, ps/2 keyboard driver implementation
  * vim:ts=4 sw=4 noexpandtab
  */
 #ifndef _KBD_H_

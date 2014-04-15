@@ -16,7 +16,7 @@ static int32_t dir_fd = -1;
 static DIR* dir = NULL;
 
 
-/* 
+/*
  * (copied from the real system call support)
  *
  * Rather than create a case for each number of arguments, we simplify
@@ -64,7 +64,7 @@ _start:                                 \n\
 /* end of fake container function */
 }
 
-int32_t 
+int32_t
 ece391_execute (const uint8_t* command)
 {
     int status;
@@ -78,7 +78,7 @@ ece391_execute (const uint8_t* command)
     buf[0] = '.';
     buf[1] = '/';
     ece391_strcpy (buf + 2, command);
-    for (scan = buf + 2; '\0' != *scan && ' ' != *scan && '\n' != *scan; 
+    for (scan = buf + 2; '\0' != *scan && ' ' != *scan && '\n' != *scan;
          scan++);
     args[0] = (char*)buf;
     n_arg = 1;
@@ -110,7 +110,7 @@ ece391_execute (const uint8_t* command)
     return 256;
 }
 
-int32_t 
+int32_t
 ece391_open (const uint8_t* filename)
 {
     uint32_t rval;
@@ -128,7 +128,7 @@ ece391_open (const uint8_t* filename)
     return rval;
 }
 
-int32_t 
+int32_t
 ece391_getargs (uint8_t* buf, int32_t nbytes)
 {
     int32_t argc = *(uint32_t*)start_esp;
@@ -156,7 +156,7 @@ ece391_getargs (uint8_t* buf, int32_t nbytes)
     return 0;
 }
 
-int32_t 
+int32_t
 ece391_vidmap (uint8_t** screen_start)
 {
     static int mem_fd = -1;
@@ -176,7 +176,7 @@ ece391_vidmap (uint8_t** screen_start)
     return 0;
 }
 
-int32_t 
+int32_t
 ece391_read (int32_t fd, void* buf, int32_t nbytes)
 {
     struct dirent* de;
@@ -205,7 +205,7 @@ ece391_read (int32_t fd, void* buf, int32_t nbytes)
     return copied;
 }
 
-int32_t 
+int32_t
 ece391_write (int32_t fd, const void* buf, int32_t nbytes)
 {
     if (NULL == dir || dir_fd != fd)
@@ -213,7 +213,7 @@ ece391_write (int32_t fd, const void* buf, int32_t nbytes)
     return -1;
 }
 
-int32_t 
+int32_t
 ece391_close (int32_t fd)
 {
     if (NULL == dir || dir_fd != fd)

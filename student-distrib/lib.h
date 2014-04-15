@@ -39,12 +39,12 @@ static inline uint32_t inb(uint16_t port)
 {
 	uint32_t val;
 	asm volatile("xorl %0, %0\n \
-			inb   (%w1), %b0" 
+			inb   (%w1), %b0"
 			: "=a"(val)
 			: "d"(port)
 			: "memory" );
 	return val;
-} 
+}
 
 /* Reads two bytes from two consecutive ports, starting at "port",
  * concatenates them little-endian style, and returns them zero-extended
@@ -73,9 +73,9 @@ static inline uint32_t inl(uint16_t port)
 }
 
 /* Accesses the stack (assumes stack already set up) to
- * extract EIP since it is not a regularly-accessible register 
+ * extract EIP since it is not a regularly-accessible register
  *
- *	Notes and strategy: 
+ *	Notes and strategy:
  *		Cannot access EIP normally.
  *		Want to use assembly "call" to change EIP and decrement by
  *			whatever value needed to go to EIP>call>before call
@@ -85,11 +85,11 @@ static inline uint32_t inl(uint16_t port)
  *  http://stackoverflow.com/questions/4062403/how-to-check-the-eip-value-with-assembly-language
  *
  */
- 
+
 static inline uint32_t getEIP(void)
 {
 	return 0x08000000;
-	
+
 /*
  	uint32_t val;
 	asm volatile("call get_eip

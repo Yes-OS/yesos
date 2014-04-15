@@ -7,7 +7,7 @@
 #define SBUFSIZE 33
 
 int32_t
-do_one_file (const char* s, const char* fname) 
+do_one_file (const char* s, const char* fname)
 {
     int32_t fd, cnt, last, line_start, line_end, check, s_len;
     uint8_t data[BUFSIZE+1];
@@ -40,7 +40,7 @@ do_one_file (const char* s, const char* fname)
 	    /* search the line */
 	    data[line_end] = '\0';
 	    for (check = line_start; check < line_end; check++) {
-		if (s[0] == data[check] && 
+		if (s[0] == data[check] &&
 		    0 == ece391_strncmp ((uint8_t*)(data + check), (uint8_t*)s, s_len)) {
 		    ece391_fdputs (1, (uint8_t*)fname);
 		    ece391_fdputs (1, (uint8_t*)":");

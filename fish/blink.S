@@ -1,11 +1,11 @@
 
 .data					# section declaration
 
-        # Useful offset constants for accessing members of a 
+        # Useful offset constants for accessing members of a
         # struct mp1_blink_struct structure
-        LOCATION   = 0    
+        LOCATION   = 0
         ON_CHAR    = 2
-        OFF_CHAR   = 3 
+        OFF_CHAR   = 3
         ON_LENGTH  = 4
         OFF_LENGTH = 6
         COUNTDOWN  = 8
@@ -41,7 +41,7 @@ call_table:
 #            the byte in %cl
 # Registers: Clobbers EDX
 mp1_poke:
-        
+
         movl    vmem_base_addr(,1),%edx
         movb    %cl,(%edx,%eax,1)
         ret
@@ -56,7 +56,7 @@ mp1_rtc_tasklet:
 	pushl	%ebx
 
         movl    mp1_list_head, %ebx
-        
+
 tasklet_loop:
         cmpl    $0, %ebx
         je      tasklet_end
@@ -131,7 +131,7 @@ mp1_ioctl_add:
         # Check that the location is valid
         cmpw    $80*25,LOCATION(%ebx)
         jae     add_fail_return
-       
+
         # Mark this structure as valid
         movw    $0x1,STATUS(%ebx)  # Mark it as on
         movw    ON_LENGTH(%ebx),%dx
@@ -182,8 +182,8 @@ add_leave:
 
         leave
         ret
-        
-        
+
+
 mp1_ioctl_remove:
         pushl   %ebp
         movl    %esp, %ebp
@@ -197,7 +197,7 @@ mp1_ioctl_remove:
         addl    $4, %esp
         cmpl    $0, %eax
         je      remove_fail_return
-    
+
         # Found the right element.  Now find the
         # previous pointer in the list, and remove it
         # We should not fail here, because mp1_find_helper
@@ -235,8 +235,8 @@ remove_leave:
 
         leave
         ret
-        
- 
+
+
 mp1_ioctl_sync:
         pushl   %ebp
         movl    %esp, %ebp

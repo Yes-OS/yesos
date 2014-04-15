@@ -2,7 +2,7 @@
  *              used for the file system.
  * vim:ts=4 sw=4 noexpandtab
  */
- 
+
 #ifndef _FILE_SYS_H
 #define _FILE_SYS_H
 
@@ -62,7 +62,7 @@ typedef struct dentry{
 	//	32 bytes - file name
 	//	4 bytes	 - files type	(0, 1, or 2)
 	//	4 bytes	 - inode number (ignored for type 0 and 1)
-	//	24 bytes - reserved 
+	//	24 bytes - reserved
 
 	uint8_t file_name[32];
 	uint32_t file_type;
@@ -87,8 +87,8 @@ typedef struct boot_block{
 	uint32_t num_blocks;
 	uint8_t reserved[52];
 	dentry_t entries[63];
-	
-		
+
+
 } __attribute__((packed)) boot_block_t;
 
 extern boot_block_t* mbi_val;
