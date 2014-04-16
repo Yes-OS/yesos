@@ -45,7 +45,7 @@ typedef struct fops {
  * 16-bytes
  */
 typedef struct file {
-    struct fops* file_op;
+    fops_t* file_op;
     uint32_t inode_ptr;
     uint32_t file_pos;
     uint32_t flags;
@@ -61,7 +61,7 @@ typedef struct pcb
 	uint32_t pid;
 
 	//	File Array
-	struct file file_array[MAX_FILES];
+	file_t file_array[MAX_FILES];
 
 	// Stacks
 	uint32_t kern_stack;
