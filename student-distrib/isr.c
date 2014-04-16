@@ -151,10 +151,10 @@ void isr_impl(registers_t regs)
         case EXCEPTION_PAGE_FAULT:
 			asm("movl    %%cr2, %0"
 					: "=r"(cr2)
-					: :);
+					: :"memory");
 			asm("movl    %%cr3, %0"
 					: "=r"(cr3)
-					: :);
+					: :"memory");
             printf("Interrupt occurred(14): page_fault\n");
 			printf("Details:\n");
 			printf("    Address: 0x%x\n", cr2);

@@ -54,7 +54,7 @@
 		asm volatile (               \
 				"movl    %%cr3, %0"  \
 				: "=r" ((addr))      \
-				: :                  \
+				: : "memory"         \
 			);                       \
 	} while (0)
 

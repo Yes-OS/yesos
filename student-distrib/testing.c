@@ -110,24 +110,8 @@ int8_t _test_file_sys(void){
  * read, write, open, close
  */
 int8_t _test_directory(void){
-	/* reset fs pointers */
-	fs_init();
-
-	/* Hold error count for this test section */
-	int8_t direc_count;
-	direc_count = 0;
-
-	/* test directory open/close/write */
-	direc_count += dir_open(); 			//ret 0 on success
-	direc_count += dir_close(); 		//ret 0 on success
-	direc_count += dir_write(0, 0, 0); 	//ret -1 on 'success'
-	if (direc_count == -1) direc_count = 0;
-	if (direc_count != 0) return direc_count; //return if failure this far
-
-	/* test directory read */
-	printf("HEY: Direc read test not implemented yet\n");
-
-	return direc_count;
+	
+	return 0;
 }
 
 

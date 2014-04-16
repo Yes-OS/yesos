@@ -19,6 +19,14 @@ fops_t file_fops = {
 	.close = &file_close,
 };
 
+/* Directory operations jump table */
+fops_t dir_fops = {
+	.read  = &dir_read,
+	.write = &dir_write,
+	.open  = &dir_open,
+	.close = &dir_close,
+};
+
 /*Variables for File_sys functions*/
 static index_node_t* node_head;
 static data_block_t* data_head;
@@ -277,60 +285,78 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 
 }
 
-/* Used to read the directory */
-uint8_t read_flag = 0;
-uint8_t index = 0;
-
-
-/*  Traverse the boot block
- *  Fill the current file name to read from the boot block into the buffer
- *  Return 0 on success; -1 on fail
+/*  Dir_read for the dir fops_table
+ *  
  */
-uint32_t dir_read(file_t* file, uint8_t* buf, int count)
+int32_t dir_read(int32_t fd, void* buf, int32_t nbytes)
 {
-	/* Check for current location in boot block */
-	if (buf == 0) return -1;
+	file_t *file;
+	int32_t ret;
+	dentry_t dentry;
 
+	file = get_file_from_fd(fd);
 
-	/* If first read, don't move one more yet */
-	if (read_flag == 0){
-		read_flag = 1;
-	} else {
-		index++;
+	/* ensure file is open */
+	if (!file || !(file->flags & FILE_OPEN)) {
+		return -1;
 	}
+	
+	ret = read_dentry_by_index(file->inode_ptr, &dentry);
+	strncpy((int8_t*)buf, (int8_t*)dentry.file_name, FILE_NAME_SIZE);
+	file->file_pos += ret;
 
-	/* If at the end of the directory */
-	if (index == 63) return 0;
-
-	/* If second+ read, increment then return file_name */
-	strncpy((int8_t*)buf, (int8_t*)boot_block->entries[index].file_name, FILE_NAME_SIZE);
-
-	return 0;
-
+	return ret;
 }
 
 /*  Read-only file system.
- *  Not implemented (yet ;] ).
+ * 
  *  Return -1
  */
-uint32_t dir_write(file_t* file, uint8_t* buf, int count)
+int32_t dir_write(int32_t fd, const void* buf, int32_t nbytes)
 {
+	(void)fd; (void)buf; (void)nbytes;
 	return -1;
 }
 
-/*  Filler function. Directory already open
- *  Return 0;
+/* Dir_open for fops table
+ *  
  */
-uint32_t dir_open(void)
+int32_t dir_open(const uint8_t *filename)
 {
-	return 0;
+	dentry_t dentry;
+	int32_t fd;
+	file_t *file;
+	int32_t status;
+
+	status = read_dentry_by_name(filename, &dentry);
+	if (status) {
+		return -1;
+	}
+
+	/* find unused descriptor */
+	fd = get_unused_fd();
+	if (fd < 0) {
+		return -1;
+	}
+
+	/* grab associated file, should never fail since we were just allocated a FD */
+	file = get_file_from_fd(fd);
+
+	/* set up the file */
+	file->flags |= FILE_PRESENT | FILE_OPEN;
+	file->inode_ptr = dentry.inode_num;
+	file->file_pos = 0;
+	file->file_op = &dir_fops;
+
+	return fd;
 }
 
 /*  Filler function. Directory does not close
  *  Return 0;
  */
-uint32_t dir_close(void)
+int32_t dir_close(int32_t fd)
 {
+	release_fd(fd);
 	return 0;
 }
 
@@ -344,12 +370,9 @@ uint32_t dir_close(void)
  */
 uint32_t file_loader(dentry_t* file, uint32_t* EIP){
 
-	/* --read the file--
-	 * Get the size of the file as we need to copy the entire thing
-	 */
 	uint32_t bytes_remaining = node_head[file->inode_num].byte_length;
 	uint32_t curEIP, temp_read;
-	uint32_t buf_length = 128;	//buffer size that works for our read_data implementation
+	uint32_t buf_length = 128;
 	uint32_t bytes_read = 0;
 	uint8_t file_buf[buf_length];
 
@@ -357,21 +380,12 @@ uint32_t file_loader(dentry_t* file, uint32_t* EIP){
 	 * 		use memcpy to new page in new page directory
 	 * 		should fill one page table (no more than 4MB a task)
 	 */
-
 	while(bytes_remaining > 0) {
 		temp_read = read_data(file->inode_num, bytes_read, file_buf, buf_length);
-		/*if(temp_read == -1) {
-			printf("Invalid inode value\n");
-			return -1;
-		}*/
 		memcpy((uint32_t*)(USER_MEM + EXEC_OFFSET + bytes_read), file_buf, temp_read);
 		bytes_read += temp_read;
 		bytes_remaining -= temp_read;
 	}
-
-	/* --get EIP--
-	 * (128MB < valid < 132MB)
-	 */
 
 	/*EIP is bytes 24-27 of executable*/
 	curEIP = *(uint32_t*)(USER_MEM + EXEC_OFFSET + 24);

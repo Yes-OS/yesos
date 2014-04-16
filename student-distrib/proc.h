@@ -92,8 +92,7 @@ static inline pcb_t *get_proc_pcb()
 			"andl	%%esp, %0"
 			: "=r"(pcb)
 			:
-			:
-			);
+			: "memory");
 	return (pcb_t *)pcb;
 }
 
