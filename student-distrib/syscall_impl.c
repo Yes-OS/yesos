@@ -117,8 +117,16 @@ int32_t sys_exec(const uint8_t *command)
 		pcb = (pcb_t *)(kern_esp & 0xFFFFC000);
 		memset(pcb, 0, sizeof(*pcb));
 		pcb->pid = nprocs;
+		pcb->kern_stack = kern_esp;
+		pcb->user_stack = user_esp;
+		pcb->page_directory = &page_directories[nprocs];
 		/* XXX: Save old state */
 		pcb->parent_regs = (registers_t *)&command;
+
+		/* store parent pcb if called from a process */
+		if (nprocs > 0) {
+			pcb->parent = get_proc_pcb();
+		}
 
 		{
 			/* set up fops */
@@ -156,8 +164,21 @@ out:
 
 int32_t sys_halt(uint8_t status)
 {
+	nprocs--;
 	pcb_t *pcb = get_proc_pcb();
 	pcb->parent_regs->eax = (int32_t)status;
+	if (nprocs > 0) {
+		/* We're still runnin a user process */
+		set_pdbr(pcb->parent->page_directory);
+		tss.ss0 = KERNEL_DS;
+		tss.esp0 = pcb->parent->kern_stack;
+	}
+	else {
+		/* returning to kernel mode */
+		set_pdbr(&page_directories[0]);
+		tss.ss0 = KERNEL_DS;
+		tss.esp0 = (KERNEL_MEM + 0x400000 -1) & 0xFFFFFFF0;
+	}
 	asm volatile (
 			"movl %0, %%esp\n"
 			"jmp exit_syscall"

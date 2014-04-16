@@ -6,6 +6,7 @@
 #define _PROC_H_
 
 #include "isr.h"
+#include "paging.h"
 
 //	PCB STATE DEFINTIONS
 #define TASK_RUNNING			0		//	process is executing or waiting to execute.
@@ -54,6 +55,13 @@ typedef struct pcb
 
 	//	File Array
 	struct file file_array[FILE_ARRAY_LENGTH];
+
+	// Stacks
+	uint32_t kern_stack;
+	uint32_t user_stack;
+
+	// Page table
+	pd_t * page_directory;
 
 	//	Process Parent
 	struct pcb * parent;
