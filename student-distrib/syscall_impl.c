@@ -131,7 +131,7 @@ int32_t sys_exec(const uint8_t *command)
 		}
 
 		{
-			/* set up fops */
+			/* set up stdin/stdio fds */
 			file_t file;
 			file.flags = FILE_PRESENT | FILE_OPEN;
 			file.file_op = &term_fops;
