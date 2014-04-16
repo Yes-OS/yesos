@@ -85,10 +85,10 @@ int32_t sys_exec(const uint8_t *command)
 		/* increase our process counter */
 		nprocs++;
 
-		/* save old page table */
+		/* save old page directory */
 		get_pdbr(old_pdbr);
 
-		/* set new page table */
+		/* set new page directory */
 		set_pdbr(&page_directories[nprocs]);
 
 		status = file_loader(&dentry, &eip);
