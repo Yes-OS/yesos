@@ -31,23 +31,38 @@ int32_t sys_open(const uint8_t *filename)
 
 int32_t sys_read(int32_t fd, void *buf, int32_t nbytes)
 {
-	pcb_t* pcb = get_proc_pcb();
-	file_t file = pcb->file_array[fd];
-	return file.file_op->read(fd, buf, nbytes);
+	file_t *file = get_file_from_fd(fd);
+
+	/* get_file_from_fd validates the fd for us */
+	if (!file || !(file->flags & FILE_PRESENT)) {
+		return -1;
+	}
+
+	return file->file_op->read(fd, buf, nbytes);
 }
 
 int32_t sys_write(int32_t fd, const void *buf, int32_t nbytes)
 {
-	pcb_t* pcb = get_proc_pcb();
-	file_t file = pcb->file_array[fd];
-	return file.file_op->write(fd, buf, nbytes);
+	file_t *file = get_file_from_fd(fd);
+
+	/* get_file_from_fd validates the fd for us */
+	if (!file || !(file->flags & FILE_PRESENT)) {
+		return -1;
+	}
+
+	return file->file_op->write(fd, buf, nbytes);
 }
 
 int32_t sys_close(int32_t fd)
 {
-	pcb_t* pcb = get_proc_pcb();
-	file_t file = pcb->file_array[fd];
-	return file.file_op->close(fd);
+	file_t *file = get_file_from_fd(fd);
+
+	/* get_file_from_fd validates the fd for us */
+	if (!file || !(file->flags & FILE_PRESENT)) {
+		return -1;
+	}
+
+	return file->file_op->close(fd);
 }
 
 int32_t sys_exec(const uint8_t *command)

@@ -48,11 +48,9 @@ int32_t file_read(int32_t fd, void* buf, int32_t nbytes)
 	file_t *file;
 	int32_t ret;
 
-	if (fd < 0 || fd > MAX_FILES) {
-		return -1;
-	}
-
 	file = get_file_from_fd(fd);
+
+	/* ensure file is open */
 	if (!file || !(file->flags & FILE_OPEN)) {
 		return -1;
 	}
