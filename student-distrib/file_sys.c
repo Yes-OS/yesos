@@ -12,11 +12,11 @@
 #include "file_sys.h"
 
 /* File operations jump table */
-fops_t fs_fops = {
-	.read  = (read_t *)&fs_read,
-	.write = (write_t *)&fs_write,
-	.open  = (open_t *)&fs_open,
-	.close = (close_t *)&fs_close,
+fops_t file_fops = {
+	.read  = &file_read,
+	.write = &file_write,
+	.open  = &file_open,
+	.close = &file_close,
 };
 
 /*Variables for File_sys functions*/
@@ -43,11 +43,21 @@ void fs_init(void)
 /*  Read data from specified file into specified buffer
  *  Return amount read.
  */
-uint32_t fs_read(file_t* file, uint8_t* buf, int count)
+int32_t file_read(int32_t fd, void* buf, int32_t nbytes)
 {
-	if (buf == 0) return -1;
+	file_t *file;
+	int32_t ret;
 
-	int ret = read_data(file->inode_ptr, file->file_pos, buf, count);
+	if (fd < 0 || fd > MAX_FILES) {
+		return -1;
+	}
+
+	file = get_file_from_fd(fd);
+	if (!file || !(file->flags & FILE_OPEN)) {
+		return -1;
+	}
+
+	ret = read_data(file->inode_ptr, file->file_pos, (uint8_t *)buf, nbytes);
 	file->file_pos += ret;
 
 	return ret;
@@ -57,24 +67,52 @@ uint32_t fs_read(file_t* file, uint8_t* buf, int count)
  *  Not implemented (yet ;] ).
  *  Return -1
  */
-uint32_t fs_write(file_t* file, uint8_t* buf, int count)
+int32_t file_write(int32_t fd, const void* buf, int nbytes)
 {
+	/* silence warnings about unused variables */
+	(void)fd; (void)buf; (void)nbytes;
 	return -1;
 }
 
 /*  Filler function. File system already open
  *  Return 0;
  */
-uint32_t fs_open(void)
+int32_t file_open(const uint8_t *filename)
 {
+	dentry_t dentry;
+	int32_t fd;
+	file_t *file;
+	int32_t status;
+
+	status = read_dentry_by_name(filename, &dentry);
+	if (status) {
+		return -1;
+	}
+
+	/* find unused descriptor */
+	fd = get_unused_fd();
+	if (fd < 0) {
+		return -1;
+	}
+
+	/* grab associated file, should never fail since we were just allocated a FD */
+	file = get_file_from_fd(fd);
+
+	/* set up the file */
+	file->flags |= FILE_PRESENT | FILE_OPEN;
+	file->inode_ptr = dentry.inode_num;
+	file->file_pos = 0;
+	file->file_op = &file_fops;
+
 	return 0;
 }
 
 /*  Filler function. File system does not close
  *  Return 0;
  */
-uint32_t fs_close(void)
+int32_t file_close(int32_t fd)
 {
+	release_fd(fd);
 	return 0;
 }
 

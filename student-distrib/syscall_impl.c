@@ -24,19 +24,6 @@
 
 static uint8_t nprocs = 0;
 
-/* Gets the process's PCB */
-static inline pcb_t *get_proc_pcb()
-{
-	uint32_t pcb;
-	asm (	"movl	$0xFFFFC000, %0\n"
-			"andl	%%esp, %0"
-			: "=r"(pcb)
-			:
-			:
-			);
-	return (pcb_t *)pcb;
-}
-
 int32_t sys_open(const uint8_t *filename)
 {
 	return 0;
@@ -131,7 +118,7 @@ int32_t sys_exec(const uint8_t *command)
 		{
 			/* set up fops */
 			file_t file;
-			file.flags = 0;
+			file.flags = FILE_PRESENT | FILE_OPEN;
 			file.file_op = &term_fops;
 			file.file_pos = 0;
 			file.inode_ptr = 0;

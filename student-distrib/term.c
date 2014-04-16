@@ -11,10 +11,10 @@
 
 /* File operations jump table */
 fops_t term_fops = {
-	.read  = (read_t *)&term_read,
-	.write = (write_t *)&term_write,
-	.open  = (open_t *)&term_open,
-	.close = (close_t *)&term_close,
+	.read  = &term_read,
+	.write = &term_write,
+	.open  = &term_open,
+	.close = &term_close,
 };
 
 
@@ -94,7 +94,7 @@ int32_t term_open(const uint8_t *filename)
 }
 
 /* closes terminal fd, fails always */
-int32_t term_close(int32_t *fd)
+int32_t term_close(int32_t fd)
 {
 	(void)fd;
 	return -1;

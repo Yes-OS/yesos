@@ -82,6 +82,7 @@ int8_t _test_read(void){
 /* File system tests
  * read, write, open, close
  */
+#if 0 /* not compliant with current version of OS */
 int8_t _test_file_sys(void){
 	/* reset fs pointers */
 	fs_init();
@@ -102,6 +103,7 @@ int8_t _test_file_sys(void){
 
 	return file_sys_count;
 }
+#endif
 
 
 /* Directory tests
@@ -142,10 +144,11 @@ int8_t test_fs_all(void){
 	// error_count += _test_read();
 	// printf("Read tests done.\n");
 
-
+#if 0 /* not used right now */
 	printf("File system tests:...\n");
 	error_count += _test_file_sys();
 	printf("File system tests done.\n");
+#endif
 
 
 	printf("Directory tests:...\n");
