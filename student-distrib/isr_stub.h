@@ -46,6 +46,37 @@
 #define IRQ14			(IRQ_START + 14)
 #define IRQ15			(IRQ_START + 15)
 
+/* convenience methods for managing stack for syscalls and interrupts */
+#define PUSH_ALL \
+	cld ;\
+	push	%fs ;\
+	push	%es ;\
+	push	%ds ;\
+	pushl	%eax ;\
+	pushl	%ebp ;\
+	pushl	%edi ;\
+	pushl	%esi ;\
+	pushl	%edx ;\
+	pushl	%ecx ;\
+	pushl	%ebx ;\
+	movl	$USER_DS, %edx ;\
+	movl	%edx, %es ;\
+	movl	%edx, %ds
+
+#define POP_ALL \
+	popl	%ebx ;\
+	popl	%ecx ;\
+	popl	%edx ;\
+	popl	%esi ;\
+	popl	%edi ;\
+	popl	%ebp ;\
+	popl	%eax ;\
+	pop		%ds ;\
+	pop		%es ;\
+	pop		%fs
+
+
+
 #ifndef ASM
 
 void divide_error();

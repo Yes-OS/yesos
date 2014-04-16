@@ -112,7 +112,13 @@ int32_t sys_exec(const uint8_t *command)
 		/* calculate location of bottom of process's stack */
 		kern_esp = (KERNEL_MEM + 0x400000 - 0x2000 * nprocs - 1) & 0xFFFFFFF0;
 		user_esp = (USER_MEM + 0x400000 -1) & 0xFFFFFFF0;
+
+		/* obtain and initialize the PCB */
 		pcb = (pcb_t *)(kern_esp & 0xFFFFC000);
+		memset(pcb, 0, sizeof(*pcb));
+		pcb->pid = nprocs;
+		/* XXX: Save old state */
+		pcb->parent_regs = (registers_t *)&command;
 
 		{
 			/* set up fops */
@@ -141,6 +147,7 @@ int32_t sys_exec(const uint8_t *command)
 
 exit_paging:
 	set_pdbr(old_pdbr);
+	restore_flags(flags);
 fail:
 	return -1;
 out:
@@ -149,6 +156,13 @@ out:
 
 int32_t sys_halt(uint8_t status)
 {
+	pcb_t *pcb = get_proc_pcb();
+	pcb->parent_regs->eax = (int32_t)status;
+	asm volatile (
+			"movl %0, %%esp\n"
+			"jmp exit_syscall"
+			: : "g"(pcb->parent_regs)
+			: "cc", "memory");
 	return 0;
 }
 

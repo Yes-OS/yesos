@@ -166,8 +166,10 @@ static void install_pages()
 	for(i = 0; i < MAX_PROCESSES + 1; i++) {
 		clear_page_dir(&page_directories[i]);
 		install_kernel_page(i);
-		install_user_page(i);
 		install_vid_page(i);
+		if (i > 0) {
+			install_user_page(i);
+		}
 	}
 
 

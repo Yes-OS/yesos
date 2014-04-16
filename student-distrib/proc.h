@@ -5,6 +5,8 @@
 #ifndef _PROC_H_
 #define _PROC_H_
 
+#include "isr.h"
+
 //	PCB STATE DEFINTIONS
 #define TASK_RUNNING			0		//	process is executing or waiting to execute.
 #define TASK_INTERRUPTIBLE		1		//	process suspended until a condition becomes true.
@@ -55,6 +57,9 @@ typedef struct pcb
 
 	//	Process Parent
 	struct pcb * parent;
+
+	// Parent State
+	registers_t *parent_regs;
 
 } pcb_t;
 

@@ -72,38 +72,16 @@ MKINTSTUB_NOERR	(irq15, IRQ15)
 
 # isr_stub sets up the stack for interrupt handlers and calls a general c function to handle the rest
 isr_stub:
-	pushal
-
-	# push segments
-	xorl	%eax, %eax
-	movw	%gs, %ax
-	pushl	%eax
-	movw	%fs, %ax
-	pushl	%eax
-	movw	%es, %ax
-	pushl	%eax
-	movw	%ds, %ax
-	pushl	%eax
-
-	movw	$KERNEL_DS, %ax
-	movw	%ax, %ds
+	PUSH_ALL
+	movl	$KERNEL_DS, %eax
 	movw	%ax, %es
-	movw	%ax, %fs
-	movw	%ax, %gs
+	movw	%ax, %ds
 
 	call	isr_impl
 
 	# restore segments
-	popl	%eax
-	movw	%ax, %ds
-	popl	%eax
-	movw	%ax, %es
-	popl	%eax
-	movw	%ax, %fs
-	popl	%eax
-	movw	%ax, %gs
+	POP_ALL
 
-	popal
 	addl	$8, %esp	# clean up error code and ISR number
 	iret
 

@@ -1,43 +1,29 @@
 # syscall.S, defines the syscall entrance and the syscall jumptables
 # vim:ts=4 sw=4 noexpandtab
 #define ASM 1
+#include "isr_stub.h"
 #include "x86_desc.h"
 #include "syscall.h"
 
 .globl enter_syscall
 enter_syscall:
-	cld
+	pushl	$0
 	pushl	%eax
-	push	%es
-	push	%ds
-	pushl	%eax
-	pushl	%ebp
-	pushl	%edi
-	pushl	%esi
-	pushl	%edx
-	pushl	%ecx
-	pushl	%ebx
-	movl	$USER_DS, %edx
-	movl	%edx, %es
-	movl	%edx, %ds
+	PUSH_ALL
 
 	cmpl	$MAX_SYSCALL, %eax
 	ja		exit_syscall
 
 	call	*syscall_table(,%eax,4)
-	movl	%eax, %ebx
+
+	# Set the return value by overwriting the first eax we pushed
+	movl	%eax, 40(%esp)
 	jmp		exit_syscall
 
+.globl exit_syscall
 exit_syscall:
-	popl	%ebx
-	popl	%ecx
-	popl	%edx
-	popl	%esi
-	popl	%edi
-	popl	%ebp
+	POP_ALL
 	popl	%eax
-	pop		%ds
-	pop		%es
 	addl	$4, %esp
 	iret
 
