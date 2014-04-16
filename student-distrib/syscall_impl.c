@@ -97,8 +97,8 @@ int32_t sys_exec(const uint8_t *command)
 		}
 
 		/* calculate location of bottom of process's stack */
-		kern_esp = (KERNEL_MEM + 0x400000 - 0x2000 * nprocs - 1) & 0xFFFFFFF0;
-		user_esp = (0x08000000 + 0x400000 -1) & 0xFFFFFFF0;
+		kern_esp = (KERNEL_MEM + MB_4_OFFSET - USER_STACK_SIZE * nprocs - 1) & (~16UL);
+		user_esp = (USER_MEM + MB_4_OFFSET - 1) & (~16UL);
 
 		/* obtain and initialize the PCB */
 		pcb = (pcb_t *)(kern_esp & 0xFFFFC000);

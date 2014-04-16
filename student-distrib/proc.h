@@ -28,8 +28,9 @@
 #define MAX_FILES		8
 
 /* User Space virtual addressing values */
-#define MB_4_OFFSET			0x00400000
-#define EXEC_OFFSET			0x00048000
+#define MB_4_OFFSET			0x400000
+#define EXEC_OFFSET			0x48000
+#define USER_STACK_SIZE		0x2000
 
 
 #ifndef ASM
