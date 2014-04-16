@@ -6,9 +6,6 @@
 
 #ifndef ASM
 
-#define USER_SPACE 0x08000000
-#define MB_4_OFFSET 0x00400000
-
 #include "types.h"
 
 typedef struct registers {

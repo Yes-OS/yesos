@@ -361,7 +361,7 @@ uint32_t file_loader(dentry_t* file, uint32_t* EIP){
 			printf("Invalid inode value\n");
 			return -1;
 		}*/
-		memcpy((uint32_t*)(USER_SPACE + EXEC_OFFSET + bytes_read), file_buf, temp_read);
+		memcpy((uint32_t*)(USER_MEM + EXEC_OFFSET + bytes_read), file_buf, temp_read);
 		bytes_read += temp_read;
 		bytes_remaining -= temp_read;
 	}
@@ -371,8 +371,8 @@ uint32_t file_loader(dentry_t* file, uint32_t* EIP){
 	 */
 
 	/*EIP is bytes 24-27 of executable*/
-	curEIP = *(uint32_t*)(USER_SPACE + EXEC_OFFSET + 24);
-	if(curEIP < USER_SPACE + EXEC_OFFSET || curEIP > USER_SPACE + MB_4_OFFSET) {
+	curEIP = *(uint32_t*)(USER_MEM + EXEC_OFFSET + 24);
+	if(curEIP < USER_MEM + EXEC_OFFSET || curEIP > USER_MEM + MB_4_OFFSET) {
 		printf("Invalid EIP: Not an executable\n");
 		return -1;
 	}

@@ -27,6 +27,11 @@
 //	FILE ARRAY DEFINTIONS
 #define MAX_FILES		8
 
+/* User Space virtual addressing values */
+#define MB_4_OFFSET			0x00400000
+#define EXEC_OFFSET			0x00048000
+
+
 #ifndef ASM
 
 typedef int32_t open_t(const uint8_t *filename);

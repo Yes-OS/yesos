@@ -23,11 +23,6 @@
 #define BLOCK_SIZE			4096
 #define ADDRESSES_PER_BLOCK	1024
 
-/* User Space virtual addressing values */
-#define USER_SPACE			0x08000000
-#define MB_4_OFFSET			0x00400000
-#define EXEC_OFFSET			0x00048000
-
 extern fops_t file_fops;
 
 
