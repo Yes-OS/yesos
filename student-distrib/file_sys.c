@@ -110,7 +110,7 @@ int32_t file_open(const uint8_t *filename)
 	file->file_pos = 0;
 	file->file_op = &file_fops;
 
-	return 0;
+	return fd;
 }
 
 /*  Filler function. File system does not close

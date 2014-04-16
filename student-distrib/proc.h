@@ -27,6 +27,9 @@
 //	FILE ARRAY DEFINTIONS
 #define MAX_FILES		8
 
+// Maximum length of command line arguments
+#define MAX_ARGS_LEN	63
+
 /* User Space virtual addressing values */
 #define MB_4_OFFSET			0x400000
 #define EXEC_OFFSET			0x48000
@@ -72,6 +75,9 @@ typedef struct pcb
 	// Stacks
 	uint32_t kern_stack;
 	uint32_t user_stack;
+
+	// Process arguments
+	uint8_t cmd_args[MAX_ARGS_LEN + 1];
 
 	// Page table
 	pd_t * page_directory;

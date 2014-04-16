@@ -48,7 +48,6 @@ int32_t sys_open(const uint8_t *filename)
 	}
 
 	return -1;
-
 }
 
 int32_t sys_read(int32_t fd, void *buf, int32_t nbytes)
@@ -90,7 +89,7 @@ int32_t sys_close(int32_t fd)
 int32_t sys_exec(const uint8_t *command)
 {
 	uint8_t file_name[MAX_CMD_LEN];
-	int i, fcnt = 0;
+	int32_t i, fn_cnt;
 	const uint8_t *c;
 	int32_t status;
 	uint32_t eip;
@@ -101,15 +100,18 @@ int32_t sys_exec(const uint8_t *command)
 	pcb_t *pcb;
 	dentry_t dentry;
 
-	for (i = 0, c = command; i < MAX_CMD_LEN && *c == (uint8_t)' '; i++, c++) {
+	for (i = 0, c = command; *c == (uint8_t)' '; i++, c++) {
 		/* skip beginning spaces */
 	}
 
 	/* copy command name */
-	for (; i < MAX_CMD_LEN && *c != ' ' && *c != '\0'; i++, c++) {
-		file_name[fcnt++] = *c;
+	for (fn_cnt = 0; fn_cnt < MAX_CMD_LEN && *c != ' ' && *c != '\0'; i++, c++) {
+		file_name[fn_cnt++] = *c;
 	}
-	file_name[fcnt] = '\0';
+	file_name[fn_cnt] = '\0';
+
+	/* move command to point just after the filename */
+	command += i;
 
 	status = read_dentry_by_name(file_name, &dentry);
 	if (status) {
@@ -121,17 +123,6 @@ int32_t sys_exec(const uint8_t *command)
 
 		/* increase our process counter */
 		nprocs++;
-
-		/* save old page directory */
-		get_pdbr(old_pdbr);
-
-		/* set new page directory */
-		set_pdbr(&page_directories[nprocs]);
-
-		status = file_loader(&dentry, &eip);
-		if (status) {
-			goto exit_paging;
-		}
 
 		/* calculate location of bottom of process's stack */
 		kern_esp = (KERNEL_MEM + MB_4_OFFSET - USER_STACK_SIZE * nprocs - 1) & (~16UL);
@@ -146,6 +137,17 @@ int32_t sys_exec(const uint8_t *command)
 		pcb->page_directory = &page_directories[nprocs];
 		/* XXX: Save old state */
 		pcb->parent_regs = (registers_t *)&command;
+
+		/* copy args into pcb, first eat leading spaces */
+		for (c = command; *c == (uint8_t)' '; i++, c++) {
+			/* skip space */
+		}
+
+		/* copy args to buffer in pcb */
+		strncpy((int8_t *)pcb->cmd_args, (int8_t *)c, MAX_ARGS_LEN);
+
+		/* strncpy doesn't set last char to NULL if full length is read */
+		pcb->cmd_args[MAX_ARGS_LEN] = '\0';
 
 		/* store parent pcb if called from a process */
 		if (nprocs > 0) {
@@ -167,6 +169,22 @@ int32_t sys_exec(const uint8_t *command)
 		tss.ss0 = KERNEL_DS;
 		tss.esp0 = kern_esp;
 
+		/* save old page directory */
+		get_pdbr(old_pdbr);
+
+		/* set new page directory */
+		set_pdbr(&page_directories[nprocs]);
+
+		/* load the executable */
+		/* XXX: do this earlier somehow? It's hard, since it needs to be done
+		 *      after swapping page tables, but swapping page tables screws up
+		 *      the current process's stack. Otherwise we do all this work and
+		 *      may end up failing to a non-executable. */
+		status = file_loader(&dentry, &eip);
+		if (status) {
+			goto exit_paging;
+		}
+
 		/* exec the actual process */
 		enter_userland(USER_DS, user_esp, flags, USER_CS, eip);
 
@@ -181,6 +199,10 @@ exit_paging:
 	--nprocs;
 	set_pdbr(old_pdbr);
 	restore_flags(flags);
+	if (pcb->parent) {
+		tss.ss0 = KERNEL_DS;
+		tss.esp0 = pcb->parent->kern_stack;
+	}
 fail:
 	return -1;
 out:
@@ -221,8 +243,12 @@ int32_t sys_halt(uint8_t status)
 
 int32_t sys_getargs(uint8_t *buf, int32_t nbytes)
 {
-	/* not implemented */
-	return -1;
+	pcb_t *pcb = get_proc_pcb();
+
+	strncpy((int8_t *)buf, (int8_t *)pcb->cmd_args, nbytes);
+	buf[nbytes-1] = '\0';
+
+	return 0;
 }
 
 int32_t sys_vidmap(uint8_t **screen_start)
