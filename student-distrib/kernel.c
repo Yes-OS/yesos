@@ -224,7 +224,7 @@ entry (unsigned long magic, unsigned long addr)
 	update_cursor();
 
 	/* Execute the first program (`shell') ... */
-	sys_exec((uint8_t*)"sh");
+	sys_exec((uint8_t*)"shell");
 
 	printf("Shell exited successfully\n");
 

@@ -131,29 +131,34 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry)
 {
 	dentry_t* temp;
 
-	//Check for non-existent file or invalid index
-
 	/*start from dentry index 1 because index 0 is current directory*/
 	uint8_t i = 1;
 	uint32_t entries = boot_block->num_entries;
 
-	for(i = 1; i <= entries ; i++){
+	uint32_t len_filename;
 
+	for(i = 1; i <= entries ; i++) {
+		temp = &boot_block->entries[i];
 
-		if(!(strncmp( (int8_t*)fname, (int8_t*)(boot_block->entries[i]).file_name, strlen((int8_t*)fname)))){
+		/* length of the filename in the filesystem */
+		len_filename = strlen((int8_t*)temp->file_name);
 
-			temp = &((boot_block->entries)[i]);
+		/* there are some null entries in the fs; needed or they'll match any string passed */
+		if (!len_filename) {
+			continue;
+		}
 
-			strncpy((int8_t *)dentry->file_name, (int8_t*)temp->file_name, strlen((int8_t*)temp->file_name) + 1);
+		/* we need to compare the given string to the filename on the length of the filename,
+		 * otherwise we can pass "sh" and match "shell" */
+		if(!strncmp((int8_t*)fname, (int8_t*)temp->file_name, len_filename)) {
+			strncpy((int8_t *)dentry->file_name, (int8_t*)temp->file_name, len_filename);
+			/* just in case the filename doesn't end in a null character */
+			dentry->file_name[len_filename] = '\0';
 			dentry->file_type = temp->file_type;
 			dentry->inode_num = temp->inode_num;
 
-
 			return 0;
 		}
-
-
-
 	}
 
 	return -1;
