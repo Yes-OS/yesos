@@ -141,6 +141,7 @@ int32_t sys_exec(const uint8_t *command)
 	}
 
 exit_paging:
+	--nprocs;
 	set_pdbr(old_pdbr);
 	restore_flags(flags);
 fail:
