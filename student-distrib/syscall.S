@@ -46,3 +46,9 @@ syscall_table:
 
 	.extern	sys_close
 	.long	sys_close
+
+	.extern	sys_getargs
+	.long	sys_getargs
+
+	.extern	sys_vidmap
+	.long	sys_vidmap

@@ -12,8 +12,10 @@
 #define SYS_WRITE   4
 #define SYS_OPEN    5
 #define SYS_CLOSE   6
+#define SYS_GETARGS 7
+#define SYS_VIDMAP  8
 
-#define MAX_SYSCALL 6
+#define MAX_SYSCALL 8
 
 #ifndef ASM
 void enter_syscall();
@@ -23,6 +25,8 @@ int32_t sys_write(int32_t fd, const void *buf, int32_t nbytes);
 int32_t sys_close(int32_t fd);
 int32_t sys_exec(const uint8_t *command);
 int32_t sys_halt(uint8_t status);
+int32_t sys_getargs(uint8_t *buf, int32_t nbytes);
+int32_t sys_vidmap(uint8_t **screen_start);
 
 #define do_syscall(num) \
 	asm volatile ( \

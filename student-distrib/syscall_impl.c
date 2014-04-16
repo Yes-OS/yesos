@@ -219,3 +219,14 @@ int32_t sys_halt(uint8_t status)
 	return 0;
 }
 
+int32_t sys_getargs(uint8_t *buf, int32_t nbytes)
+{
+	/* not implemented */
+	return -1;
+}
+
+int32_t sys_vidmap(uint8_t **screen_start)
+{
+	/* not implemented */
+	return -1;
+}
