@@ -191,7 +191,7 @@ entry (unsigned long magic, unsigned long addr)
 
 	printf("    Initializing RTC... ");
 	rtc_init();
-	//enable_irq(RTC_IRQ_PORT);
+	enable_irq(RTC_IRQ_PORT);
 	printf("done\n");
 
 	printf("    Initializing Keyboard... ");
