@@ -118,7 +118,7 @@ static void install_user_page(uint32_t index)
 	user_mem.read_write = 1;
 	user_mem.user_supervisor = 1;
 	user_mem.page_size = 1;
-	user_mem.page_base_addr_4mb = PAGE_BASE_ADDR_4MB(KERNEL_MEM+0x0400000);
+	user_mem.page_base_addr_4mb = PAGE_BASE_ADDR_4MB(KERNEL_MEM+index*0x400000);
 
 	page_directories[index].entry[PAGE_DIR_IDX(USER_MEM)] = user_mem;
 
@@ -161,16 +161,15 @@ static void install_pages()
 {
 	int i;
 
+	clear_page_table(&page_table);
+
 	for(i = 0; i < MAX_PROCESSES + 1; i++) {
 		clear_page_dir(&page_directories[i]);
 		install_kernel_page(i);
 		install_user_page(i);
+		install_vid_page(i);
 	}
 
-	clear_page_table(&page_table);
-	install_vid_page(0);
-	install_vid_page(1);
-	install_vid_page(2);
 
 	/* set up registers */
 	clr_pae_flag();

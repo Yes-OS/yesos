@@ -16,7 +16,7 @@
 #define MAX_PROCESSES 2
 
 #define KERNEL_MEM	0x400000
-#define USER_MEM	0x08048000
+#define USER_MEM	0x08000000
 
 /* Tests if a given directory entry is for a 4MB page */
 #define PDE_IS_4MB(entry)	((entry).page_size == 1)
@@ -44,7 +44,17 @@
 		asm volatile (               \
 				"movl    %0, %%cr3"  \
 				: : "r" ((base))     \
-				: "memory"    \
+				: "memory"           \
+			);                       \
+	} while (0)
+
+/* sets page directory base register (cr3) */
+#define get_pdbr(addr)               \
+	do {                             \
+		asm volatile (               \
+				"movl    %%cr3, %0"  \
+				: "=r" ((addr))      \
+				: :                  \
 			);                       \
 	} while (0)
 

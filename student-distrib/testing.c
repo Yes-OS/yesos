@@ -158,21 +158,14 @@ int8_t test_fs_all(void){
 int8_t test_EIP(void)
 {
 	uint32_t temp_EIP;
-	uint32_t retval;
-	file_t test_file;
-
-	test_file.file_op = 0;
-	test_file.file_pos = 0;
-	test_file.flags = 0;
+	int32_t retval;
 
 	int8_t* test_fname	= "ls"; 		//insert file name to test for here
 	dentry_t test_dentry;
 
 	retval = read_dentry_by_name ((uint8_t*)test_fname, &test_dentry);
 
-	test_file.inode_ptr = test_dentry.inode_num;
-
-	retval = file_loader(&test_file, &temp_EIP);
+	retval = file_loader(&test_dentry, &temp_EIP);
 	if(retval == -1) {
 		printf("file_loader FAIL\n");
 		return 0;

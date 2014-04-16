@@ -114,7 +114,7 @@ uint32_t dir_open(void);
 uint32_t dir_close(void);
 
 // ** NEW ** //
-uint32_t file_loader(file_t* file, uint32_t* EIP);
+uint32_t file_loader(dentry_t* file, uint32_t* EIP);
 
 
 #endif /* ASM           */

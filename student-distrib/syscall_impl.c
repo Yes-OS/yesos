@@ -12,13 +12,23 @@
 
 #define MAX_CMD_LEN 33
 
-/* static uint8_t nprocs = 0; */
+#define enter_userland(_ss, _esp, _flags, _cs, _eip) asm volatile (           \
+		"pushl    %0\n"                                                       \
+		"pushl    %1\n"                                                       \
+		"pushl    %2\n"                                                       \
+		"pushl    %3\n"                                                       \
+		"pushl    %4\n"                                                       \
+		"iret"                                                                \
+		: : "g"((_ss)), "g"((_esp)), "g"((_flags)), "g"((_cs)), "g"((_eip))   \
+		: "memory", "cc")
+
+static uint8_t nprocs = 0;
 
 /* Gets the process's PCB */
 static inline pcb_t *get_proc_pcb()
 {
 	uint32_t pcb;
-	asm (	"movl	$0xFFFFE000, %0		\n"
+	asm (	"movl	$0xFFFFC000, %0\n"
 			"andl	%%esp, %0"
 			: "=r"(pcb)
 			:
@@ -34,22 +44,22 @@ int32_t sys_open(const uint8_t *filename)
 
 int32_t sys_read(int32_t fd, void *buf, int32_t nbytes)
 {
-	pcb_t* PCB = get_proc_pcb();
-	file_t file = PCB->file_array[fd];
+	pcb_t* pcb = get_proc_pcb();
+	file_t file = pcb->file_array[fd];
 	return file.file_op->read(fd, buf, nbytes);
 }
 
 int32_t sys_write(int32_t fd, const void *buf, int32_t nbytes)
 {
-	pcb_t* PCB = get_proc_pcb();
-	file_t file = PCB->file_array[fd];
+	pcb_t* pcb = get_proc_pcb();
+	file_t file = pcb->file_array[fd];
 	return file.file_op->write(fd, buf, nbytes);
 }
 
 int32_t sys_close(int32_t fd)
 {
-	pcb_t* PCB = get_proc_pcb();
-	file_t file = PCB->file_array[fd];
+	pcb_t* pcb = get_proc_pcb();
+	file_t file = pcb->file_array[fd];
 	return file.file_op->close(fd);
 }
 
@@ -58,11 +68,14 @@ int32_t sys_exec(const uint8_t *command)
 	uint8_t file_name[MAX_CMD_LEN];
 	int i, fcnt = 0;
 	const uint8_t *c;
-	dentry_t dentry;
-	file_t file;
 	int32_t status;
 	uint32_t eip;
+	uint32_t flags;
+	uint32_t old_pdbr;
+	uint32_t kern_esp;
+	uint32_t user_esp;
 	pcb_t *pcb;
+	dentry_t dentry;
 
 	for (i = 0, c = command; i < MAX_CMD_LEN && *c == (uint8_t)' '; i++, c++) {
 		/* skip beginning spaces */
@@ -76,54 +89,61 @@ int32_t sys_exec(const uint8_t *command)
 
 	status = read_dentry_by_name(file_name, &dentry);
 	if (status) {
-		return status;
+		goto fail;
 	}
 
-	file.flags = 0;
-	file.file_op = 0;
-	file.file_pos = 0;
-	file.inode_ptr = dentry.inode_num;
+	if (nprocs < MAX_PROCESSES) {
+		cli_and_save(flags);
 
+		/* increase our process counter */
+		nprocs++;
 
+		/* save old page table */
+		get_pdbr(old_pdbr);
 
-	status = file_loader(&file, &eip);
-	if (status) {
-		return status;
+		/* set new page table */
+		set_pdbr(&page_directories[nprocs]);
+
+		status = file_loader(&dentry, &eip);
+		if (status) {
+			goto exit_paging;
+		}
+
+		/* calculate location of bottom of process's stack */
+		kern_esp = (KERNEL_MEM + 0x400000 - 0x2000 * nprocs - 1) & 0xFFFFFFF0;
+		user_esp = (USER_MEM + 0x400000 -1) & 0xFFFFFFF0;
+		pcb = (pcb_t *)(kern_esp & 0xFFFFC000);
+
+		{
+			/* set up fops */
+			file_t file;
+			file.flags = 0;
+			file.file_op = &term_fops;
+			file.file_pos = 0;
+			file.inode_ptr = 0;
+
+			pcb->file_array[0] = file;
+			pcb->file_array[1] = file;
+		}
+
+		tss.ss0 = KERNEL_DS;
+		tss.esp0 = kern_esp;
+
+		/* exec the actual process */
+		enter_userland(USER_DS, user_esp, flags, USER_CS, eip);
+
+		/* never reached */
+		goto out;
+	}
+	else {
+		goto fail;
 	}
 
-	pcb = get_proc_pcb();
-	memset(pcb, 0, sizeof(*pcb));
-	pcb->pid = 1;
-
-	{
-		/* set up fops */
-		file_t file;
-		file.flags = 0;
-		file.file_op = &term_fops;
-		file.file_pos = 0;
-		file.inode_ptr = 0;
-
-		pcb->file_array[0] = file;
-		pcb->file_array[1] = file;
-	}
-
-	tss.ss0 = KERNEL_DS;
-	tss.esp0 = (uint32_t)pcb + 0x00001FF0;
-
-	set_pdbr(&page_directories[1]);
-
-	asm volatile (
-			"pushl    %0\n"
-			"pushl    %1\n"
-			"pushfl\n"
-			"movl     %%cs, %%eax\n"
-			"pushl    %%eax\n"
-			"pushl    %2\n"
-			"iret"
-			: : "g"(USER_DS), "g"(USER_MEM + 0x00001FF0), "g"(eip)
-			: "eax", "memory", "cc");
-
-	/* never reached */
+exit_paging:
+	set_pdbr(old_pdbr);
+fail:
+	return -1;
+out:
 	return 0;
 }
 

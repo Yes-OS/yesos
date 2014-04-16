@@ -309,12 +309,12 @@ uint32_t dir_close(void)
  * returns 0 on success (for now)
  *		  -1 on failure
  */
-uint32_t file_loader(file_t* file, uint32_t* EIP){
+uint32_t file_loader(dentry_t* file, uint32_t* EIP){
 
 	/* --read the file--
 	 * Get the size of the file as we need to copy the entire thing
 	 */
-	uint32_t bytes_remaining = node_head[file->inode_ptr].byte_length;
+	uint32_t bytes_remaining = node_head[file->inode_num].byte_length;
 	uint32_t curEIP, temp_read;
 	uint32_t buf_length = 4000;	//buffer size that works for our read_data implementation
 	uint32_t bytes_read = 0;
@@ -326,7 +326,7 @@ uint32_t file_loader(file_t* file, uint32_t* EIP){
 	 */
 
 	while(bytes_remaining > 0) {
-		temp_read = read_data(file->inode_ptr, bytes_read, file_buf, buf_length);
+		temp_read = read_data(file->inode_num, bytes_read, file_buf, buf_length);
 		/*if(temp_read == -1) {
 			printf("Invalid inode value\n");
 			return -1;
