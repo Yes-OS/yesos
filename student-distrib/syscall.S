@@ -17,14 +17,13 @@ enter_syscall:
 	call	*syscall_table(,%eax,4)
 
 	# Set the return value by overwriting the first eax we pushed
-	movl	%eax, 40(%esp)
+	movl	%eax, 24(%esp)
 	jmp		exit_syscall
 
 .globl exit_syscall
 exit_syscall:
 	POP_ALL
-	popl	%eax
-	addl	$4, %esp
+	addl	$8, %esp
 	iret
 
 syscall_table:

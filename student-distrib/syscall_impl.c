@@ -166,9 +166,9 @@ int32_t sys_halt(uint8_t status)
 {
 	nprocs--;
 	pcb_t *pcb = get_proc_pcb();
-	pcb->parent_regs->eax = (int32_t)status;
 	if (nprocs > 0) {
 		/* We're still runnin a user process */
+		pcb->parent_regs->eax = (int32_t)status;
 		set_pdbr(pcb->parent->page_directory);
 		tss.ss0 = KERNEL_DS;
 		tss.esp0 = pcb->parent->kern_stack;
@@ -178,6 +178,13 @@ int32_t sys_halt(uint8_t status)
 		set_pdbr(&page_directories[0]);
 		tss.ss0 = KERNEL_DS;
 		tss.esp0 = (KERNEL_MEM + 0x400000 -1) & 0xFFFFFFF0;
+		asm volatile (
+				"movl %0, %%esp\n"
+				"addl $-4, %%esp\n"
+				"ret"
+				: : "g"(pcb->parent_regs)
+				: "cc", "memory");
+		/* control doesn't pass here */
 	}
 	asm volatile (
 			"movl %0, %%esp\n"

@@ -226,6 +226,8 @@ entry (unsigned long magic, unsigned long addr)
 	/* Execute the first program (`shell') ... */
 	sys_exec((uint8_t*)"sh");
 
+	printf("Shell exited successfully\n");
+
 	/* Spin (nicely, so we don't chew up cycles) */
 	halt();
 }
