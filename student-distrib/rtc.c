@@ -151,7 +151,13 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes)
 {
 
   uint32_t sc = 0;			//shift counter variable
-  uint32_t freq = (uint32_t)buf;	//temp freq variable used for checking validity of requested freq
+  uint32_t freq;
+
+  if (!buf || nbytes != 4) {
+	  return -1;
+  }
+
+  freq = *(uint32_t *)buf;	//temp freq variable used for checking validity of requested freq
 
   /*find the number of shifts taken to change freq to 0*/
   while(freq != 0){
@@ -163,7 +169,7 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes)
   sc--;
 
   /*check if the requested freq was a power of 2*/
-  if((uint32_t)buf == (1 << sc)){
+  if(*(uint32_t *)buf == (1 << sc)){
 
 	rtc_modify_freq(sc);
 	return 0;
