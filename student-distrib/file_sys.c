@@ -105,7 +105,7 @@ int32_t file_open(const uint8_t *filename)
 	file = get_file_from_fd(fd);
 
 	/* set up the file */
-	file->flags |= FILE_PRESENT | FILE_OPEN;
+	file->flags |= FILE_OPEN;
 	file->inode_ptr = dentry.inode_num;
 	file->file_pos = 0;
 	file->file_op = &file_fops;
@@ -353,7 +353,7 @@ int32_t dir_open(const uint8_t *filename)
 	file = get_file_from_fd(fd);
 
 	/* set up the file */
-	file->flags |= FILE_PRESENT | FILE_OPEN;
+	file->flags |= FILE_OPEN;
 	file->inode_ptr = dentry.inode_num;
 	file->file_pos = 0;
 	file->file_op = &dir_fops;
