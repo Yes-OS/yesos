@@ -1,6 +1,6 @@
 CFLAGS += -Wall -nostdlib -ffreestanding
 LDFLAGS += -nostdlib -ffreestanding
-CC = gcc
+CC = gcc -m32
 
 ALL: cat grep hello ls pingpong counter shell sigtest testprint syserr
 
