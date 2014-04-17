@@ -173,7 +173,7 @@ int32_t sys_exec(const uint8_t *command)
 		get_pdbr(old_pdbr);
 
 		/* set new page directory */
-		set_pdbr(&page_directories[nprocs]);
+		set_pdbr(pcb->page_directory);
 
 		/* load the executable */
 		/* XXX: do this earlier somehow? It's hard, since it needs to be done
@@ -257,6 +257,8 @@ int32_t sys_vidmap(uint8_t **screen_start)
 			|| screen_start >= (uint8_t **)(USER_MEM + MB_4_OFFSET)) {
 		return -1;
 	}
+
+	install_user_vid_mem(get_proc_pcb()->pid);
 
 	*screen_start = (uint8_t *)USER_VID;
 
