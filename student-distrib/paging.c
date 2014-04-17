@@ -8,11 +8,14 @@
 #include "x86_desc.h"
 
 
-//+1 is for the kernel's Page Directory
+/* +1 is for the kernel's Page Directory */
 pd_t page_directories[MAX_PROCESSES + 1] __attribute__((aligned(PAGE_SIZE)));
 
-//For Video Memory
+/* For Video Memory */
 pt_t page_table __attribute__((aligned(PAGE_SIZE)));
+
+/* For user-level video memory */
+pt_t user_vid_mem __attribute__((aligned(PAGE_SIZE)));
 
 /* define some actions to set/clear status bits */
 
@@ -122,6 +125,31 @@ static void install_user_page(uint32_t index)
 
 	page_directories[index].entry[PAGE_DIR_IDX(USER_MEM)] = user_mem;
 
+}
+
+void install_user_vid_mem(uint32_t index)
+{
+	int i;
+
+	/* setup first page directory */
+	pde_t vid_mem_dir = empty_dir_entry;
+
+	vid_mem_dir.present = 1;
+	vid_mem_dir.read_write = 0;
+	vid_mem_dir.user_supervisor = 0;
+	vid_mem_dir.pt_base_addr = PAGE_BASE_ADDR((uint32_t)&user_vid_mem);
+
+	page_directories[index].entry[PAGE_DIR_IDX(USER_VID)] = vid_mem_dir;
+
+	/* setup video memory */
+	pte_t video_mem_temp = empty_page_entry;
+	for (i = 0; i < 16; i++) {
+		video_mem_temp.present = 1;
+		video_mem_temp.read_write = 1;
+		video_mem_temp.user_supervisor = 1;
+		video_mem_temp.page_base_addr = PAGE_BASE_ADDR(VIDEO + i * 0x1000);
+		page_table.entry[PAGE_TABLE_IDX(USER_VID + i * 0x1000)] = video_mem_temp;
+	}
 }
 
 /* initializes paging */

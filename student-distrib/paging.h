@@ -17,6 +17,7 @@
 
 #define KERNEL_MEM	0x400000
 #define USER_MEM	0x08000000
+#define USER_VID	0x088B8000
 
 /* Tests if a given directory entry is for a 4MB page */
 #define PDE_IS_4MB(entry)	((entry).page_size == 1)
@@ -60,6 +61,7 @@
 
 /*Initialize paging*/
 void paging_init(void);
+void install_user_vid_mem(uint32_t index);
 
 /* type definitions */
 

@@ -253,6 +253,12 @@ int32_t sys_getargs(uint8_t *buf, int32_t nbytes)
 
 int32_t sys_vidmap(uint8_t **screen_start)
 {
-	/* not implemented */
-	return -1;
+	if (screen_start < (uint8_t **)USER_MEM
+			|| screen_start >= (uint8_t **)(USER_MEM + MB_4_OFFSET)) {
+		return -1;
+	}
+
+	*screen_start = (uint8_t *)USER_VID;
+
+	return 0;
 }
