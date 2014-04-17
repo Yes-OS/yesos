@@ -155,9 +155,8 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry)
 			continue;
 		}
 
-		/* we need to compare the given string to the filename on the length of the filename,
-		 * otherwise we can pass "sh" and match "shell" */
-		if(!strncmp((int8_t*)fname, (int8_t*)temp->file_name, len_filename)) {
+		/* we need to compare on the max length of a file, or else we get weird matching results */
+		if(!strncmp((int8_t*)fname, (int8_t*)temp->file_name, FILE_NAME_SIZE)) {
 			strncpy((int8_t *)dentry->file_name, (int8_t*)temp->file_name, len_filename);
 			/* just in case the filename doesn't end in a null character */
 			dentry->file_name[len_filename] = '\0';
