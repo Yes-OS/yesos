@@ -66,6 +66,7 @@ void rtc_modify_freq(uint32_t freq)
   cli();
 
   uint8_t regA;
+  uint32_t new_freq;
 
   /*Disable NMI and select register A of RTC*/
   outb(REG_A, NMI_RTC_PORT);
@@ -77,54 +78,8 @@ void rtc_modify_freq(uint32_t freq)
   outb(REG_A, NMI_RTC_PORT);
 
   /*Set frequency, where the RTC will be 2^freq*/
-  switch(freq)
-  {
-
-    case 1:
-      outb((regA | HZ_2), RTC_RAM_PORT);
-      break;
-
-    case 2:
-      outb((regA | HZ_4), RTC_RAM_PORT);
-      break;
-
-    case 3:
-      outb((regA | HZ_8), RTC_RAM_PORT);
-      break;
-
-    case 4:
-      outb((regA | HZ_16), RTC_RAM_PORT);
-      break;
-
-    case 5:
-      outb((regA | HZ_32), RTC_RAM_PORT);
-      break;
-
-    case 6:
-      outb((regA | HZ_64), RTC_RAM_PORT);
-      break;
-
-    case 7:
-      outb((regA | HZ_128), RTC_RAM_PORT);
-      break;
-
-    case 8:
-      outb((regA | HZ_256), RTC_RAM_PORT);
-      break;
-
-    case 9:
-      outb((regA | HZ_512), RTC_RAM_PORT);
-      break;
-
-    case 10:
-      outb((regA | HZ_1024), RTC_RAM_PORT);
-      break;
-
-    default:
-
-      break;
-
-  }
+  new_freq = BASE_FREQ - freq;
+  outb((regA | new_freq), RTC_RAM_PORT);
 
   sti();
 }

@@ -24,6 +24,7 @@
 #define ENABLE_NMI	0x7F
 
 /*RTC frequencies*/
+#define BASE_FREQ 0x10
 #define HZ_2  0x0F
 #define HZ_4  0x0E
 #define HZ_8  0x0D
