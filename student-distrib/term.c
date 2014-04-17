@@ -129,6 +129,10 @@ int32_t term_read(int32_t fd, void *buf, int32_t nbytes)
 				buffer[idx++] = c;
 			}
 		}
+		else {
+			/* no data, sleep */
+			asm ("hlt");
+		}
 	} while (c != '\n' && idx < nbytes);
 
 	/* prevent backspace past last feed */
