@@ -2,17 +2,18 @@
  * vim:ts=4 sw=4 noexpandtab
  */
 
-#include "rtc.h"
 #include "lib.h"
+#include "proc.h"
+#include "rtc.h"
 
 uint32_t rtc_intf;
 
 /* File operations jump table */
-void * rtc_fops[] = {
-  rtc_open,
-  rtc_read,
-  rtc_write,
-  rtc_close
+fops_t rtc_fops = {
+  .read  = rtc_read,
+  .write = rtc_write,
+  .open  = rtc_open,
+  .close = rtc_close,
 };
 
 /* initialize the RTC */
@@ -178,15 +179,30 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes)
 /*Modify rtc to default freq of 2Hz*/
 int32_t rtc_open(const uint8_t* filename)
 {
-  rtc_modify_freq(1); //sets the rtc to 2_Hz by default
-  return 0;
+	int32_t fd;
+	file_t *file;
+
+	fd = get_unused_fd();
+	if (fd < 0) {
+		return -1;
+	}
+
+	file = get_file_from_fd(fd);
+	file->flags |= FILE_OPEN;
+	file->file_op = &rtc_fops;
+	file->file_pos = -1;
+	file->inode_ptr = -1;
+
+	rtc_modify_freq(1); //sets the rtc to 2_Hz by default
+
+	return fd;
 }
 
 /*RTC Close*/
 int32_t rtc_close(int32_t fd)
 {
-  /*Nothing to do here yet*/
-  return 0;
+	release_fd(fd);
+	return 0;
 }
 
 
