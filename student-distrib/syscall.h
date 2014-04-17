@@ -29,10 +29,5 @@ int32_t sys_halt(uint8_t status);
 int32_t sys_getargs(uint8_t *buf, int32_t nbytes);
 int32_t sys_vidmap(uint8_t **screen_start);
 
-#define do_syscall(num) \
-	asm volatile ( \
-		"int		$0x80"	\
-		: : "a"(num)	\
-		: "cc", "memory");
 #endif
 #endif

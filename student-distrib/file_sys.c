@@ -400,14 +400,10 @@ uint32_t file_loader(dentry_t* file, uint32_t* EIP){
 	/*EIP is bytes 24-27 of executable*/
 	curEIP = *(uint32_t*)(USER_MEM + EXEC_OFFSET + 24);
 	if(curEIP < USER_MEM + EXEC_OFFSET || curEIP > USER_MEM + MB_4_OFFSET) {
-		printf("Invalid EIP: Not an executable\n");
 		return -1;
 	}
 
 	*EIP = curEIP;
-
-
-
 
 	return 0;
 }
