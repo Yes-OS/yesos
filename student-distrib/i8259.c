@@ -56,14 +56,12 @@ enable_irq(uint32_t irq_num)
 	if(irq_num < 0) {
 		return;
 	}
-	else if(irq_num < 8)
-	{
+	else if(irq_num < 8) {
 		master_mask = master_mask & ~(1 << irq_num);
 		/*PORT incremented by 1 because OCW1 is to be accepted in the next port*/
 		outb(master_mask, MASTER_8259_PORT + 1);
 	}
-	else if(irq_num < 16)
-	{
+	else if(irq_num < 16) {
 		slave_mask = slave_mask & ~(1 << (irq_num - 8));
 		/*PORT incremented by 1 because OCW1 is to be accepted in the next port*/
 		outb(slave_mask, SLAVE_8259_PORT + 1);
@@ -77,17 +75,16 @@ disable_irq(uint32_t irq_num)
 	if(irq_num < 0) {
 		return;
 	}
-	else if(irq_num < 8)
-	{
+	else if(irq_num < 8) {
 		master_mask = master_mask | (1 << irq_num);
 		/*PORT incremented by 1 because OCW1 is to be accepted in the next port*/
 		outb(master_mask, MASTER_8259_PORT + 1);
 	}
-	else if(irq_num < 16)
-	{
+	else if(irq_num < 16) {
 		slave_mask = slave_mask | (1 << (irq_num - 8));
 		/*PORT incremented by 1 because OCW1 is to be accepted in the next port*/
 		outb(slave_mask, SLAVE_8259_PORT + 1);
+	}
 }
 
 /* Send end-of-interrupt signal for the specified IRQ */
