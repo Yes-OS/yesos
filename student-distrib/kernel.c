@@ -116,7 +116,6 @@ entry (unsigned long magic, unsigned long addr)
 					(unsigned) mmap->length_low);
 	}
 
-
 	/* Construct an LDT entry in the GDT */
 	{
 		seg_desc_t the_ldt_desc;
@@ -158,7 +157,6 @@ entry (unsigned long magic, unsigned long addr)
 		ltr(KERNEL_TSS);
 	}
 
-
 	clear();
 
 	printf("----------------------------------------\n");
@@ -173,7 +171,6 @@ entry (unsigned long magic, unsigned long addr)
 	printf("    YY          EE                      SS        OO      OO              SS\n");
 	printf("    YY          EEEEEEEEEE      SSSSSSSSS     oo   OOOOOOOO       SSSSSSSSS \n");
 	printf("----------------------------------------\n");
-
 
 	printf("Initializing subsystems\n");
 
@@ -206,7 +203,6 @@ entry (unsigned long magic, unsigned long addr)
 	printf("    Initializing Paging... ");
 	paging_init();
 	printf("done\n");
-
 
 	printf("    Initializing Terminal...");
 	term_open(NULL);

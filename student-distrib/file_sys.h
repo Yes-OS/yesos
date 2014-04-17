@@ -32,9 +32,8 @@ extern fops_t file_fops;
  *	4096-bytes
  */
 typedef struct index_node{
-	//	4 bytes - length in bytes
-	//	4 bytes per data block #
-
+	/*4 bytes - length in bytes
+	 *4 bytes per data block #*/
 	uint32_t byte_length;
 	uint32_t data_blocks[ADDRESSES_PER_BLOCK - 1];
 
@@ -44,9 +43,10 @@ typedef struct index_node{
  *	4096-bytes
  */
 typedef struct data_block{
-	//	4096 bytes of data
-
-	uint8_t data[BLOCK_SIZE];	//data in data block
+	/*4096 bytes of data*/
+	
+	/*data in data block*/
+	uint8_t data[BLOCK_SIZE];
 
 } __attribute__((packed)) data_block_t;
 
@@ -54,10 +54,10 @@ typedef struct data_block{
  *	64-bytes
  */
 typedef struct dentry{
-	//	32 bytes - file name
-	//	4 bytes	 - files type	(0, 1, or 2)
-	//	4 bytes	 - inode number (ignored for type 0 and 1)
-	//	24 bytes - reserved
+	/*32 bytes - file name
+	 *4 bytes	 - files type(0, 1, or 2)
+	 *4 bytes	 - inode number (ignored for type 0 and 1)
+	 *24 bytes - reserved */
 
 	uint8_t file_name[32];
 	uint32_t file_type;
@@ -71,11 +71,11 @@ typedef struct dentry{
  *	4096 bytes
  */
 typedef struct boot_block{
-	//	4 bytes - number of directory entries
-	//	4 bytes - number of index nodes (inodes)
-	//	4 bytes - number of data blocks
-	//	52 bytes - reserved
-	//	64-byte directory entries
+	/*	4 bytes - number of directory entries
+	 *	4 bytes - number of index nodes (inodes)
+	 *	4 bytes - number of data blocks
+	 *	52 bytes - reserved
+	 *	64-byte directory entries */
 
 	uint32_t num_entries;
 	uint32_t num_nodes;

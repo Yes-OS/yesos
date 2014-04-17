@@ -30,6 +30,6 @@ extern char *video_mem;
 
 void vga_cursor_set_location(uint8_t row, uint8_t col);
 void update_cursor(void);
-#endif /* ASM */
 
+#endif /* ASM */
 #endif /* _VGA_H_ */

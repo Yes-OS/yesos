@@ -34,7 +34,6 @@
 /* Define where IRQs start in the interrupt numbers */
 #define IRQ_START		ICW2_MASTER
 
-
 #ifndef ASM
 
 /* Externally-visible functions */

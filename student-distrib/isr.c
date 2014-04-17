@@ -14,7 +14,6 @@
 #include "proc.h"
 #include "isr.h"
 
-
 /* implements the interrupt service request */
 void isr_impl(registers_t regs)
 {

@@ -86,24 +86,6 @@ static inline uint32_t inl(uint16_t port)
  *
  */
 
-static inline uint32_t getEIP(void)
-{
-	return 0x08000000;
-
-/*
- 	uint32_t val;
-	asm volatile("call get_eip
-				  get_eip:
-					decl %2, %%esp
-					mov %%esp, %0
-					ret"
-			: "=a"(val)
-			: "memory" );
-	return val;
-*/
-
-}
-
 /* Writes a byte to a port */
 #define outb(data, port)                \
 do {                                    \

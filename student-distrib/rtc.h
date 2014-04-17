@@ -35,9 +35,9 @@
 #define HZ_512  0x07
 #define HZ_1024 0x06
 
-/*RTC interrupt flag*/
-//set flag to 1 in rtc_read
-//clear flag with interrupt handler
+/*RTC interrupt flag
+ *set flag to 1 in rtc_read
+ *clear flag with interrupt handler*/
 extern uint32_t rtc_intf;
 
 /*Initializes the RTC to IRQ 8*/
@@ -54,8 +54,5 @@ int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes);
 int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes);
 int32_t rtc_open(const uint8_t* filename);
 int32_t rtc_close(int32_t fd);
-
-
-
 
 #endif /* _RTC_H */

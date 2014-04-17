@@ -19,7 +19,6 @@ fops_t rtc_fops = {
 /* initialize the RTC */
 void rtc_init(void)
 {
-
     uint8_t regB;
 
     rtc_intf = 0;
@@ -30,7 +29,8 @@ void rtc_init(void)
 	/*Extract current value from register B*/
 	regB = inb(RTC_RAM_PORT);
 
-	regB = regB | 0x40;		//Enable bit 6 of register B to enable Periodic Interrupts (PIE)
+	/*Enable bit 6 of register B to enable Periodic Interrupts (PIE)*/
+	regB = regB | 0x40;
 
 	/*Set the same index, because reading from the port sets the index to register D*/
 	outb((DISABLE_NMI | REG_B), NMI_RTC_PORT);
@@ -42,14 +42,12 @@ void rtc_init(void)
 	uint8_t enable = inb(NMI_RTC_PORT);
 	enable = enable & ENABLE_NMI;
 	outb(enable, NMI_RTC_PORT);
-
 }
 
 
 /* handle the rtc interrupt */
 void rtc_handle_interrupt()
 {
-
 	/*clear RTC interrupt flag*/
     rtc_intf = 0;
 
@@ -59,15 +57,12 @@ void rtc_handle_interrupt()
 
 	/*Call the test interrupts function to be sure of interrupts occurring */
 	//test_interrupts();
-
-
 }
 
 
 /*modify the frequency of the RTC (Min 2Hz - Max 1024 Hz)*/
 void rtc_modify_freq(uint32_t freq)
 {
-
   cli();
 
   uint8_t regA;
@@ -75,12 +70,13 @@ void rtc_modify_freq(uint32_t freq)
   /*Disable NMI and select register A of RTC*/
   outb(REG_A, NMI_RTC_PORT);
 
+  /*clear the lower 4 bits of regA to clear out previous frequency*/
   regA = inb(RTC_RAM_PORT);
-  regA = regA & 0xF0;       //clear the lower 4 bits of regA to clear out previous frequency
+  regA = regA & 0xF0;       
 
   outb(REG_A, NMI_RTC_PORT);
 
-  /*Set frequency, where it is 2^freq*/
+  /*Set frequency, where the RTC will be 2^freq*/
   switch(freq)
   {
 
@@ -131,7 +127,6 @@ void rtc_modify_freq(uint32_t freq)
   }
 
   sti();
-
 }
 
 /*Loops through until an RTC interrupt is generated*/
@@ -149,15 +144,15 @@ int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes)
 /*Write a new interrupt frequency to the RTC*/
 int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes)
 {
-
-  uint32_t sc = 0;			//shift counter variable
+  /*shift counter variable*/
+  uint32_t sc = 0;
   uint32_t freq;
 
   if (!buf || nbytes != 4) {
 	  return -1;
   }
-
-  freq = *(uint32_t *)buf;	//temp freq variable used for checking validity of requested freq
+  /*temp freq variable used for checking validity of requested freq*/
+  freq = *(uint32_t *)buf;
 
   /*find the number of shifts taken to change freq to 0*/
   while(freq != 0){
@@ -170,17 +165,13 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes)
 
   /*check if the requested freq was a power of 2*/
   if(*(uint32_t *)buf == (1 << sc)){
-
 	rtc_modify_freq(sc);
 	return 0;
-
   }
 
   printf("Error: Invlaid Frequency Value\n");
   return -1;
-
 }
-
 
 /*Modify rtc to default freq of 2Hz*/
 int32_t rtc_open(const uint8_t* filename)
@@ -199,7 +190,8 @@ int32_t rtc_open(const uint8_t* filename)
 	file->file_pos = -1;
 	file->inode_ptr = -1;
 
-	rtc_modify_freq(1); //sets the rtc to 2_Hz by default
+	/*sets the rtc to 2_Hz by default*/
+	rtc_modify_freq(1); 
 
 	return fd;
 }

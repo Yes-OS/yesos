@@ -7,7 +7,6 @@
 #include "vga.h"
 #include "x86_desc.h"
 
-
 /* +1 is for the kernel's Page Directory */
 pd_t page_directories[MAX_PROCESSES + 1] __attribute__((aligned(PAGE_SIZE)));
 
@@ -54,8 +53,6 @@ pt_t user_vid_mem __attribute__((aligned(PAGE_SIZE)));
 				: : : "eax", "cc"       \
 			);                                 \
 	} while (0)
-
-
 
 /* helper functions */
 static void clear_page_dir(pd_t* directory);
@@ -111,10 +108,6 @@ static void install_kernel_page(uint32_t index)
 
 static void install_user_page(uint32_t index)
 {
-	/*if(index <= 0) {
-		return;
-	}*/
-
 	pde_t user_mem = empty_dir_entry;
 
 	user_mem.present = 1;
@@ -124,7 +117,6 @@ static void install_user_page(uint32_t index)
 	user_mem.page_base_addr_4mb = PAGE_BASE_ADDR_4MB(KERNEL_MEM+index*0x400000);
 
 	page_directories[index].entry[PAGE_DIR_IDX(USER_MEM)] = user_mem;
-
 }
 
 void install_user_vid_mem(uint32_t index)
@@ -199,7 +191,6 @@ static void install_pages()
 			install_user_page(i);
 		}
 	}
-
 
 	/* set up registers */
 	clr_pae_flag();

@@ -23,16 +23,13 @@
 #define IS_ARRAY(arg) (IS_INDEXABLE(arg) && (((void *) &arg) == ((void *) arg)))
 #define ARRAYSIZE(arr) (sizeof(arr) / (IS_ARRAY(arr) ? sizeof(arr[0]) : 0))
 
-
-/* ________Data Structures________ */
+/* ________Testing Data Structures________ */
 
 /* typedef struct test {
 	int8_t element[TEST_SIZE];
 } test_t; */
 
-
 /* ________Function prototypes________ */
-
 
 int8_t _test_read(void);
 int8_t _test_file_sys(void);
@@ -46,7 +43,6 @@ void rtc_rw_test(void);
 void rtc_open_test(void);
 
 /* void _test_array_typedef(void); */
-
 
 #endif /* ASM          */
 #endif /* _TESTING_H   */

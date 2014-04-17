@@ -142,11 +142,8 @@ int32_t file_close(int32_t fd)
 int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry)
 {
 	dentry_t* temp;
-
-	/*start from dentry index 1 because index 0 is current directory*/
 	uint8_t i;
 	uint32_t entries = boot_block->num_entries;
-
 	uint32_t len_filename;
 
 	for(i = 0; i <= entries ; i++) {
@@ -188,21 +185,14 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry)
  */
 int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry)
 {
-
-//	!!	Check that index is less than number of indices (boot block)
-//	if(index < <global boot block>.numnodes)
-//		dentry->inode_num = index;
-
 	//Check for non-existant file or invalid index
 	if(index <= boot_block->num_entries)
 	{
-
 		strncpy((int8_t*)dentry->file_name, (int8_t*)boot_block->entries[index].file_name, FILE_NAME_SIZE);
 		dentry->file_type = boot_block->entries[index].file_type;
 		dentry->inode_num = boot_block->entries[index].inode_num;
 
 		return 0;
-
 	}
 
 	return -1;

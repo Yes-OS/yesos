@@ -19,6 +19,7 @@
 #define MAX_SYSCALL 8
 
 #ifndef ASM
+
 void enter_syscall();
 int32_t sys_open(const uint8_t *filename);
 int32_t sys_read(int32_t fd, void *buf, int32_t nbytes);

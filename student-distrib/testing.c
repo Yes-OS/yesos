@@ -18,12 +18,14 @@ int8_t _test_read(void){
 
 	int32_t retval = 0;
 
-	int8_t* test_fname	= "grep"; //insert file name to test for here
+	/*insert file name to test for here*/
+	int8_t* test_fname	= "grep"; 
 	dentry_t test_dentry;
-	int32_t inode_test = 12;	//inset index number to test for here
+	/*inset index number to test for here*/
+	int32_t inode_test = 12;	
 	dentry_t test_dentry2;
 
-	//	Test READ_DATA
+	/*Test READ_DATA*/
 	int32_t inode = 13;
 	uint32_t offset = 1;
 	uint32_t length = 4000;
@@ -78,7 +80,6 @@ int8_t _test_read(void){
 
 }
 
-
 /* File system tests
  * read, write, open, close
  */
@@ -92,9 +93,9 @@ int8_t _test_file_sys(void){
 	file_sys_count = 0;
 
 	/* test file open/close/write */
-	file_sys_count += fs_open(); 			//ret 0 on success
-	file_sys_count += fs_close(); 			//ret 0 on success
-	file_sys_count += fs_write(0, 0, 0); 	//ret -1 on 'success'
+	file_sys_count += fs_open();
+	file_sys_count += fs_close();
+	file_sys_count += fs_write(0, 0, 0);
 	if (file_sys_count == -1) file_sys_count = 0;
 	if (file_sys_count != 0) return file_sys_count; //return if failure this far
 
@@ -105,7 +106,6 @@ int8_t _test_file_sys(void){
 }
 #endif
 
-
 /* Directory tests
  * read, write, open, close
  */
@@ -113,7 +113,6 @@ int8_t _test_directory(void){
 	
 	return 0;
 }
-
 
 /*  Perform all file system tests
  *
@@ -147,7 +146,8 @@ int8_t test_EIP(void)
 	uint32_t temp_EIP;
 	int32_t retval;
 
-	int8_t* test_fname	= "ls"; 		//insert file name to test for here
+	/*insert file name to test for here*/
+	int8_t* test_fname	= "ls"; 		
 	dentry_t test_dentry;
 
 	retval = read_dentry_by_name ((uint8_t*)test_fname, &test_dentry);
@@ -213,8 +213,6 @@ void rtc_rw_test(void)
 			printf("%d", foo2[j].element[i]);
 		}
 	} printf("Done(2) \n");
-
-
 } */
 
 /*  Sandbox tests

@@ -69,7 +69,8 @@ void install_user_vid_mem(uint32_t index);
 typedef struct pde {
 	union {
 		uint32_t val;
-		struct {	/* common bits */
+		struct {
+			/* common bits */
 			uint32_t present : 1;
 			uint32_t read_write : 1;
 			uint32_t user_supervisor : 1;

@@ -10,31 +10,38 @@
 
 #define asm __asm
 
-//	PCB STATE DEFINTIONS
-#define TASK_RUNNING			0		//	process is executing or waiting to execute.
-#define TASK_INTERRUPTIBLE		1		//	process suspended until a condition becomes true.
-#define TASK_UNINTERRUPTIBLE	2		//	process suspended until a given event executes uninterrupted.
-#define TASK_STOPPED			3		//	process has been stopped.
-#define TASK_TRACED				4		//	process stopped by debugger.
-#define EXIT_ZOMBIE				5		//	execution terminated, waiting for parent.
-#define EXIT_DEAD				6		//	execution terminated, process being removed.
+/*PCB STATE DEFINTIONS*/
+
+/*process is executing or waiting to execute*/
+#define TASK_RUNNING			0
+/*process suspended until a condition becomes true*/
+#define TASK_INTERRUPTIBLE		1
+/*process suspended until a given event executes uninterrupted*/
+#define TASK_UNINTERRUPTIBLE	2
+/*process has been stopped*/
+#define TASK_STOPPED			3
+/*process stopped by debugger*/
+#define TASK_TRACED				4
+/*execution terminated, waiting for parent*/
+#define EXIT_ZOMBIE				5
+/*execution terminated, process being removed*/
+#define EXIT_DEAD				6
 
 /* File flags */
 #define FILE_PRESENT 1
 #define FILE_OPEN    2
 #define FILE_CLOSED  4
 
-//	FILE ARRAY DEFINTIONS
+/*FILE ARRAY DEFINTIONS*/
 #define MAX_FILES		8
 
-// Maximum length of command line arguments
+/*Maximum length of command line arguments*/
 #define MAX_ARGS_LEN	63
 
 /* User Space virtual addressing values */
 #define MB_4_OFFSET			0x400000
 #define EXEC_OFFSET			0x48000
 #define USER_STACK_SIZE		0x2000
-
 
 #ifndef ASM
 
@@ -60,32 +67,31 @@ typedef struct file {
     uint32_t flags;
 } __attribute__((packed)) file_t;
 
-
 typedef struct pcb
 {
-	//	Process State
+	/*Process State*/
 	uint32_t state;
 
-	//	Process ID
+	/*Process ID*/
 	uint32_t pid;
 
-	//	File Array
+	/*File Array*/
 	file_t file_array[MAX_FILES];
 
-	// Stacks
+	/*Stacks*/
 	uint32_t kern_stack;
 	uint32_t user_stack;
 
-	// Process arguments
+	/*Process arguments*/
 	uint8_t cmd_args[MAX_ARGS_LEN + 1];
 
-	// Page table
+	/*Page table*/
 	pd_t * page_directory;
 
-	//	Process Parent
+	/*Process Parent*/
 	struct pcb * parent;
 
-	// Parent State
+	/*Parent State*/
 	registers_t *parent_regs;
 
 } pcb_t;
@@ -144,7 +150,6 @@ static inline void release_fd(int32_t fd)
 		pcb->file_array[fd].flags = 0;
 	}
 }
-
 
 #endif
 
