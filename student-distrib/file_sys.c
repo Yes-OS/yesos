@@ -382,7 +382,7 @@ uint32_t file_loader(dentry_t* file, uint32_t* EIP){
 
 	uint32_t bytes_remaining = node_head[file->inode_num].byte_length;
 	uint32_t curEIP, temp_read;
-	uint32_t buf_length = 128;
+	uint32_t buf_length = 127;
 	uint32_t bytes_read = 0;
 	uint8_t file_buf[buf_length];
 
