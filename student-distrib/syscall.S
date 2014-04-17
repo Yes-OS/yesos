@@ -11,14 +11,20 @@ enter_syscall:
 	pushl	%eax
 	PUSH_ALL
 
+	cmpl	$MIN_SYSCALL, %eax
+	jb		syscall_oob
 	cmpl	$MAX_SYSCALL, %eax
-	ja		exit_syscall
+	ja		syscall_oob
 
 	call	*syscall_table(,%eax,4)
 
 	# Set the return value by overwriting the first eax we pushed
 	movl	%eax, 24(%esp)
 	jmp		exit_syscall
+
+# syscall was out of bounds, return -1
+syscall_oob:
+	movl	$-1, 24(%esp)
 
 .globl exit_syscall
 exit_syscall:

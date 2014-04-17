@@ -15,6 +15,7 @@
 #define SYS_GETARGS 7
 #define SYS_VIDMAP  8
 
+#define MIN_SYSCALL 1
 #define MAX_SYSCALL 8
 
 #ifndef ASM
