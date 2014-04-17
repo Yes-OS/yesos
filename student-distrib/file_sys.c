@@ -11,6 +11,12 @@
 
 #include "file_sys.h"
 
+/* compute max value */
+#define max(a,b) (((a) > (b)) ? (a) : (b))
+
+/* compute min value */
+#define min(a,b) (((a) > (b)) ? (b) : (a))
+
 /* File operations jump table */
 fops_t file_fops = {
 	.read  = &file_read,
@@ -218,71 +224,49 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry)
  */
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length)
 {
-	//unsigned int num_bytes_read;
-	uint32_t bytes_read = 0;
+	int32_t db_idx;
+	int32_t b_read;
+	int32_t b_rem;
+	int32_t round_read;
+	data_block_t *p_db;
+	index_node_t *p_inode;
+	uint8_t *data;
 
-	//Check that the given inode is within the valid range
-	if(inode > boot_block->num_nodes)
-	{
+	/* verify bounds */
+	if (inode > boot_block->num_nodes) {
 		return -1;
 	}
 
-	index_node_t* my_inode = &node_head[inode];
+	p_inode = node_head + inode;
 
-	//	If the offset is beyond the block length, 0 bytes were written.
-	if(my_inode->byte_length < offset)
-	{
-		return 0;
+	if (p_inode->byte_length < offset) {
+		return -1;
 	}
 
-	//	How many data blocks have been read.
-	uint32_t db_index = offset/BLOCK_SIZE;
-	uint32_t db_first = 1;
+	/* compute number of bytes to read */
+	b_rem = min(p_inode->byte_length - offset, length);
 
-	//	Iterate through the data blocks until bytes_read >= length or end is reached
-	while( (bytes_read < length) && (bytes_read+offset < my_inode->byte_length) )
-	{
-		//	Find data block from inode data block number.
-		data_block_t * data_block = data_head + my_inode->data_blocks[db_index];
+	/* compute first datablock */
+	db_idx = offset / BLOCK_SIZE;
+	p_db = data_head + p_inode->data_blocks[db_idx];
+	data = p_db->data + offset % BLOCK_SIZE;
 
-		//	Calculate bytes unread and data left to read.
-		uint32_t bytes_unread = length - bytes_read;
-		uint32_t data_unread = (my_inode->byte_length) - bytes_read - offset;
+	b_read = 0;
+	while (b_rem > 0) {
+		/* compute number of bytes to read this iteration */
+		round_read = min(b_rem, p_db->data + BLOCK_SIZE - data);
 
-		//	If bytes unread is at least block size and data unread also is at least block size, just read block size.
-		if(bytes_unread >= BLOCK_SIZE && data_unread >= BLOCK_SIZE)
-		{
-			memcpy(buf+bytes_read, &(data_block->data[offset*db_first]), BLOCK_SIZE-offset*db_first);
-			bytes_read += BLOCK_SIZE-offset*db_first;
-		}
-		//	If bytes unread is less than data in block, just read bytes unread.
-		else if(bytes_unread < data_unread)
-		{
-			if(bytes_unread < BLOCK_SIZE-(offset%BLOCK_SIZE)*db_first)
-			{
-				memcpy(buf+bytes_read, &(data_block->data[(offset%BLOCK_SIZE)*db_first]), bytes_unread);
-				bytes_read += bytes_unread;
-			}
-			else
-			{
-				memcpy(buf+bytes_read, &(data_block->data[(offset%BLOCK_SIZE)*db_first]), BLOCK_SIZE-(offset%BLOCK_SIZE)*db_first);
-				bytes_read += BLOCK_SIZE-(offset%BLOCK_SIZE)*db_first;
-			}
-		}
-		//	If bytes unread is more than data in block, just read data left in block.
-		else
-		{
-			memcpy(buf+bytes_read, &(data_block->data[(offset%BLOCK_SIZE)*db_first]), data_unread);
-			bytes_read += data_unread;
-		}
+		/* copy data into buffer */
+		memcpy(buf+b_read, data, round_read);
+		b_read += round_read;
+		b_rem -= round_read;
 
-		db_first = 0;
-		db_index++;
-
+		/* get next block */
+		p_db = data_head + p_inode->data_blocks[++db_idx];
+		data = p_db->data;
 	}
 
-	return bytes_read;
-
+	return b_read;
 }
 
 /*  Dir_read for the dir fops_table
