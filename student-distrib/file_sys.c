@@ -144,7 +144,7 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry)
 	uint32_t len_filename;
 
 	for(i = 0; i <= entries ; i++) {
-	
+
 		temp = &boot_block->entries[i];
 
 		/* length of the filename in the filesystem */
@@ -287,7 +287,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 }
 
 /*  Dir_read for the dir fops_table
- *  
+ *
  */
 int32_t dir_read(int32_t fd, void* buf, int32_t nbytes)
 {
@@ -301,16 +301,26 @@ int32_t dir_read(int32_t fd, void* buf, int32_t nbytes)
 	if (!file || !(file->flags & FILE_OPEN)) {
 		return -1;
 	}
-	
-	ret = read_dentry_by_index(file->inode_ptr, &dentry);
-	strncpy((int8_t*)buf, (int8_t*)dentry.file_name, FILE_NAME_SIZE);
-	file->file_pos += ret;
 
-	return ret;
+	ret = read_dentry_by_index(file->file_pos, &dentry);
+	if (ret) {
+		/* at the end of the directory */
+		return 0;
+	}
+
+	strncpy((int8_t*)buf, (int8_t*)dentry.file_name, nbytes);
+
+	/* just in case */
+	((int8_t*)buf)[nbytes-1] = '\0';
+
+	/* increment directory position */
+	file->file_pos += 1;
+
+	return strlen((int8_t*)dentry.file_name);
 }
 
 /*  Read-only file system.
- * 
+ *
  *  Return -1
  */
 int32_t dir_write(int32_t fd, const void* buf, int32_t nbytes)
@@ -320,7 +330,7 @@ int32_t dir_write(int32_t fd, const void* buf, int32_t nbytes)
 }
 
 /* Dir_open for fops table
- *  
+ *
  */
 int32_t dir_open(const uint8_t *filename)
 {
