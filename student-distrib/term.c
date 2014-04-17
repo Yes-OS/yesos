@@ -105,7 +105,7 @@ int32_t term_read(int32_t fd, void *buf, int32_t nbytes)
 {
 	int idx = 0;
 	int ok;
-	int8_t c;
+	int8_t c = 0;
 	int8_t *buffer = (int8_t *)buf;
 
 	if (fd != STDIN) {
