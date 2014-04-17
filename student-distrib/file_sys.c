@@ -258,21 +258,21 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 		//	If bytes unread is less than data in block, just read bytes unread.
 		else if(bytes_unread < data_unread)
 		{
-			if(bytes_unread < BLOCK_SIZE-offset*db_first)
+			if(bytes_unread < BLOCK_SIZE-(offset%BLOCK_SIZE)*db_first)
 			{
-				memcpy(buf+bytes_read, &(data_block->data[offset*db_first]), bytes_unread);
+				memcpy(buf+bytes_read, &(data_block->data[(offset%BLOCK_SIZE)*db_first]), bytes_unread);
 				bytes_read += bytes_unread;
 			}
 			else
 			{
-				memcpy(buf+bytes_read, &(data_block->data[offset*db_first]), BLOCK_SIZE-offset*db_first);
-				bytes_read += BLOCK_SIZE-offset*db_first;
+				memcpy(buf+bytes_read, &(data_block->data[(offset%BLOCK_SIZE)*db_first]), BLOCK_SIZE-(offset%BLOCK_SIZE)*db_first);
+				bytes_read += BLOCK_SIZE-(offset%BLOCK_SIZE)*db_first;
 			}
 		}
 		//	If bytes unread is more than data in block, just read data left in block.
 		else
 		{
-			memcpy(buf+bytes_read, &(data_block->data[offset*db_first]), data_unread);
+			memcpy(buf+bytes_read, &(data_block->data[(offset%BLOCK_SIZE)*db_first]), data_unread);
 			bytes_read += data_unread;
 		}
 
@@ -382,7 +382,7 @@ uint32_t file_loader(dentry_t* file, uint32_t* EIP){
 
 	uint32_t bytes_remaining = node_head[file->inode_num].byte_length;
 	uint32_t curEIP, temp_read;
-	uint32_t buf_length = 127;
+	uint32_t buf_length = 128;
 	uint32_t bytes_read = 0;
 	uint8_t file_buf[buf_length];
 
