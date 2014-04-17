@@ -164,6 +164,35 @@ int8_t test_EIP(void)
 
 }
 
+/*Tests rtc_open function*/
+void rtc_open_test(void)
+{
+	uint8_t* rtc_test = 0;
+	rtc_open(rtc_test);
+}
+
+/*Tests rtc_read and rtc_write functions*/
+void rtc_rw_test(void)
+{
+	uint32_t i = 2;
+	uint32_t j = 0;
+	int32_t fd_test = 0;
+	int32_t nbytes_test = 4;
+
+	while(i != 2048){
+		rtc_read(fd_test, (void*)i, nbytes_test);
+		printf("RTC int occurred ");
+		if(j == i){
+			rtc_write(fd_test, (void*)i, nbytes_test);
+			i *= 2;
+			if(i == 2048){
+				printf("MAX FREQUENCY REACHED. STOPPING TEST");
+			}
+		}
+		j++;
+	}
+}
+
 /* void _test_array_typedef(void){
 
 	test_t foo1;

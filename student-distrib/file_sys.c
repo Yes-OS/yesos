@@ -138,12 +138,13 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry)
 	dentry_t* temp;
 
 	/*start from dentry index 1 because index 0 is current directory*/
-	uint8_t i = 1;
+	uint8_t i;
 	uint32_t entries = boot_block->num_entries;
 
 	uint32_t len_filename;
 
-	for(i = 1; i <= entries ; i++) {
+	for(i = 0; i <= entries ; i++) {
+	
 		temp = &boot_block->entries[i];
 
 		/* length of the filename in the filesystem */

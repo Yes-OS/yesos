@@ -136,17 +136,13 @@ void rtc_modify_freq(uint32_t freq)
 /*Loops through until an RTC interrupt is generated*/
 int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes)
 {
-
   rtc_intf = 1;
 
   while(rtc_intf == 1){
-
     continue;
-
   }
 
   return 0;
-
 }
 
 /*Write a new interrupt frequency to the RTC*/
@@ -158,10 +154,8 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes)
 
   /*find the number of shifts taken to change freq to 0*/
   while(freq != 0){
-
 	freq = freq >> 1;
 	sc++;
-
   }
 
   /*decrement freq by 1 for the sake of rtc_modify_freq implementation*/
@@ -184,57 +178,17 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes)
 /*Modify rtc to default freq of 2Hz*/
 int32_t rtc_open(const uint8_t* filename)
 {
-
   rtc_modify_freq(1); //sets the rtc to 2_Hz by default
   return 0;
-
 }
 
 /*RTC Close*/
 int32_t rtc_close(int32_t fd)
 {
-
   /*Nothing to do here yet*/
   return 0;
-
 }
 
-/*Tests rtc_open function*/
-void rtc_open_test(void)
-{
 
-	uint8_t* rtc_test = 0;
-	rtc_open(rtc_test);
-
-}
-
-/*Tests rtc_read and rtc_write functions*/
-void rtc_rw_test(void)
-{
-
-	uint32_t i = 2;
-	uint32_t j = 0;
-	int32_t fd_test = 0;
-	int32_t nbytes_test = 4;
-
-	while(i != 2048){
-
-		rtc_read(fd_test, (void*)i, nbytes_test);
-		printf("RTC int occurred ");
-
-		if(j == i){
-			rtc_write(fd_test, (void*)i, nbytes_test);
-			i *= 2;
-
-			if(i == 2048){
-				printf("MAX FREQUENCY REACHED. STOPPING TEST");
-			}
-		}
-
-		j++;
-
-	}
-
-}
 
 

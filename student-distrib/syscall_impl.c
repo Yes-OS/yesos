@@ -9,6 +9,7 @@
 #include "syscall.h"
 #include "x86_desc.h"
 #include "paging.h"
+#include "rtc.h"
 
 #define MAX_CMD_LEN 33
 
@@ -26,7 +27,28 @@ static uint8_t nprocs = 0;
 
 int32_t sys_open(const uint8_t *filename)
 {
-	return 0;
+	dentry_t dentry;
+	int32_t status;
+
+	status = read_dentry_by_name(filename, &dentry);
+	if (status) {
+		return -1;
+	}
+
+	switch (dentry.file_type) {
+		case FILE_TYPE_REG:
+			return file_open(filename);
+		case FILE_TYPE_DIR:
+			return dir_open(filename);
+		case FILE_TYPE_RTC:
+			return rtc_open(filename);
+		default:
+			/* unknown type */
+			return -1;
+	}
+
+	return -1;
+
 }
 
 int32_t sys_read(int32_t fd, void *buf, int32_t nbytes)

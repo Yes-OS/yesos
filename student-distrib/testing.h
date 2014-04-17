@@ -11,6 +11,7 @@
 #include "x86_desc.h"
 #include "multiboot.h"
 #include "file_sys.h"
+#include "rtc.h"
 
 #ifndef ASM
 
@@ -39,6 +40,10 @@ int8_t _test_directory(void);
 
 int8_t test_fs_all (void);
 int8_t test_EIP(void);
+
+/*RTC Test Functions*/
+void rtc_rw_test(void);
+void rtc_open_test(void);
 
 /* void _test_array_typedef(void); */
 
