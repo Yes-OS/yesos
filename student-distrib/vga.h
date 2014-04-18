@@ -23,6 +23,12 @@
 /* c structs go here */
 #ifndef ASM
 
+typedef struct screen {
+	uint8_t data[NUM_ROWS * NUM_COLS * 2];
+	uint8_t x;
+	uint8_t y;
+} screen_t;
+
 /* location of soft cursor on the screen */
 extern int screen_x, screen_y;
 /* location of video memory in a flat segment */
@@ -30,6 +36,10 @@ extern char *video_mem;
 
 void vga_cursor_set_location(uint8_t row, uint8_t col);
 void update_cursor(void);
+
+void clear_screen(screen_t *screen);
+void save_screen(screen_t *screen);
+void restore_screen(screen_t *screen);
 
 #endif /* ASM */
 #endif /* _VGA_H_ */

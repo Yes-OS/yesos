@@ -24,3 +24,48 @@ void update_cursor(void)
 	vga_cursor_set_location(screen_y, screen_x);
 }
 
+void clear_screen(screen_t *screen)
+{
+	int32_t i;
+
+	/* clear video memory */
+	for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
+		screen->data[(i << 1)] = ' ';
+		screen->data[(i << 1) + 1] = ATTRIB;
+	}
+
+	/* reset cursor position */
+	screen->x = screen->y = 0;
+}
+
+void save_screen(screen_t *screen)
+{
+	int32_t i;
+
+	/* copy from video memory into our buffer */
+	for (i = 0; i < NUM_ROWS * NUM_COLS * 2; i++) {
+		screen->data[i] = *((uint8_t *)video_mem + i);
+	}
+
+	/* save cursor positions */
+	screen->x = screen_x;
+	screen->y = screen_y;
+}
+
+void restore_screen(screen_t *screen)
+{
+	int32_t i;
+
+	/* copy from our buffer to video memory */
+	for (i = 0; i < NUM_ROWS * NUM_COLS * 2; i++) {
+		*((uint8_t *)video_mem + i) = screen->data[i];
+	}
+
+	/* restore cursor position */
+	screen_x = screen->x;
+	screen_y = screen->y;
+
+	/* refresh cursor position */
+	update_cursor();
+}
+
