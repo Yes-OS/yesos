@@ -6,8 +6,12 @@
 #include "vga.h"
 #include "kbd.h"
 #include "queue.h"
-#include "term.h"
 #include "proc.h"
+#include "syscall.h"
+#include "term.h"
+
+/* XXX: ENABLING AWFUL HACK BELOW */
+#include "i8259.h"
 
 /* File operations jump table */
 fops_t term_fops = {
@@ -175,6 +179,13 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 				printf("ERR: failed when clearing screen\n");
 			}
 			return;
+		}
+		if ((lctrl_held || rctrl_held) && key == KBD_KEY_C) {
+			if (nprocs > 0) {
+				/* XXX: AWFUL HACK */
+				enable_irq(KBD_IRQ_PORT);
+				sys_halt(-1);
+			}
 		}
 		switch (key) {
 			case KBD_KEY_LCTRL:
