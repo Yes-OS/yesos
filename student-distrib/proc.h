@@ -40,7 +40,7 @@
 #define MAX_ARGS_LEN	63
 
 /* Maximum number of processes */
-#define MAX_PROCESSES 2
+#define MAX_PROCESSES 10
 
 /* User Space virtual addressing values */
 #define MB_4_OFFSET			0x400000
