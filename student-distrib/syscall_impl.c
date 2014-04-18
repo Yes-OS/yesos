@@ -23,7 +23,7 @@
 		: : "g"((_ss)), "g"((_esp)), "g"((_flags)), "g"((_cs)), "g"((_eip))   \
 		: "memory", "cc")
 
-static uint8_t nprocs = 0;
+uint8_t nprocs = 0;
 
 int32_t sys_open(const uint8_t *filename)
 {

@@ -31,6 +31,7 @@
 #define FILE_PRESENT 1
 #define FILE_OPEN    2
 #define FILE_CLOSED  4
+#define FILE_RTC     8
 
 /*FILE ARRAY DEFINTIONS*/
 #define MAX_FILES		8
@@ -67,7 +68,7 @@ typedef struct file {
     fops_t* file_op;
     uint32_t inode_ptr;
     uint32_t file_pos;
-    uint32_t flags;
+    volatile uint32_t flags;
 } __attribute__((packed)) file_t;
 
 typedef struct pcb
@@ -153,6 +154,8 @@ static inline void release_fd(int32_t fd)
 		pcb->file_array[fd].flags = 0;
 	}
 }
+
+extern uint8_t nprocs;
 
 #endif
 
