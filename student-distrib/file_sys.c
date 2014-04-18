@@ -9,13 +9,8 @@
  *			set up the stack properly and return to user-level
  */
 
+#include "lib.h"
 #include "file_sys.h"
-
-/* compute max value */
-#define max(a,b) (((a) > (b)) ? (a) : (b))
-
-/* compute min value */
-#define min(a,b) (((a) > (b)) ? (b) : (a))
 
 /* File operations jump table */
 fops_t file_fops = {

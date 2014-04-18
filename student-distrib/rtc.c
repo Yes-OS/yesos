@@ -6,8 +6,6 @@
 #include "proc.h"
 #include "rtc.h"
 
-uint32_t rtc_intf;
-
 /* File operations jump table */
 fops_t rtc_fops = {
   .read  = rtc_read,
@@ -16,12 +14,94 @@ fops_t rtc_fops = {
   .close = rtc_close,
 };
 
+/* frequency stored in bytes 24-27 of the flags variable */
+#define rtc_virt_get_freq(_rtc) (((_rtc)->flags & 0x0F000000UL) >> 24)
+
+/* frequency stored in bytes 24-27 of the flags variable */
+#define rtc_virt_set_freq(_rtc, freq) do {    \
+	(_rtc)->flags &= 0xF0FFFFFFUL;            \
+	(_rtc)->flags |= ((freq) & 0x0FUL) << 24; \
+} while (0)
+
+/* true if virtual rtc has ticked */
+#define rtc_virt_has_ticked(_rtc) ((_rtc)->flags & (1 << 31))
+#define rtc_virt_clr_ticked(_rtc) do { \
+	(_rtc)->flags &= ~(1 << 31);       \
+} while (0)
+#define rtc_virt_set_ticked(_rtc) do { \
+	(_rtc)->flags |= (1 << 31);        \
+} while (0)
+
+/* operations on number of virtual ticks */
+#define rtc_virt_ticks(_rtc) (((_rtc)->file_pos & 0xFFFF0000UL) >> 16)
+#define rtc_virt_set_ticks(_rtc, ticks) do {        \
+	(_rtc)->file_pos &= 0x0000FFFFUL;               \
+	(_rtc)->file_pos |= ((ticks) & 0xFFFFUL) << 16; \
+} while (0)
+#define rtc_virt_clr_ticks(_rtc) rtc_virt_set_ticks(_rtc,0)
+
+static inline uint16_t rtc_virt_incr_ticks(file_t *rtc)
+{
+	uint16_t ticks;
+
+	ticks = rtc_virt_ticks(rtc);
+	rtc_virt_set_ticks(rtc, ++ticks);
+
+	return ticks;
+}
+
+static inline uint16_t rtc_virt_decr_ticks(file_t *rtc)
+{
+	uint16_t ticks;
+
+	ticks = rtc_virt_ticks(rtc);
+	if (ticks > 0) {
+		rtc_virt_set_ticks(rtc, --ticks);
+	}
+
+	return ticks;
+}
+
+/* operations on number of remaining real ticks counter */
+#define rtc_virt_get_ctr(_rtc) ((_rtc)->file_pos & 0xFFFFUL)
+#define rtc_virt_set_ctr(_rtc, ctr) do { \
+	(_rtc)->file_pos &= 0xFFFF0000UL;    \
+	(_rtc)->file_pos |= ctr & 0xFFFFUL;  \
+} while (0)
+#define rtc_virt_clr_ctr(_rtc) rtc_virt_set_ctr(_rtc, 0)
+#define rtc_virt_rst_ctr(_rtc) do {                  \
+	rtc_virt_set_ctr(_rtc,                           \
+			MAX_FREQ_HZ >> rtc_virt_get_freq(_rtc)); \
+} while (0)
+
+
+static inline uint16_t rtc_virt_incr_ctr(file_t *rtc)
+{
+	uint16_t ctr;
+
+	ctr = rtc_virt_get_ctr(rtc);
+	rtc_virt_set_ctr(rtc, ++ctr);
+
+	return ctr;
+}
+
+static inline uint16_t rtc_virt_decr_ctr(file_t *rtc)
+{
+	uint16_t ctr;
+
+	ctr = rtc_virt_get_ctr(rtc);
+	if (ctr > 0) {
+		rtc_virt_set_ctr(rtc, --ctr);
+	}
+
+	return ctr;
+}
+
+
 /* initialize the RTC */
 void rtc_init(void)
 {
     uint8_t regB;
-
-    rtc_intf = 0;
 
     /*Select Register B to set up periodic interrupts*/
     outb((DISABLE_NMI | REG_B), NMI_RTC_PORT);
@@ -42,14 +122,18 @@ void rtc_init(void)
 	uint8_t enable = inb(NMI_RTC_PORT);
 	enable = enable & ENABLE_NMI;
 	outb(enable, NMI_RTC_PORT);
+
+	/* set frequency to 2^10 */
+	rtc_modify_freq(10);
 }
 
 
 /* handle the rtc interrupt */
 void rtc_handle_interrupt()
 {
-	/*clear RTC interrupt flag*/
-    rtc_intf = 0;
+	file_t *rtc;
+	pcb_t *pcb;
+	int32_t i;
 
 	/* read a byte from reg c to allow interrupts to continue */
 	outb(REG_C, NMI_RTC_PORT);
@@ -57,6 +141,26 @@ void rtc_handle_interrupt()
 
 	/*Call the test interrupts function to be sure of interrupts occurring */
 	//test_interrupts();
+
+	/* XXX: if we have a process running, manage any open virtual rtcs,
+	 * this currently only touches the currently running process,
+	 * and will need to be modified once scheduling is implemented */
+	if (nprocs > 0) {
+		cli();
+
+		pcb = get_proc_pcb();
+		for (i = 0; i < MAX_FILES; i++) {
+			if (pcb->file_array[i].flags & FILE_RTC) {
+				rtc = pcb->file_array + i;
+				if (rtc_virt_decr_ctr(rtc) == 0) {
+					rtc_virt_rst_ctr(rtc);
+					rtc_virt_incr_ticks(rtc);
+					rtc_virt_set_ticked(rtc);
+				}
+			}
+		}
+		sti();
+	}
 }
 
 
@@ -73,7 +177,7 @@ void rtc_modify_freq(uint32_t freq)
 
   /*clear the lower 4 bits of regA to clear out previous frequency*/
   regA = inb(RTC_RAM_PORT);
-  regA = regA & 0xF0;       
+  regA = regA & 0xF0;
 
   outb(REG_A, NMI_RTC_PORT);
 
@@ -87,45 +191,77 @@ void rtc_modify_freq(uint32_t freq)
 /*Loops through until an RTC interrupt is generated*/
 int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes)
 {
-  rtc_intf = 1;
+	file_t *rtc;
+	uint32_t ticks;
 
-  while(rtc_intf == 1){
-    continue;
-  }
+	rtc = get_file_from_fd(fd);
+	if (!rtc || !(rtc->flags & (FILE_OPEN | FILE_RTC))) {
+		return -1;
+	}
 
-  return 0;
+	/* wait until there are ticks to return */
+	while (!rtc_virt_has_ticked(rtc)) {
+		asm("hlt");
+	}
+
+	/* don't get interrupted when messing with rtc counts */
+	cli();
+	rtc_virt_clr_ticked(rtc);
+
+	ticks = rtc_virt_ticks(rtc);
+	memcpy(buf, &ticks, min(sizeof ticks, (uint32_t)nbytes));
+	rtc_virt_clr_ticks(rtc);
+	sti();
+
+	return 0;
 }
 
 /*Write a new interrupt frequency to the RTC*/
 int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes)
 {
-  /*shift counter variable*/
-  uint32_t sc = 0;
-  uint32_t freq;
+	/*shift counter variable*/
+	uint32_t sc = 0;
+	uint32_t freq;
+	uint32_t req_freq;
+	file_t *rtc;
 
-  if (!buf || nbytes != 4) {
-	  return -1;
-  }
-  /*temp freq variable used for checking validity of requested freq*/
-  freq = *(uint32_t *)buf;
+	if (!buf || nbytes != sizeof req_freq) {
+		return -1;
+	}
 
-  /*find the number of shifts taken to change freq to 0*/
-  while(freq != 0){
-	freq = freq >> 1;
-	sc++;
-  }
+	rtc = get_file_from_fd(fd);
+	if (!rtc || !(rtc->flags & (FILE_OPEN | FILE_RTC))) {
+		return -1;
+	}
 
-  /*decrement freq by 1 for the sake of rtc_modify_freq implementation*/
-  sc--;
+	/* get requested frequency */
+	memcpy(&req_freq, buf, sizeof req_freq);
 
-  /*check if the requested freq was a power of 2*/
-  if(*(uint32_t *)buf == (1 << sc)){
-	rtc_modify_freq(sc);
-	return 0;
-  }
+	/*find the number of shifts taken to change freq to 0*/
+	freq = req_freq;
+	while (freq) {
+		freq >>= 1;
+		sc++;
+	}
 
-  printf("Error: Invlaid Frequency Value\n");
-  return -1;
+	/* decrement by one because sc holds the 1-based index of the highest bit
+	 * position, which is one more than the power of the two */
+	sc--;
+
+	/*check if the requested freq was a power of 2*/
+	if (req_freq == (1 << sc)) {
+		cli();
+		rtc_virt_set_freq(rtc, sc);
+		rtc_virt_clr_ticked(rtc);
+		rtc_virt_clr_ticks(rtc);
+		rtc_virt_rst_ctr(rtc);
+		sti();
+
+		return 4;
+	}
+
+	printf("Error: Invlaid Frequency Value\n");
+	return -1;
 }
 
 /*Modify rtc to default freq of 2Hz*/
@@ -140,13 +276,14 @@ int32_t rtc_open(const uint8_t* filename)
 	}
 
 	file = get_file_from_fd(fd);
-	file->flags |= FILE_OPEN;
+	file->flags |= FILE_OPEN | FILE_RTC;
 	file->file_op = &rtc_fops;
-	file->file_pos = -1;
+	/* clear */
+	file->file_pos = 0;
 	file->inode_ptr = -1;
 
 	/*sets the rtc to 2_Hz by default*/
-	rtc_modify_freq(1); 
+	rtc_virt_set_freq(file, HZ_2);
 
 	return fd;
 }

@@ -167,5 +167,10 @@ do {                                     \
 	asm volatile("hlt");    \
 } while(1)
 
+/* compute max value */
+#define max(a,b) (((a) > (b)) ? (a) : (b))
+
+/* compute min value */
+#define min(a,b) (((a) > (b)) ? (b) : (a))
 
 #endif /* _LIB_H */
