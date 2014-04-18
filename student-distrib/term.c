@@ -207,22 +207,24 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 						/* queue the key in the buffer */
 						CIRC_BUF_PUSH(term_key_buf, key, ok);
 
-						/* if it's a backspace and there are characters since the last enter, go back */
-						if (key == '\b') {
-							if (chars_since_enter > 0) {
-								chars_since_enter--;
+						if (ok) {
+							/* if it's a backspace and there are characters since the last enter, go back */
+							if (key == '\b') {
+								if (chars_since_enter > 0) {
+									chars_since_enter--;
+									putc((int8_t)key);
+								}
+							}
+							else if (key == '\n') {
+								chars_since_enter = 0;
 								putc((int8_t)key);
 							}
+							else {
+								chars_since_enter++;
+								putc((int8_t)key);
+							}
+							update_cursor();
 						}
-						else if (key == '\n') {
-							chars_since_enter = 0;
-							putc((int8_t)key);
-						}
-						else {
-							chars_since_enter++;
-							putc((int8_t)key);
-						}
-						update_cursor();
 					}
 				}
 				break;
