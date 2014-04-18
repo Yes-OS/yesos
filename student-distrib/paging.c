@@ -6,6 +6,7 @@
 #include "lib.h"
 #include "vga.h"
 #include "x86_desc.h"
+#include "proc.h"
 
 /* +1 is for the kernel's Page Directory */
 pd_t page_directories[MAX_PROCESSES + 1] __attribute__((aligned(PAGE_SIZE)));

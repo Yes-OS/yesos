@@ -13,7 +13,6 @@
 #define SET_RW		0x02
 #define SET_RW_P	0x03
 #define SET_4MB		0x80
-#define MAX_PROCESSES 2
 
 #define KERNEL_MEM	0x400000
 #define USER_MEM	0x08000000
@@ -122,7 +121,7 @@ typedef struct pt {
 	pte_t entry[NUM_ENTRIES];
 } pt_t;
 
-extern pd_t page_directories[MAX_PROCESSES + 1];
+extern pd_t page_directories[];
 
 
 #endif

@@ -38,6 +38,9 @@
 /*Maximum length of command line arguments*/
 #define MAX_ARGS_LEN	63
 
+/* Maximum number of processes */
+#define MAX_PROCESSES 2
+
 /* User Space virtual addressing values */
 #define MB_4_OFFSET			0x400000
 #define EXEC_OFFSET			0x48000
@@ -100,7 +103,7 @@ typedef struct pcb
 static inline pcb_t *get_proc_pcb()
 {
 	uint32_t pcb;
-	asm (	"movl	$0xFFFFC000, %0\n"
+	asm (	"movl	$0xFFFFE000, %0\n"
 			"andl	%%esp, %0"
 			: "=r"(pcb)
 			:

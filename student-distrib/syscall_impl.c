@@ -125,11 +125,11 @@ int32_t sys_exec(const uint8_t *command)
 		nprocs++;
 
 		/* calculate location of bottom of process's stack */
-		kern_esp = (KERNEL_MEM + MB_4_OFFSET - USER_STACK_SIZE * nprocs - 1) & (~16UL);
-		user_esp = (USER_MEM + MB_4_OFFSET - 1) & (~16UL);
+		kern_esp = (KERNEL_MEM + MB_4_OFFSET - USER_STACK_SIZE * nprocs - 1) & 0xFFFFFFFC;
+		user_esp = (USER_MEM + MB_4_OFFSET - 1) & 0xFFFFFFFC;
 
 		/* obtain and initialize the PCB */
-		pcb = (pcb_t *)(kern_esp & 0xFFFFC000);
+		pcb = (pcb_t *)(kern_esp & 0xFFFFE000);
 		memset(pcb, 0, sizeof(*pcb));
 		pcb->pid = nprocs;
 		pcb->kern_stack = kern_esp;
@@ -150,7 +150,7 @@ int32_t sys_exec(const uint8_t *command)
 		pcb->cmd_args[MAX_ARGS_LEN] = '\0';
 
 		/* store parent pcb if called from a process */
-		if (nprocs > 0) {
+		if (nprocs > 1) {
 			pcb->parent = get_proc_pcb();
 		}
 
