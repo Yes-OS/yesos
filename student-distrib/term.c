@@ -181,6 +181,7 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 			return;
 		}
 		if ((lctrl_held || rctrl_held) && key == KBD_KEY_C) {
+			/* kill a process, should be replaced later by signals */
 			if (nprocs > 0) {
 				/* XXX: AWFUL HACK */
 				enable_irq(KBD_IRQ_PORT);

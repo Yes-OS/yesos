@@ -224,6 +224,15 @@ entry (unsigned long magic, unsigned long addr)
 
 	printf("Shell exited successfully\n");
 
+	/* XXX: reboot */
+	asm (
+			"movl %cr0, %eax\n"
+			"andl $0x7FFFFFFF, %eax\n"
+			"movl %eax, %cr0\n"
+			"lidt 0\n"
+			"int $0x0"
+		);
+
 	/* Spin (nicely, so we don't chew up cycles) */
 	halt();
 }
