@@ -199,6 +199,7 @@ entry (unsigned long magic, unsigned long addr)
 	puts("    Initializing Keyboard... ");
 	kbd_init();
 	enable_irq(KBD_IRQ_PORT);
+	while (!kbd_initialized);
 	puts("done\n");
 
 	puts("    Initializing File System... ");

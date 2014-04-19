@@ -113,6 +113,7 @@ const static uint16_t scancodes[SCAN_ENTRIES] = {
 DECLARE_CIRC_BUF(uint8_t, kbd_cmd_queue, CMD_QUEUE_LEN);
 uint8_t emul = 0;
 uint8_t released = 0;
+volatile int32_t kbd_initialized = 0;
 
 static int16_t kbd_combine_key(int16_t value);
 
@@ -120,6 +121,8 @@ static int16_t kbd_combine_key(int16_t value);
 void kbd_init()
 {
 	uint32_t read;
+
+	kbd_initialized = 0;
 
 	CIRC_BUF_INIT(kbd_cmd_queue);
 	/* awful hack to handle first 0xAA sent */
@@ -200,6 +203,7 @@ void kbd_handle_interrupt()
 	switch (value) {
 		case PS2_RET_ATTACH:
 			printf("PS/2 Keyboard Attached...");
+			kbd_initialized = 1;
 
 			/* if this was the result of a reset, clear it from the buffer */
 			CIRC_BUF_PEEK(kbd_cmd_queue, cmd, ok);

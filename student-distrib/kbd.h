@@ -93,6 +93,8 @@ void kbd_init();
 void kbd_reset();
 void kbd_handle_interrupt();
 
+extern volatile int32_t kbd_initialized;
+
 #endif
 
 #endif
