@@ -47,6 +47,8 @@
 #define EXEC_OFFSET			0x48000
 #define USER_STACK_SIZE		0x2000
 
+#define get_pcb_from_pid(_pid) ((pcb_t *)((KERNEL_MEM + MB_4_OFFSET - USER_STACK_SIZE * _pid - 1) & 0xFFFFE000))
+
 #ifndef ASM
 
 typedef int32_t open_t(const uint8_t *filename);
@@ -154,6 +156,9 @@ static inline void release_fd(int32_t fd)
 		pcb->file_array[fd].flags = 0;
 	}
 }
+
+
+
 
 extern uint8_t nprocs;
 
