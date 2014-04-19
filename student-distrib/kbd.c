@@ -199,7 +199,7 @@ void kbd_handle_interrupt()
 	/* decide what to do with it */
 	switch (value) {
 		case PS2_RET_ATTACH:
-			printf("PS/2 Keyboard Attached\n");
+			printf("PS/2 Keyboard Attached");
 			/* if this was the result of a reset, clear it from the buffer */
 			CIRC_BUF_PEEK(kbd_cmd_queue, cmd, ok);
 			if (ok && cmd == PS2_CMD_RESET) {

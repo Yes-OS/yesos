@@ -159,70 +159,70 @@ entry (unsigned long magic, unsigned long addr)
 
 	clear();
 
-	printf("----------------------------------------\n");
-	printf("Welcome to\n\n");
-	printf("YYY    YYY      EEEEEEEEEE       SSSSSSSSS                                  \n");
-	printf(" YY    YY       EE              SS                                          \n");
-	printf("  YY  YY        EE              SS                                          \n");
-	printf("    YY          EE              SS                                          \n");
-	printf("    YY          EEEEEE           SSSSSSSS          OOOOOOOO        SSSSSSSS \n");
-	printf("    YY          EE                      SS        OO      OO      SS        \n");
-	printf("    YY          EE                      SS        OO      OO       SSSSSSSS \n");
-	printf("    YY          EE                      SS        OO      OO              SS\n");
-	printf("    YY          EEEEEEEEEE      SSSSSSSSS     oo   OOOOOOOO       SSSSSSSSS \n");
-	printf("----------------------------------------\n");
+	puts("----------------------------------------\n");
+	puts("Welcome to\n\n");
+	puts("YYY    YYY      EEEEEEEEEE       SSSSSSSSS                                  \n");
+	puts(" YY    YY       EE              SS                                          \n");
+	puts("  YY  YY        EE              SS                                          \n");
+	puts("    YY          EE              SS                                          \n");
+	puts("    YY          EEEEEE           SSSSSSSS          OOOOOOOO        SSSSSSSS \n");
+	puts("    YY          EE                      SS        OO      OO      SS        \n");
+	puts("    YY          EE                      SS        OO      OO       SSSSSSSS \n");
+	puts("    YY          EE                      SS        OO      OO              SS\n");
+	puts("    YY          EEEEEEEEEE      SSSSSSSSS     oo   OOOOOOOO       SSSSSSSSS \n");
+	puts("----------------------------------------\n");
 
-	printf("Initializing subsystems\n");
+	puts("Initializing subsystems\n");
 
 	/* Init the PIC */
-	printf("    Initializing PIC... ");
+	puts("    Initializing PIC... ");
 	i8259_init();
-	printf("done\n");
+	puts("done\n");
 
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
 	 * PIC, any other initialization stuff... */
 
-	printf("    Installing Interrupts... ");
+	puts("    Installing Interrupts... ");
 	install_interrupts();
-	printf("done\n");
+	puts("done\n");
 
-	printf("    Initializing RTC... ");
+	puts("    Initializing RTC... ");
 	rtc_init();
 	enable_irq(RTC_IRQ_PORT);
-	printf("done\n");
+	puts("done\n");
 
-	printf("    Initializing Keyboard... ");
+	puts("    Initializing Keyboard... ");
 	kbd_init();
 	enable_irq(KBD_IRQ_PORT);
-	printf("done\n");
+	puts("... done\n");
 
-	printf("    Initializing File System... ");
+	puts("    Initializing File System... ");
 	fs_init();
-	printf("done\n");
+	puts("done\n");
 
-	printf("    Initializing Paging... ");
+	puts("    Initializing Paging... ");
 	paging_init();
-	printf("done\n");
+	puts("done\n");
 
-	printf("    Initializing Terminal...");
+	puts("    Initializing Terminal...");
 	term_open(NULL);
-	printf("done\n");
+	puts("done\n");
 
 	/* Enable interrupts */
 	/* Do not enable the following until after you have set up your
 	 * IDT correctly otherwise QEMU will triple fault and simple close
 	 * without showing you any output */
-	printf("    Enabling Interrupts (STI)... ");
+	puts("    Enabling Interrupts (STI)... ");
 	sti();
-	printf("done\n");
+	puts("done\n");
 
-	printf("\nWelcome!\n");
+	puts("\nWelcome!\n");
 	update_cursor();
 
 	/* Execute the first program (`shell') ... */
 	sys_exec((uint8_t*)"shell");
 
-	printf("Shell exited successfully\n");
+	puts("Shell exited successfully\n");
 
 	/* XXX: reboot */
 	asm (
