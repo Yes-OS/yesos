@@ -11,12 +11,15 @@
 #define BUF_PTR_DEC(queue, ptr) ((queue).buf + (((queue).ptr - (queue).buf - 1 + SIZEOF_BUF(queue)) % SIZEOF_BUF(queue)))
 #define BUF_PTR_DIFF(queue, ptr1, ptr2) (((queue).ptr1 - (queue).ptr2 + SIZEOF_BUF(queue)) % SIZEOF_BUF(queue))
 
-#define DECLARE_CIRC_BUF(type, name, size)  \
+#define CIRC_BUF_TYPE(type, size)           \
 	struct {                                \
 		type *head;                         \
 		type *tail;                         \
 		type buf[size];                     \
-	} (name)
+	}
+
+#define DECLARE_CIRC_BUF(type, name, size)  \
+	CIRC_BUF_TYPE(type, size) (name)
 
 #define CIRC_BUF_FULL(queue) (BUF_PTR_DIFF(queue, tail, head) == (SIZEOF_BUF(queue) - 2))
 #define CIRC_BUF_EMPTY(queue) (BUF_PTR_DIFF(queue, tail, head) == 0)
@@ -70,6 +73,16 @@
 		(ok) = 1;                             \
 	} while (0)
 
+#define CIRC_BUF_PEEK_TAIL(buf, val, ok)      \
+	do {                                      \
+		if (CIRC_BUF_EMPTY(buf)) {            \
+			(ok) = 0;                         \
+			break;                            \
+		}                                     \
+		val = *((buf).tail - 1);              \
+		(ok) = 1;                             \
+	} while (0)
+
 #define CIRC_BUF_POKE(buf, val, ok)           \
 	do {                                      \
 		if (CIRC_BUF_EMPTY(buf)) {            \
@@ -77,6 +90,16 @@
 			break;                            \
 		}                                     \
 		*(buf).head = val;                    \
+		(ok) = 1;                             \
+	} while (0)
+
+#define CIRC_BUF_POKE_TAIL(buf, val, ok)      \
+	do {                                      \
+		if (CIRC_BUF_EMPTY(buf)) {            \
+			(ok) = 0;                         \
+			break;                            \
+		}                                     \
+		*((buf).tail - 1) = val;              \
 		(ok) = 1;                             \
 	} while (0)
 
