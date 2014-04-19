@@ -123,6 +123,8 @@ int32_t term_read(int32_t fd, void *buf, int32_t nbytes)
 			if (c == '\b') {
 				if (idx > 0) {
 					idx--;
+					putc((int8_t)c);
+					update_cursor();
 				}
 			}
 			else if (c == KBD_KEY_NULL) {
@@ -166,6 +168,7 @@ int32_t term_write(int32_t fd, const void *buf, int32_t nbytes)
 void term_handle_keypress(uint16_t key, uint8_t status)
 {
 	int ok;
+	int c;
 	/* just echo the key value for now, we'll handle things specifically later */
 	if (status) {
 		if ((lctrl_held || rctrl_held) && key == KBD_KEY_L) {
@@ -216,6 +219,7 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 						key = key_values[lshift_held | rshift_held][key];
 					}
 					if (key) {
+#if 0
 						/* queue the key in the buffer */
 						CIRC_BUF_PUSH(term_key_buf, key, ok);
 
@@ -237,6 +241,27 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 							}
 							update_cursor();
 						}
+#endif
+
+						if (key == '\b') {
+							CIRC_BUF_PEEK_TAIL(term_key_buf, c, ok);
+							if (ok) {
+								if (c != '\n' && c != '\b') {
+									CIRC_BUF_POP_TAIL(term_key_buf, c, ok);
+									putc((int8_t)key);
+								}
+							}
+							else {
+								CIRC_BUF_PUSH(term_key_buf, key, ok);
+							}
+						}
+						else {
+							CIRC_BUF_PUSH(term_key_buf, key, ok);
+							if (ok) {
+								putc((int8_t)key);
+							}
+						}
+						update_cursor();
 					}
 				}
 				break;
