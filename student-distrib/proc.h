@@ -172,12 +172,35 @@ static inline void release_fd(int32_t fd)
 	}
 }
 
+static inline int32_t get_first_free_pid()
+{
+	int32_t index;
+	uint32_t bitmap = proc_bitmap >> 1;
+
+	for(index = 1; index < MAX_PROCESSES + 1; index++, bitmap>>=1) {
+
+		if((bitmap % 2) == 0) {
+			/* Mark that bit as active, and return bit. */
+			proc_bitmap |= (1<<index);
+			return index;
+		}
+	}
+
+	return -1;
+}
+
+static inline void free_pid(int32_t pid)
+{
+	proc_bitmap &= ~(1<<pid);
+}
+
 
 /****************************************
  *           Global Variables           *
  ****************************************/
 
 extern uint8_t nprocs;
+extern uint32_t proc_bitmap;
 
 #endif
 

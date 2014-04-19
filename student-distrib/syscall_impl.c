@@ -28,6 +28,7 @@
 		: "memory", "cc", "eax")
 
 uint8_t nprocs = 0;
+uint32_t proc_bitmap = 0;
 
 int32_t sys_open(const uint8_t *filename)
 {
@@ -116,6 +117,7 @@ int32_t sys_exec(const uint8_t *command)
 	uint32_t old_pdbr;
 	uint32_t kern_esp;
 	uint32_t user_esp;
+	int32_t pid;
 	pcb_t *pcb;
 	dentry_t dentry;
 
@@ -148,18 +150,24 @@ int32_t sys_exec(const uint8_t *command)
 		/* increase our process counter */
 		nprocs++;
 
+		/* Get first free pid, if none are available, call pid_fail */
+		pid = get_first_free_pid();
+		if(pid == -1) {
+			goto pid_fail;
+		}
+
 		/* calculate location of bottom of process's stack */
 		/* 0xFFFFFFFC aligns to a 16-byte boundary */
-		kern_esp = (KERNEL_MEM + MB_4_OFFSET - USER_STACK_SIZE * nprocs - 1) & 0xFFFFFFFC;
+		kern_esp = (KERNEL_MEM + MB_4_OFFSET - USER_STACK_SIZE * pid - 1) & 0xFFFFFFFC;
 		user_esp = (USER_MEM + MB_4_OFFSET - 1) & 0xFFFFFFFC;
 
 		/* obtain and initialize the PCB, 0xFFFFE000 */
 		pcb = (pcb_t *)(kern_esp & 0xFFFFE000);
 		memset(pcb, 0, sizeof(*pcb));
-		pcb->pid = nprocs;
+		pcb->pid = pid;
 		pcb->kern_stack = kern_esp;
 		pcb->user_stack = user_esp;
-		pcb->page_directory = &page_directories[nprocs];
+		pcb->page_directory = &page_directories[pcb->pid];
 		/* XXX: Save old state */
 		pcb->parent_regs = (registers_t *)&command;
 
@@ -221,13 +229,15 @@ int32_t sys_exec(const uint8_t *command)
 	}
 
 exit_paging:
-	--nprocs;
+	free_pid(pcb->pid);
 	set_pdbr(old_pdbr);
 	restore_flags(flags);
 	if (pcb->parent) {
 		tss.ss0 = KERNEL_DS;
 		tss.esp0 = pcb->parent->kern_stack;
 	}
+pid_fail:
+	--nprocs;
 fail:
 	return -1;
 out:
@@ -238,6 +248,8 @@ int32_t sys_halt(uint8_t status)
 {
 	nprocs--;
 	pcb_t *pcb = get_proc_pcb();
+	free_pid(pcb->pid);
+
 	if (nprocs > 0) {
 		/* We're still runnin a user process */
 		pcb->parent_regs->eax = (int32_t)status;
