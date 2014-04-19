@@ -37,9 +37,9 @@ extern char *video_mem;
 void vga_cursor_set_location(uint8_t row, uint8_t col);
 void update_cursor(void);
 
-void clear_screen(screen_t *screen);
-void save_screen(screen_t *screen);
-void restore_screen(screen_t *screen);
+void screen_clear(screen_t *screen);
+void screen_save(screen_t *screen);
+void screen_restore(screen_t *screen);
 
 #endif /* ASM */
 #endif /* _VGA_H_ */

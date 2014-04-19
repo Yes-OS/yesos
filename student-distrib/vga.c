@@ -24,7 +24,7 @@ void update_cursor(void)
 	vga_cursor_set_location(screen_y, screen_x);
 }
 
-void clear_screen(screen_t *screen)
+void screen_clear(screen_t *screen)
 {
 	int32_t i;
 
@@ -38,7 +38,7 @@ void clear_screen(screen_t *screen)
 	screen->x = screen->y = 0;
 }
 
-void save_screen(screen_t *screen)
+void screen_save(screen_t *screen)
 {
 	int32_t i;
 
@@ -52,7 +52,7 @@ void save_screen(screen_t *screen)
 	screen->y = screen_y;
 }
 
-void restore_screen(screen_t *screen)
+void screen_restore(screen_t *screen)
 {
 	int32_t i;
 
