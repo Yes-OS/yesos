@@ -168,7 +168,7 @@ entry (unsigned long magic, unsigned long addr)
 	clear();
 
 
-	puts("--------------------------------Welcome to:---------------------------------\n");
+	puts("--------------------------------Welcome to----------------------------------\n");
 	puts("YYY    YYY      EEEEEEEEEE       SSSSSSSSS                                  \n");
 	puts(" YY    YY       EE              SS                                          \n");
 	puts("  YY  YY        EE              SS                                          \n");
