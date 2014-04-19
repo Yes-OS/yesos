@@ -551,13 +551,13 @@ strcpy(int8_t* dest, const int8_t* src)
 }
 
 /*
-* int8_t* strcpy(int8_t* dest, const int8_t* src, uint32_t n)
-*   Inputs: int8_t* dest = destination string of copy
-*			const int8_t* src = source string of copy
-*			uint32_t n = number of bytes to copy
-*   Return Value: pointer to dest
-*	Function: copy n bytes of the source string into the destination string
-*/
+ * int8_t* strcpy(int8_t* dest, const int8_t* src, uint32_t n)
+ *   Inputs: int8_t* dest = destination string of copy
+ *			const int8_t* src = source string of copy
+ *			uint32_t n = number of bytes to copy
+ *   Return Value: pointer to dest
+ *	Function: copy n bytes of the source string into the destination string
+ */
 
 int8_t*
 strncpy(int8_t* dest, const int8_t* src, uint32_t n)
@@ -577,11 +577,11 @@ strncpy(int8_t* dest, const int8_t* src, uint32_t n)
 }
 
 /*
-* void test_interrupts(void)
-*   Inputs: void
-*   Return Value: void
-*	Function: increments video memory. To be used to test rtc
-*/
+ * void test_interrupts(void)
+ *   Inputs: void
+ *   Return Value: void
+ *	Function: increments video memory. To be used to test rtc
+ */
 
 void
 test_interrupts(void)
@@ -589,5 +589,20 @@ test_interrupts(void)
 	int32_t i;
 	for (i=0; i < NUM_ROWS*NUM_COLS; i++) {
 		video_mem[i<<1]++;
+	}
+}
+
+/*
+ * Uses RTC interrupt which occurs ~every millisecond
+ * to halt action for a passed amount of time in milliseconds
+ */
+void
+sleep( uint32_t ms)
+{
+	int i;
+	for (i = 0; i < ms; i++){
+		if (i%1000 == 0)
+			printf(".");
+		asm ("hlt");
 	}
 }

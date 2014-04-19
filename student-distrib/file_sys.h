@@ -86,12 +86,11 @@ typedef struct boot_block{
 
 } __attribute__((packed)) boot_block_t;
 
-extern boot_block_t* mbi_val;
 
 
 /* ________Function prototypes________ */
 
-void fs_init(void);
+void fs_init(boot_block_t* boot_val);
 
 int32_t file_read(int32_t fd, void* buf, int32_t nbytes);
 int32_t file_write(int32_t fd, const void* buf, int32_t nbytes);

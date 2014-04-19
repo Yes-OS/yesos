@@ -31,8 +31,7 @@ fops_t dir_fops = {
 /*Variables for File_sys functions*/
 static index_node_t* node_head;
 static data_block_t* data_head;
-static boot_block_t * boot_block;
-boot_block_t* mbi_val;
+static boot_block_t* boot_block;
 
 
 /* Sets up the head pointer for the file system
@@ -41,9 +40,9 @@ boot_block_t* mbi_val;
  * Inputs:	pointer to fs head
  * Outputs:	none
  */
-void fs_init(void)
+void fs_init(boot_block_t* boot_val)
 {
-	boot_block = mbi_val;
+	boot_block = boot_val;
 
 	node_head = (index_node_t*)boot_block + 1;
 	data_head = (data_block_t*)node_head + boot_block->num_nodes;
@@ -181,8 +180,7 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry)
 int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry)
 {
 	//Check for non-existant file or invalid index
-	if(index <= boot_block->num_entries)
-	{
+	if(index <= boot_block->num_entries) {
 		strncpy((int8_t*)dentry->file_name, (int8_t*)boot_block->entries[index].file_name, FILE_NAME_SIZE);
 		dentry->file_type = boot_block->entries[index].file_type;
 		dentry->inode_num = boot_block->entries[index].inode_num;
