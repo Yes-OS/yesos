@@ -19,10 +19,10 @@ int8_t _test_read(void){
 	int32_t retval = 0;
 
 	/*insert file name to test for here*/
-	int8_t* test_fname	= "grep"; 
+	int8_t* test_fname = "grep";
 	dentry_t test_dentry;
 	/*inset index number to test for here*/
-	int32_t inode_test = 12;	
+	int32_t inode_test = 12;
 	dentry_t test_dentry2;
 
 	/*Test READ_DATA*/
@@ -42,7 +42,7 @@ int8_t _test_read(void){
 
 	printf("Filename: %s\n",test_dentry.file_name);
 	printf("Should be 2: %u\n",test_dentry.file_type);
-	printf("inode_num: %u\n",test_dentry.inode_num);
+	printf("inode_num: %u\n",test_dentry.inode);
 
 	printf("Done with read_dentry_by_name testing\n");
 
@@ -59,7 +59,7 @@ int8_t _test_read(void){
 
 	printf("Filename: %s\n",test_dentry2.file_name);
 	printf("Should be 2: %u\n",test_dentry2.file_type);
-	printf("inode_num: %u\n",test_dentry2.inode_num);
+	printf("inode_num: %u\n",test_dentry2.inode);
 
 	printf("Done with read_dentry_by_index testing\n");
 
@@ -110,7 +110,7 @@ int8_t _test_file_sys(void){
  * read, write, open, close
  */
 int8_t _test_directory(void){
-	
+
 	return 0;
 }
 
@@ -147,7 +147,7 @@ int8_t test_EIP(void)
 	int32_t retval;
 
 	/*insert file name to test for here*/
-	int8_t* test_fname	= "ls"; 		
+	int8_t* test_fname	= "ls";
 	dentry_t test_dentry;
 
 	retval = read_dentry_by_name ((uint8_t*)test_fname, &test_dentry);

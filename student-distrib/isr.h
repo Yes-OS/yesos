@@ -8,12 +8,21 @@
 
 #include "types.h"
 
+/****************************************
+ *              Data Types              *
+ ****************************************/
+
 typedef struct registers {
 	uint32_t ebx, ecx, edx, esi, edi, ebp, eax;
 	uint32_t ds, es, fs;
 	uint32_t isrno, errno;
 	uint32_t eip, cs, eflags, user_esp, ss;
 } __attribute__((packed)) registers_t;
+
+
+/****************************************
+ *         Function Declarations        *
+ ****************************************/
 
 void isr_impl(registers_t);
 
