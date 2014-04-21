@@ -30,6 +30,11 @@ int32_t sys_open(const uint8_t *filename)
 	dentry_t dentry;
 	int32_t status;
 
+	/* don't try to open null file */
+	if (!filename) {
+		return -1;
+	}
+
 	status = read_dentry_by_name(filename, &dentry);
 	if (status) {
 		return -1;
@@ -52,6 +57,11 @@ int32_t sys_open(const uint8_t *filename)
 
 int32_t sys_read(int32_t fd, void *buf, int32_t nbytes)
 {
+	/* don't try to fill null buffer */
+	if (!buf) {
+		return -1;
+	}
+
 	file_t *file = get_file_from_fd(fd);
 
 	/* get_file_from_fd validates the fd for us */
@@ -64,6 +74,11 @@ int32_t sys_read(int32_t fd, void *buf, int32_t nbytes)
 
 int32_t sys_write(int32_t fd, const void *buf, int32_t nbytes)
 {
+	/* no point writing if it's a null buffer */
+	if (!buf) {
+		return -1;
+	}
+
 	file_t *file = get_file_from_fd(fd);
 
 	/* get_file_from_fd validates the fd for us */
@@ -226,6 +241,7 @@ int32_t sys_halt(uint8_t status)
 		set_pdbr(&page_directories[0]);
 		tss.ss0 = KERNEL_DS;
 		tss.esp0 = (KERNEL_MEM + MB_4_OFFSET -1) & 0xFFFFFFF0;
+		/* returns to kernel space */
 		asm volatile (
 				"movl %0, %%esp\n"
 				"addl $-4, %%esp\n"
@@ -234,6 +250,7 @@ int32_t sys_halt(uint8_t status)
 				: "cc", "memory");
 		/* control doesn't pass here */
 	}
+	/* Restores registers and exits syscalls */
 	asm volatile (
 			"movl %0, %%esp\n"
 			"jmp exit_syscall"
