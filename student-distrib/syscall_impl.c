@@ -125,10 +125,11 @@ int32_t sys_exec(const uint8_t *command)
 		nprocs++;
 
 		/* calculate location of bottom of process's stack */
+		/* 0xFFFFFFFC aligns to a 16-byte boundary */
 		kern_esp = (KERNEL_MEM + MB_4_OFFSET - USER_STACK_SIZE * nprocs - 1) & 0xFFFFFFFC;
 		user_esp = (USER_MEM + MB_4_OFFSET - 1) & 0xFFFFFFFC;
 
-		/* obtain and initialize the PCB */
+		/* obtain and initialize the PCB, 0xFFFFE000 */
 		pcb = (pcb_t *)(kern_esp & 0xFFFFE000);
 		memset(pcb, 0, sizeof(*pcb));
 		pcb->pid = nprocs;
@@ -224,7 +225,7 @@ int32_t sys_halt(uint8_t status)
 		/* returning to kernel mode */
 		set_pdbr(&page_directories[0]);
 		tss.ss0 = KERNEL_DS;
-		tss.esp0 = (KERNEL_MEM + 0x400000 -1) & 0xFFFFFFF0;
+		tss.esp0 = (KERNEL_MEM + MB_4_OFFSET -1) & 0xFFFFFFF0;
 		asm volatile (
 				"movl %0, %%esp\n"
 				"addl $-4, %%esp\n"
