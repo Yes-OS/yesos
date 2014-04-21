@@ -61,7 +61,7 @@ entry (unsigned long magic, unsigned long addr)
 		printf ("cmdline = %s\n", (char *) mbi->cmdline);
 
 	if (CHECK_FLAG (mbi->flags, 3)) {
-		int mod_count = 0;
+		unsigned int mod_count = 0;
 		int i;
 		module_t* mod = (module_t*)mbi->mods_addr;
 		while(mod_count < mbi->mods_count) {
@@ -199,7 +199,6 @@ entry (unsigned long magic, unsigned long addr)
 	puts("    Initializing Keyboard... ");
 	kbd_init();
 	enable_irq(KBD_IRQ_PORT);
-	while (!kbd_initialized);
 	puts("done\n");
 
 	puts("    Initializing File System... ");
@@ -229,16 +228,17 @@ entry (unsigned long magic, unsigned long addr)
 	puts("\nWelcome!\n");
 	update_cursor();
 
+	/* Wait for keyboard to initialize, or we could get some funky results */
+	while (!kbd_initialized);
+
+	/* Ensure the filesystem actually is in memory before attempting to use it */
 	if(fs_pres){
 		/* Execute the first program (`shell') ... */
 		sys_exec((uint8_t*)"shell");
 		puts("Shell exited successfully\n");
 	}
-	
-	puts("Rebooting");
-	sleep(7000);	/* Wait for 7 seconds then reboot */
-	triple_fault();
 
-	/* Spin (nicely, so we don't chew up cycles) */
-	//halt();
+	puts("Rebooting");
+	sleep(7000);    /* Wait for 7 seconds then reboot */
+	triple_fault();
 }

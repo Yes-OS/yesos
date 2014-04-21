@@ -167,25 +167,27 @@ void rtc_handle_interrupt()
 /*modify the frequency of the RTC (Min 2Hz - Max 1024 Hz)*/
 void rtc_modify_freq(uint32_t freq)
 {
-  cli();
+	uint32_t flags;
 
-  uint8_t regA;
-  uint32_t new_freq;
+	cli_and_save(flags);
 
-  /*Disable NMI and select register A of RTC*/
-  outb(REG_A, NMI_RTC_PORT);
+	uint8_t regA;
+	uint32_t new_freq;
 
-  /*clear the lower 4 bits of regA to clear out previous frequency*/
-  regA = inb(RTC_RAM_PORT);
-  regA = regA & 0xF0;
+	/*Disable NMI and select register A of RTC*/
+	outb(REG_A, NMI_RTC_PORT);
 
-  outb(REG_A, NMI_RTC_PORT);
+	/*clear the lower 4 bits of regA to clear out previous frequency*/
+	regA = inb(RTC_RAM_PORT);
+	regA = regA & 0xF0;
 
-  /*Set frequency, where the RTC will be 2^freq*/
-  new_freq = BASE_FREQ - freq;
-  outb((regA | new_freq), RTC_RAM_PORT);
+	outb(REG_A, NMI_RTC_PORT);
 
-  sti();
+	/*Set frequency, where the RTC will be 2^freq*/
+	new_freq = BASE_FREQ - freq;
+	outb((regA | new_freq), RTC_RAM_PORT);
+
+	restore_flags(flags);
 }
 
 /*Loops through until an RTC interrupt is generated*/
