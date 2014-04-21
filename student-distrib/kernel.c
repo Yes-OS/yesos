@@ -237,7 +237,7 @@ entry (unsigned long magic, unsigned long addr)
 	
 	puts("Rebooting");
 	sleep(7000);	/* Wait for 7 seconds then reboot */
-	force_reboot();
+	triple_fault();
 
 	/* Spin (nicely, so we don't chew up cycles) */
 	//halt();

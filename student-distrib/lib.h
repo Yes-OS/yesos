@@ -171,7 +171,7 @@ do {                                     \
 /* Causes triple-fault
  *		thus inciting a reboot
  */
-#define force_reboot()					\
+#define triple_fault()					\
 do {									\
 	asm volatile(						\
 			"movl %cr0, %eax\n"			\
