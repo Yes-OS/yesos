@@ -30,19 +30,19 @@
 /*RTC frequencies*/
 #define BASE_FREQ 0x10
 #define MAX_FREQ_HZ 1024
-#define HZ_2    0x0F
-#define HZ_4    0x0E
-#define HZ_8    0x0D
-#define HZ_16   0x0C
-#define HZ_32   0x0B
-#define HZ_64   0x0A
-#define HZ_128  0x09
-#define HZ_256  0x08
-#define HZ_512  0x07
-#define HZ_1024 0x06
+#define HZ_2    1
+#define HZ_4    2
+#define HZ_8    3
+#define HZ_16   4
+#define HZ_32   5
+#define HZ_64   6
+#define HZ_128  7
+#define HZ_256  8
+#define HZ_512  9
+#define HZ_1024 10
 
 /* Default RTC freq is 1024 Hz */
-#define RTC_FREQ (BASE_FREQ-10)
+#define RTC_FREQ HZ_1024
 
 
 /****************************************

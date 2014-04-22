@@ -123,8 +123,8 @@ void rtc_init(void)
 	enable = enable & ENABLE_NMI;
 	outb(enable, NMI_RTC_PORT);
 
-	/* set frequency to 2^10 */
-	rtc_modify_freq(10);
+	/* set defualt frequency */
+	rtc_modify_freq(RTC_FREQ);
 }
 
 
