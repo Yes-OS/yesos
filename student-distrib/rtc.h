@@ -6,6 +6,7 @@
 #define _RTC_H
 
 #include "types.h"
+#include "proc.h"
 #include "i8259.h"
 
 /****************************************
@@ -62,5 +63,13 @@ int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes);
 int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes);
 int32_t rtc_open(const uint8_t* filename);
 int32_t rtc_close(int32_t fd);
+
+
+/****************************************
+ *           Global Variables           *
+ ****************************************/
+
+/* file operations table for rtc */
+extern fops_t rtc_fops;
 
 #endif /* _RTC_H */

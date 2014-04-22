@@ -42,11 +42,11 @@ int32_t sys_open(const uint8_t *filename)
 
 	switch (dentry.file_type) {
 		case FILE_TYPE_REG:
-			return file_open(filename);
+			return file_fops.open(filename);
 		case FILE_TYPE_DIR:
-			return dir_open(filename);
+			return dir_fops.open(filename);
 		case FILE_TYPE_RTC:
-			return rtc_open(filename);
+			return rtc_fops.open(filename);
 		default:
 			/* unknown type */
 			return -1;
@@ -114,6 +114,11 @@ int32_t sys_exec(const uint8_t *command)
 	uint32_t user_esp;
 	pcb_t *pcb;
 	dentry_t dentry;
+
+	/* can't exec a null command */
+	if (!command) {
+		return -1;
+	}
 
 	for (i = 0, c = command; *c == (uint8_t)' '; i++, c++) {
 		/* skip beginning spaces */
@@ -261,6 +266,11 @@ int32_t sys_halt(uint8_t status)
 
 int32_t sys_getargs(uint8_t *buf, int32_t nbytes)
 {
+	/* can't copy to null buffer */
+	if (!buf) {
+		return -1;
+	}
+
 	pcb_t *pcb = get_proc_pcb();
 
 	strncpy((int8_t *)buf, (int8_t *)pcb->cmd_args, nbytes);
