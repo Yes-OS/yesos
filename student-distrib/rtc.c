@@ -285,7 +285,12 @@ int32_t rtc_open(const uint8_t* filename)
 	file->inode_ptr = -1;
 
 	/*sets the rtc to 2_Hz by default*/
+	cli();
 	rtc_virt_set_freq(file, HZ_2);
+	rtc_virt_clr_ticked(file);
+	rtc_virt_clr_ticks(file);
+	rtc_virt_rst_ctr(file);
+	sti();
 
 	return fd;
 }
