@@ -202,7 +202,7 @@ void kbd_handle_interrupt()
 	/* decide what to do with it */
 	switch (value) {
 		case PS2_RET_ATTACH:
-			printf("PS/2 Keyboard Attached...");
+			puts("PS/2 Keyboard Attached...");
 			kbd_initialized = 1;
 
 			/* if this was the result of a reset, clear it from the buffer */
@@ -224,7 +224,7 @@ void kbd_handle_interrupt()
 				ps2_write_command(cmd);
 			}
 			else {
-				printf("WARN: keyboard nak'd and we didn't send a command\n");
+				puts("WARN: keyboard nak'd and we didn't send a command\n");
 			}
 			break;
 		case KBD_KEY_RELEASED:

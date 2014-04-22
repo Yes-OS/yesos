@@ -178,9 +178,6 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 			chars_since_enter = 0;
 			CIRC_BUF_INIT(term_key_buf);
 			CIRC_BUF_PUSH(term_key_buf, KBD_KEY_NULL, ok);
-			if (!ok) {
-				printf("ERR: failed when clearing screen\n");
-			}
 			return;
 		}
 		if ((lctrl_held || rctrl_held) && key == KBD_KEY_C) {

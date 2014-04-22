@@ -22,7 +22,7 @@ void isr_impl(registers_t regs)
 	switch (regs.isrno) {
 
         case EXCEPTION_DIVIDE:
-            printf("Interrupt occurred(0): divide_error");
+            puts("Interrupt occurred(0): divide_error");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -32,7 +32,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_DEBUG:
-            printf("Interrupt occurred(1): debug");
+            puts("Interrupt occurred(1): debug");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -41,7 +41,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_NMI:
-            printf("Interrupt occurred(2): nmi");
+            puts("Interrupt occurred(2): nmi");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -50,7 +50,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_BREAKPOINT:
-            printf("Interrupt occurred(3): breakpoint");
+            puts("Interrupt occurred(3): breakpoint");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -59,7 +59,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_OVERFLOW:
-            printf("Interrupt occurred(4): overflow");
+            puts("Interrupt occurred(4): overflow");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -68,7 +68,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_BOUND:
-            printf("Interrupt occurred(5): bound");
+            puts("Interrupt occurred(5): bound");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -77,7 +77,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_INVALID_OPCODE:
-            printf("Interrupt occurred(6): invalid_opcode");
+            puts("Interrupt occurred(6): invalid_opcode");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -86,7 +86,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_DEV_NOT_AVAIL:
-            printf("Interrupt occurred(7): device_not_available");
+            puts("Interrupt occurred(7): device_not_available");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -95,7 +95,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_DOUBLE_FAULT:
-            printf("Interrupt occurred(8): double_fault");
+            puts("Interrupt occurred(8): double_fault");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -104,7 +104,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_COPROC_SEG_OVERRUN:
-            printf("Interrupt occurred(9): coprocessor_segment_overrun");
+            puts("Interrupt occurred(9): coprocessor_segment_overrun");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -113,7 +113,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_INVALID_TSS:
-            printf("Interrupt occurred(10): invalid_tss");
+            puts("Interrupt occurred(10): invalid_tss");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -122,7 +122,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_SEG_NOT_PRES:
-            printf("Interrupt occurred(11): segment_not_present");
+            puts("Interrupt occurred(11): segment_not_present");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -131,7 +131,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_STACK_FAULT:
-            printf("Interrupt occurred(12): stack_fault");
+            puts("Interrupt occurred(12): stack_fault");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -140,7 +140,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_GENERAL_PROTECTION:
-            printf("Interrupt occurred(13): general_protection");
+            puts("Interrupt occurred(13): general_protection");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -155,8 +155,8 @@ void isr_impl(registers_t regs)
 			asm("movl    %%cr3, %0"
 					: "=r"(cr3)
 					: :"memory");
-            printf("Interrupt occurred(14): page_fault\n");
-			printf("Details:\n");
+            puts("Interrupt occurred(14): page_fault\n");
+			puts("Details:\n");
 			printf("    Address: 0x%x\n", cr2);
 			printf("    Page was %spresent\n", regs.errno & 0x01 ? "" : "NOT ");
 			printf("    Accessed with a %s\n", regs.errno & 0x02 ? "write" : "read");
@@ -170,7 +170,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_COPROC_ERROR:
-            printf("Interrupt occurred(16): coprocessor_error");
+            puts("Interrupt occurred(16): coprocessor_error");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -179,7 +179,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_ALIGNMENT_CHECK:
-            printf("Interrupt occurred(17): alignment_check");
+            puts("Interrupt occurred(17): alignment_check");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -188,7 +188,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_MACHINE_CHECK:
-            printf("Interrupt occurred(18): machine_check");
+            puts("Interrupt occurred(18): machine_check");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -197,7 +197,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_SIMD_COPROC_ERR:
-            printf("Interrupt occurred(19): simd_coprocessor_error");
+            puts("Interrupt occurred(19): simd_coprocessor_error");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -247,7 +247,7 @@ void isr_impl(registers_t regs)
 			break;
 
 		default:
-			printf("Error: Interrupt unknown");
+			puts("Error: Interrupt unknown");
 			halt();
 			break;
 

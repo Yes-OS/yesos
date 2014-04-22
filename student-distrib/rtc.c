@@ -262,7 +262,6 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes)
 		return 4;
 	}
 
-	printf("Error: Invlaid Frequency Value\n");
 	return -1;
 }
 
@@ -301,7 +300,4 @@ int32_t rtc_close(int32_t fd)
 	release_fd(fd);
 	return 0;
 }
-
-
-
 

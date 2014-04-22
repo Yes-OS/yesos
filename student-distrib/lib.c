@@ -512,7 +512,7 @@ memmove(void* dest, const void* src, uint32_t n)
 int32_t
 strncmp(const int8_t* s1, const int8_t* s2, uint32_t n)
 {
-	int32_t i;
+	uint32_t i;
 	for(i=0; i<n; i++) {
 		if( (s1[i] != s2[i]) ||
 				(s1[i] == '\0') /* || s2[i] == '\0' */ ) {
@@ -562,7 +562,7 @@ strcpy(int8_t* dest, const int8_t* src)
 int8_t*
 strncpy(int8_t* dest, const int8_t* src, uint32_t n)
 {
-	int32_t i=0;
+	uint32_t i=0;
 	while(src[i] != '\0' && i < n) {
 		dest[i] = src[i];
 		i++;
@@ -599,10 +599,10 @@ test_interrupts(void)
 void
 sleep( uint32_t ms)
 {
-	int i;
+	uint32_t i;
 	for (i = 0; i < ms; i++){
 		if (i%1000 == 0)
-			printf(".");
+			puts(".");
 		asm ("hlt");
 	}
 }

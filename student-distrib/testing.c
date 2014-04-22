@@ -14,7 +14,7 @@
 int8_t _test_read(void){
 
 	/*__Read dentry by name test__*/
-	printf("Testing read_dentry_by_name\n");
+	puts("Testing read_dentry_by_name\n");
 
 	int32_t retval = 0;
 
@@ -31,40 +31,40 @@ int8_t _test_read(void){
 	uint32_t length = 4000;
 	uint8_t buf[length];
 
-	printf("Testing read_dentry_by_name\n");
+	puts("Testing read_dentry_by_name\n");
 	retval = read_dentry_by_name ((uint8_t*)test_fname, &test_dentry);
 	if(retval == -1){
-		printf("read_dentry_by_name failed. Exiting Test.\n");
+		puts("read_dentry_by_name failed. Exiting Test.\n");
 		return -1;
 	}
 
-	printf("test_dentry values:\n");
+	puts("test_dentry values:\n");
 
 	printf("Filename: %s\n",test_dentry.file_name);
 	printf("Should be 2: %u\n",test_dentry.file_type);
 	printf("inode_num: %u\n",test_dentry.inode);
 
-	printf("Done with read_dentry_by_name testing\n");
+	puts("Done with read_dentry_by_name testing\n");
 
 	/*__Read dentry by index test__*/
-	printf("Testing read_dentry_by_index\n");
+	puts("Testing read_dentry_by_index\n");
 
 	retval = read_dentry_by_index(inode_test, &test_dentry2);
 	if(retval == -1){
-		printf("read_dentry_by_index failed. Exiting Test.\n");
+		puts("read_dentry_by_index failed. Exiting Test.\n");
 		return -1;
 	}
 
-	printf("test_dentry2 values:\n");
+	puts("test_dentry2 values:\n");
 
 	printf("Filename: %s\n",test_dentry2.file_name);
 	printf("Should be 2: %u\n",test_dentry2.file_type);
 	printf("inode_num: %u\n",test_dentry2.inode);
 
-	printf("Done with read_dentry_by_index testing\n");
+	puts("Done with read_dentry_by_index testing\n");
 
 	/*__Test read data__*/
-	printf("Testing read_data\n");
+	puts("Testing read_data\n");
 
 	retval = read_data(inode, offset, buf, length);
 
@@ -72,7 +72,7 @@ int8_t _test_read(void){
 	printf("\n%s\n", buf);
 
 	if(retval == -1){
-		printf("read_data failed. Exiting Test.\n");
+		puts("read_data failed. Exiting Test.\n");
 		return -1;
 	}
 
@@ -100,7 +100,7 @@ int8_t _test_file_sys(void){
 	if (file_sys_count != 0) return file_sys_count; //return if failure this far
 
 	/* test file sys read */
-	printf("HEY: fs read test not implemented yet\n");
+	puts("HEY: fs read test not implemented yet\n");
 
 	return file_sys_count;
 }
@@ -123,20 +123,20 @@ int8_t test_fs_all(void){
 	int8_t error_count;
 	error_count = 0;
 
-	// printf("Read tests:...\n");
+	// puts("Read tests:...\n");
 	// error_count += _test_read();
-	// printf("Read tests done.\n");
+	// puts("Read tests done.\n");
 
 #if 0 /* not used right now */
-	printf("File system tests:...\n");
+	puts("File system tests:...\n");
 	error_count += _test_file_sys();
-	printf("File system tests done.\n");
+	puts("File system tests done.\n");
 #endif
 
 
-	printf("Directory tests:...\n");
+	puts("Directory tests:...\n");
 	error_count += _test_directory();
-	printf("Directory tests done.\n");
+	puts("Directory tests done.\n");
 
 	return error_count;
 }
@@ -154,7 +154,7 @@ int8_t test_EIP(void)
 
 	retval = file_loader(&test_dentry, &temp_EIP);
 	if(retval == -1) {
-		printf("file_loader FAIL\n");
+		puts("file_loader FAIL\n");
 		return 0;
 	}
 
@@ -181,12 +181,12 @@ void rtc_rw_test(void)
 
 	while(i != 2048){
 		rtc_read(fd_test, (void*)i, nbytes_test);
-		printf("RTC int occurred ");
+		puts("RTC int occurred ");
 		if(j == i){
 			rtc_write(fd_test, (void*)i, nbytes_test);
 			i *= 2;
 			if(i == 2048){
-				printf("MAX FREQUENCY REACHED. STOPPING TEST");
+				puts("MAX FREQUENCY REACHED. STOPPING TEST");
 			}
 		}
 		j++;
@@ -204,7 +204,7 @@ void rtc_rw_test(void)
 	for (i = 0; i < ARRAYSIZE(foo1.element); i++){
 		foo1.element[i] = i;
 		printf("%d", foo1.element[i]);
-	} printf("Done(1) \n");
+	} puts("Done(1) \n");
 
  	//navigate array of array structs
 	for (j = 0; j < ARRAYSIZE(foo2); j++){
@@ -212,7 +212,7 @@ void rtc_rw_test(void)
 			foo2[j].element[i] = i;
 			printf("%d", foo2[j].element[i]);
 		}
-	} printf("Done(2) \n");
+	} puts("Done(2) \n");
 } */
 
 /*  Sandbox tests
@@ -224,9 +224,9 @@ void rtc_rw_test(void)
 	int8_t error_count;
 	error_count = 0;
 
-	printf("Typedef of array test:...\n");
+	puts("Typedef of array test:...\n");
 	error_count += _test_array_typedef();
-	printf("Typedef of array test done.\n");
+	puts("Typedef of array test done.\n");
 
 	return error_count;
 } */
