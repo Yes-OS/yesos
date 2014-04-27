@@ -81,6 +81,12 @@
 #define KBD_KEY_LSUPER              0x107
 #define KBD_KEY_RSUPER              0x108
 
+/* define arrow keys */
+#define KBD_KEY_U_ARROW				0x120
+#define KBD_KEY_L_ARROW				0x121
+#define KBD_KEY_D_ARROW				0x122
+#define KBD_KEY_R_ARROW				0x123
+
 #ifndef ASM
 
 
