@@ -114,6 +114,14 @@ typedef struct pcb
 
 
 /****************************************
+ *           Global Variables           *
+ ****************************************/
+
+extern uint8_t nprocs;
+extern uint32_t proc_bitmap;
+
+
+/****************************************
  *         Function Declarations        *
  ****************************************/
 
@@ -193,14 +201,6 @@ static inline void free_pid(int32_t pid)
 {
 	proc_bitmap &= ~(1<<pid);
 }
-
-
-/****************************************
- *           Global Variables           *
- ****************************************/
-
-extern uint8_t nprocs;
-extern uint32_t proc_bitmap;
 
 #endif
 

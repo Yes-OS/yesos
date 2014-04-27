@@ -103,6 +103,13 @@ typedef struct pt {
 
 
 /****************************************
+ *           Global Variables           *
+ ****************************************/
+
+extern pd_t page_directories[];
+
+
+/****************************************
  *           Macro Definitions          *
  ****************************************/
 
@@ -134,14 +141,6 @@ typedef struct pt {
 /*Initialize paging*/
 void paging_init(void);
 void install_user_vid_mem(uint32_t index);
-
-
-/****************************************
- *           Global Variables           *
- ****************************************/
-
-extern pd_t page_directories[];
-
 
 #endif
 

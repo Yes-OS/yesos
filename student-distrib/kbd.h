@@ -83,6 +83,14 @@
 
 #ifndef ASM
 
+
+/****************************************
+ *           Global Variables           *
+ ****************************************/
+
+extern volatile int32_t kbd_initialized;
+
+
 /****************************************
  *         Function Declarations        *
  ****************************************/
@@ -90,13 +98,6 @@
 void kbd_init();
 void kbd_reset();
 void kbd_handle_interrupt();
-
-
-/****************************************
- *           Global Variables           *
- ****************************************/
-
-extern volatile int32_t kbd_initialized;
 
 #endif
 

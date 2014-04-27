@@ -90,6 +90,14 @@ typedef struct boot_block{
 } __attribute__((packed)) boot_block_t;
 
 
+/****************************************
+ *           Global Variables           *
+ ****************************************/
+
+/* file operations table for files and directories */
+extern fops_t file_fops;
+extern fops_t dir_fops;
+
 
 /****************************************
  *         Function Declarations        *
@@ -113,15 +121,7 @@ int32_t file_close(int32_t fd);
 
 uint32_t file_loader(dentry_t* file, uint32_t* eip);
 
-
-/****************************************
- *           Global Variables           *
- ****************************************/
-
-/* file operations table for files and directories */
-extern fops_t file_fops;
-extern fops_t dir_fops;
-
 #endif /* ASM           */
+
 #endif /* _FILE_SYS_H   */
 
