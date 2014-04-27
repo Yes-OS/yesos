@@ -230,6 +230,7 @@ entry (unsigned long magic, unsigned long addr)
 
 	/* Wait for keyboard to initialize, or we could get some funky results */
 	while (!kbd_initialized);
+	puts("\n");
 
 	/* Ensure the filesystem actually is in memory before attempting to use it */
 	if(fs_pres){

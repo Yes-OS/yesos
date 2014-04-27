@@ -184,7 +184,7 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 			/* kill a process, should be replaced later by signals */
 			if (nprocs > 0) {
 				/* XXX: AWFUL HACK */
-				enable_irq(KBD_IRQ_PORT);
+				send_eoi(KBD_IRQ_PORT);
 				sys_halt(-1);
 			}
 		}

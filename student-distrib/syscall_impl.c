@@ -14,6 +14,10 @@
 #define MAX_CMD_LEN 33
 
 #define enter_userland(_ss, _esp, _flags, _cs, _eip) asm volatile (           \
+		"movl     %0, %%eax\n"                                                \
+		"movl     %%eax, %%ds\n"                                              \
+		"movl     %%eax, %%es\n"                                              \
+		"movl     %%eax, %%fs\n"                                              \
 		"pushl    %0\n"                                                       \
 		"pushl    %1\n"                                                       \
 		"pushl    %2\n"                                                       \
@@ -21,7 +25,7 @@
 		"pushl    %4\n"                                                       \
 		"iret"                                                                \
 		: : "g"((_ss)), "g"((_esp)), "g"((_flags)), "g"((_cs)), "g"((_eip))   \
-		: "memory", "cc")
+		: "memory", "cc", "eax")
 
 uint8_t nprocs = 0;
 
@@ -250,6 +254,7 @@ int32_t sys_halt(uint8_t status)
 		asm volatile (
 				"movl %0, %%esp\n"
 				"addl $-4, %%esp\n"
+				"sti\n" /* fuq tha polic */
 				"ret"
 				: : "g"(pcb->parent_regs)
 				: "cc", "memory");

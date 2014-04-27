@@ -22,7 +22,7 @@ void isr_impl(registers_t regs)
 	switch (regs.isrno) {
 
         case EXCEPTION_DIVIDE:
-            puts("Interrupt occurred(0): divide_error");
+            puts("Interrupt occurred(0): divide_error\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -32,7 +32,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_DEBUG:
-            puts("Interrupt occurred(1): debug");
+            puts("Interrupt occurred(1): debug\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -41,7 +41,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_NMI:
-            puts("Interrupt occurred(2): nmi");
+            puts("Interrupt occurred(2): nmi\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -50,7 +50,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_BREAKPOINT:
-            puts("Interrupt occurred(3): breakpoint");
+            puts("Interrupt occurred(3): breakpoint\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -59,7 +59,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_OVERFLOW:
-            puts("Interrupt occurred(4): overflow");
+            puts("Interrupt occurred(4): overflow\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -68,7 +68,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_BOUND:
-            puts("Interrupt occurred(5): bound");
+            puts("Interrupt occurred(5): bound\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -77,7 +77,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_INVALID_OPCODE:
-            puts("Interrupt occurred(6): invalid_opcode");
+            puts("Interrupt occurred(6): invalid_opcode\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -86,7 +86,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_DEV_NOT_AVAIL:
-            puts("Interrupt occurred(7): device_not_available");
+            puts("Interrupt occurred(7): device_not_available\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -95,7 +95,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_DOUBLE_FAULT:
-            puts("Interrupt occurred(8): double_fault");
+            puts("Interrupt occurred(8): double_fault\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -104,7 +104,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_COPROC_SEG_OVERRUN:
-            puts("Interrupt occurred(9): coprocessor_segment_overrun");
+            puts("Interrupt occurred(9): coprocessor_segment_overrun\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -113,7 +113,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_INVALID_TSS:
-            puts("Interrupt occurred(10): invalid_tss");
+            puts("Interrupt occurred(10): invalid_tss\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -122,7 +122,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_SEG_NOT_PRES:
-            puts("Interrupt occurred(11): segment_not_present");
+            puts("Interrupt occurred(11): segment_not_present\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -131,7 +131,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_STACK_FAULT:
-            puts("Interrupt occurred(12): stack_fault");
+            puts("Interrupt occurred(12): stack_fault\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -140,7 +140,10 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_GENERAL_PROTECTION:
-            puts("Interrupt occurred(13): general_protection");
+            puts("Interrupt occurred(13): general_protection\n");
+			if (regs.errno > 0) {
+				printf("    Segment selector: %d\n", regs.errno);
+			}
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -170,7 +173,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_COPROC_ERROR:
-            puts("Interrupt occurred(16): coprocessor_error");
+            puts("Interrupt occurred(16): coprocessor_error\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -179,7 +182,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_ALIGNMENT_CHECK:
-            puts("Interrupt occurred(17): alignment_check");
+            puts("Interrupt occurred(17): alignment_check\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -188,7 +191,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_MACHINE_CHECK:
-            puts("Interrupt occurred(18): machine_check");
+            puts("Interrupt occurred(18): machine_check\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -197,7 +200,7 @@ void isr_impl(registers_t regs)
             break;
 
         case EXCEPTION_SIMD_COPROC_ERR:
-            puts("Interrupt occurred(19): simd_coprocessor_error");
+            puts("Interrupt occurred(19): simd_coprocessor_error\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
 				sys_halt(-1);
 				break;
@@ -231,23 +234,19 @@ void isr_impl(registers_t regs)
 		/* handle the keyboard interrupt */
 		case IRQ_KBD:
 			/* mask the interrupt and immediately send EOI so we can service other interrupts */
-			disable_irq(KBD_IRQ_PORT);
-			send_eoi(KBD_IRQ_PORT);
 			kbd_handle_interrupt();
-			enable_irq(KBD_IRQ_PORT);
+			send_eoi(KBD_IRQ_PORT);
 			break;
 
 		/* handle the RTC interrupt */
 		case IRQ_RTC:
 			/* mask the interrupt and immediately send EOI so we can service other interrupts */
-			disable_irq(RTC_IRQ_PORT);
-			send_eoi(RTC_IRQ_PORT);
 			rtc_handle_interrupt();
-			enable_irq(RTC_IRQ_PORT);
+			send_eoi(RTC_IRQ_PORT);
 			break;
 
 		default:
-			puts("Error: Interrupt unknown");
+			puts("Error: Interrupt unknown\n");
 			halt();
 			break;
 
