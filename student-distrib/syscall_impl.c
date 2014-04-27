@@ -157,7 +157,7 @@ int32_t sys_exec(const uint8_t *command)
 		}
 
 		/* calculate location of bottom of process's stack */
-		/* 0xFFFFFFFC aligns to a 16-byte boundary */
+		/* 0xFFFFFFFC aligns to a 4-byte boundary */
 		kern_esp = (KERNEL_MEM + MB_4_OFFSET - USER_STACK_SIZE * pid - 1) & 0xFFFFFFFC;
 		user_esp = (USER_MEM + MB_4_OFFSET - 1) & 0xFFFFFFFC;
 
