@@ -219,7 +219,12 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 						if (key == '\b') {
 							CIRC_BUF_PEEK_TAIL(term_key_buf, c, ok);
 							if (ok) {
-								if (c != '\n' && c != '\b') {
+								if (c == KBD_KEY_NULL) {
+									/* remove the character because it's technically not needed,
+									 * but don't emit a backspace character since it's invisible */
+									CIRC_BUF_POP_TAIL(term_key_buf, c, ok);
+								}
+								else if (c != '\n' && c != '\b') {
 									CIRC_BUF_POP_TAIL(term_key_buf, c, ok);
 									putc((int8_t)key);
 								}
