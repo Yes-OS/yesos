@@ -7,6 +7,9 @@
 int screen_x;
 int screen_y;
 char* video_mem = (char *)VIDEO;
+uint8_t foreground_color = COLOR_WHITE;
+uint8_t background_color = COLOR_BLACK;
+
 
 /* Sets the vga cursor to the specified position */
 void vga_cursor_set_location(uint8_t row, uint8_t col)
@@ -31,7 +34,7 @@ void screen_clear(screen_t *screen)
 	/* clear video memory */
 	for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
 		screen->data[(i << 1)] = ' ';
-		screen->data[(i << 1) + 1] = ATTRIB;
+		screen->data[(i << 1) + 1] = ((background_color << 4) + foreground_color);
 	}
 
 	/* reset cursor position */
@@ -69,3 +72,24 @@ void screen_restore(screen_t *screen)
 	update_cursor();
 }
 
+void set_foreground_color(uint8_t color)
+{
+	foreground_color = color;
+}
+
+void set_background_color(uint8_t color)
+{
+	background_color = color;
+}
+
+void set_colors(uint8_t fg, uint8_t bg)
+{
+	foreground_color = fg;
+	background_color = bg;
+}
+
+void set_default_colors()
+{
+	foreground_color = FG_DEFAULT;
+	background_color = BG_DEFAULT;
+}

@@ -9,7 +9,7 @@
 /* General constants related to video memory */
 #define NUM_COLS 80
 #define NUM_ROWS 25
-#define ATTRIB 0x7
+#define ATTRIB 0xF0
 
 #define VIDEO 0xB8000
 
@@ -33,6 +33,39 @@ typedef struct screen {
 extern int screen_x, screen_y;
 /* location of video memory in a flat segment */
 extern char *video_mem;
+
+/* Color Support */
+
+extern uint8_t foreground_color;
+extern uint8_t background_color;
+
+#define COLOR_BLACK 	0x0
+#define COLOR_BLUE 		0x1
+#define COLOR_GREEN 	0x2
+#define COLOR_CYAN		0x3
+#define COLOR_RED		0x4
+#define COLOR_PINK		0x5
+#define COLOR_ORANGE	0x6
+#define COLOR_LT_GRAY	0x7
+#define COLOR_DK_GRAY	0x8
+#define COLOR_PURPLE	0x9
+#define COLOR_LT_GREEN	0xA
+#define COLOR_LT_BLUE	0xB
+#define COLOR_LT_RED	0xC
+#define COLOR_LT_PINK	0xD
+#define COLOR_YELLOW	0xE
+#define COLOR_WHITE		0xF
+
+#define FG_DEFAULT		COLOR_WHITE
+#define BG_DEFAULT		COLOR_BLACK
+
+void set_foreground_color(uint8_t color);
+void set_background_color(uint8_t color);
+void set_colors(uint8_t fg, uint8_t bg);
+void set_color_palette(uint8_t palette);
+void set_default_colors(void);
+
+/*******************************/
 
 void vga_cursor_set_location(uint8_t row, uint8_t col);
 void update_cursor(void);

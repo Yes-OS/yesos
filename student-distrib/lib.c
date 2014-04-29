@@ -15,12 +15,22 @@
 void
 clear(void)
 {
+	//background_color = (background_color+1)%16;
+
     int32_t i;
     for(i=0; i<NUM_ROWS*NUM_COLS; i++) {
         *(uint8_t *)(video_mem + (i << 1)) = ' ';
-        *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
+        *(uint8_t *)(video_mem + (i << 1) + 1) = ((background_color << 4) + foreground_color);
     }
 	screen_x = screen_y = 0;
+/*
+	int index;
+	for(index = 0; index < 16; index++)
+	{
+		foreground_color = index;
+		printf("This is the color %d. Does it look pretty?\n",index);
+	}*/
+
 }
 
 /* Standard printf().
@@ -196,13 +206,13 @@ putc(uint8_t c)
 		}
 		/* clear the character */
 		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = ' ';
-		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
+		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ((background_color << 4) + foreground_color);
 	} else {
 		if (c == '\0') {
 			return;
 		}
 		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = c;
-		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
+		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ((background_color << 4) + foreground_color);
 		screen_x++;
 		screen_y = screen_y + (screen_x / NUM_COLS);
 		screen_x %= NUM_COLS;
@@ -218,7 +228,7 @@ putc(uint8_t c)
 		/* clear last row */
 		for (i = (NUM_ROWS - 1) * NUM_COLS; i < NUM_ROWS * NUM_COLS; i++) {
 			*(uint8_t *)(video_mem + ((NUM_COLS*(i / NUM_COLS) + (i % NUM_COLS)) << 1)) = ' ';
-			*(uint8_t *)(video_mem + ((NUM_COLS*(i / NUM_COLS) + (i % NUM_COLS)) << 1) + 1) = ATTRIB;
+			*(uint8_t *)(video_mem + ((NUM_COLS*(i / NUM_COLS) + (i % NUM_COLS)) << 1) + 1) = ((background_color << 4) + foreground_color);
 		}
 		screen_y = NUM_ROWS - 1;
 	}

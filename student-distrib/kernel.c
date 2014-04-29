@@ -26,6 +26,7 @@
 void
 entry (unsigned long magic, unsigned long addr)
 {
+
 	multiboot_info_t *mbi;
 
 	boot_block_t* boot_val = NULL;
@@ -165,29 +166,44 @@ entry (unsigned long magic, unsigned long addr)
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
 	 * PIC, any other initialization stuff... */
 
+	
+	set_colors(COLOR_LT_BLUE, COLOR_DK_GRAY);
 	clear();
 
+	puts("\n");
+	puts(" _________                                                            _________ ");	
+	puts("[_________]__________________________________________________________[_________]");
+	puts(" \\_______/____________________________________________________________\\_______/ ");
+	puts("  |     |         ___   ___                    ______                  |     |  ");
+	puts("  |     |        |   | |   | _____   ____     /  __  \\    ____         |     |  ");
+	puts("  |     |         \\  \\ /  / |  ___| /  __|   /  /  \\  \\  /  __|        |     |  ");
+	puts("  |     |          \\  V  /  | |_   |  /_    |  |    |  ||  /_          |     |  ");
+	puts("  |     |           |   |   |  _|   \\_  \\   |  |    |  | \\_  \\         |     |  ");
+	puts("  |     |           |   |   | |___  __/  |   \\  \\__/  /  __/  |        |     |  ");
+	puts("  |     |          |_____|  |_____||____/     \\______/  |____/         |     |  ");
+	puts("  |_____|______________________________________________________________|_____|  ");
+	puts(" /_______\\____________________________________________________________/_______\\ ");
+	puts("[_________]__________________________________________________________[_________]");
 
-	puts("--------------------------------Welcome to----------------------------------\n");
-	puts("YYY    YYY      EEEEEEEEEE       SSSSSSSSS                                  \n");
-	puts(" YY    YY       EE              SS                                          \n");
-	puts("  YY  YY        EE              SS                                          \n");
-	puts("    YY          EE              SS                                          \n");
-	puts("    YY          EEEEEE           SSSSSSSS          OOOOOOOO        SSSSSSSS \n");
-	puts("    YY          EE                      SS        OO      OO      SS        \n");
-	puts("    YY          EE                      SS        OO      OO       SSSSSSSS \n");
-	puts("    YY          EE                      SS        OO      OO              SS\n");
-	puts("    YY          EEEEEEEEEE      SSSSSSSSS     oo   OOOOOOOO       SSSSSSSSS \n");
-	puts("----------------------------------------------------------------------------\n");
+	set_colors(COLOR_GREEN,COLOR_LT_GREEN);
 
-	puts("Initializing subsystems\n");
+	screen_x = 0;
+	screen_y = NUM_ROWS-1;
+	update_cursor();
+	puts("\n");
 
-	/* Init the PIC */
+	screen_x = 0;
+	screen_y = NUM_ROWS-1;
+	update_cursor();
+	puts("Yes");
+	//puts("Initializing subsystems\n");
+
+	/* Init the PIC 
 	puts("    Initializing PIC... ");
 	i8259_init();
 	puts("done\n");
 
-	puts("    Installing Interrupts... ");
+	puts("    Initializing Interrupts... ");
 	install_interrupts();
 	puts("done\n");
 
@@ -217,10 +233,7 @@ entry (unsigned long magic, unsigned long addr)
 	term_open(NULL);
 	puts("done\n");
 
-	/* Enable interrupts */
-	/* Do not enable the following until after you have set up your
-	 * IDT correctly otherwise QEMU will triple fault and simple close
-	 * without showing you any output */
+	/* Enable interrupts 
 	puts("    Enabling Interrupts (STI)... ");
 	sti();
 	puts("done\n");
@@ -228,18 +241,18 @@ entry (unsigned long magic, unsigned long addr)
 	puts("\nWelcome!\n");
 	update_cursor();
 
-	/* Wait for keyboard to initialize, or we could get some funky results */
+	/* Wait for keyboard to initialize, or we could get some funky results 
 	while (!kbd_initialized);
 	puts("\n");
 
-	/* Ensure the filesystem actually is in memory before attempting to use it */
+	/* Ensure the filesystem actually is in memory before attempting to use it 
 	if(fs_pres){
-		/* Execute the first program (`shell') ... */
+		/* Execute the first program (`shell') ... 
 		sys_exec((uint8_t*)"shell");
 		puts("Shell exited successfully\n");
 	}
 
 	puts("Rebooting");
-	sleep(7000);    /* Wait for 7 seconds then reboot */
-	triple_fault();
+	sleep(7000);    /* Wait for 7 seconds then reboot 
+	triple_fault();*/
 }
