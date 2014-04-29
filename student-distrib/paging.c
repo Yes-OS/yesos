@@ -17,6 +17,9 @@ pt_t page_table __attribute__((aligned(PAGE_SIZE)));
 /* For user-level video memory */
 pt_t user_vid_mem_table __attribute__((aligned(PAGE_SIZE)));
 
+/* For fake video memory */
+pt_t fake_video_mem_table __attribute__((aligned(PAGE_SIZE)));
+
 /* define some actions to set/clear status bits */
 
 /* sets the 31 bit of CR0 */
@@ -27,7 +30,7 @@ pt_t user_vid_mem_table __attribute__((aligned(PAGE_SIZE)));
 				"movl    %%cr0, %%eax\n             \
 				 orl     $0x80000000, %%eax\n       \
 				 movl    %%eax, %%cr0"              \
-				: : : "eax", "cc", "memory"  \
+				: : : "eax", "cc", "memory"         \
 			);                                      \
 	} while (0)
 
@@ -39,7 +42,7 @@ pt_t user_vid_mem_table __attribute__((aligned(PAGE_SIZE)));
 				"movl    %%cr4, %%eax\n        \
 				 orl     $0x00000010, %%eax\n  \
 				 movl    %%eax, %%cr4"         \
-				: : : "eax", "cc"       \
+				: : : "eax", "cc"              \
 			);                                 \
 	} while (0)
 
@@ -51,7 +54,7 @@ pt_t user_vid_mem_table __attribute__((aligned(PAGE_SIZE)));
 				"movl    %%cr4, %%eax\n        \
 				 andl    $0xFFFFFFDF, %%eax\n  \
 				 movl    %%eax, %%cr4"         \
-				: : : "eax", "cc"       \
+				: : : "eax", "cc"              \
 			);                                 \
 	} while (0)
 
@@ -176,7 +179,40 @@ static void clear_page_table(pt_t* table)
 	}
 }
 
+static void map_fake_video_memory(vid_mem_t **video_mem)
+{
+	int32_t i;
+	int32_t start_addr;
 
+	if (!video_mem) {
+		return;
+	}
+
+	/* Start after kernel memory and memory allocated to processes */
+	start_addr = KERNEL_MEM + MB_4_OFFSET * (MAX_PROCESSES + 1);
+
+	pde_t temp_vid_dir = empty_dir_entry;
+	temp_vid_dir.present = 1;
+	temp_vid_dir.read_write = 1;
+	temp_vid_dir.user_supervisor = 1;
+	temp_vid_dir.pt_base_addr = PAGE_BASE_ADDR((uint32_t)&fake_video_mem_table);
+
+	page_directories[0].entry[PAGE_DIR_IDX(start_addr)] = temp_vid_dir;
+
+	clear_page_table(&fake_video_mem_table);
+	for (i = 0; i < MAX_PROCESSES; i++) {
+		pte_t temp_vid_page = empty_page_entry;
+
+		temp_vid_page.present = 1;
+		temp_vid_page.read_write = 1;
+		temp_vid_page.user_supervisor = 1;
+		temp_vid_page.page_base_addr = PAGE_BASE_ADDR(start_addr + SIZE_64K * i);
+
+		fake_video_mem_table.entry[PAGE_TABLE_IDX(start_addr + SIZE_64K * i)] = temp_vid_page;
+	}
+
+	*video_mem = (vid_mem_t *)start_addr;
+}
 
 /* installs the 4MB page for the kernel, and maps 64k of video memory */
 static void install_pages()
@@ -193,6 +229,8 @@ static void install_pages()
 			install_user_page(i);
 		}
 	}
+
+	map_fake_video_memory(&fake_video_mem);
 
 	/* set up registers */
 	clr_pae_flag();

@@ -24,6 +24,8 @@
 #define VGA_CURSOR_LOC_LOW	0x0F
 #define VGA_CURSOR_LOC_HIGH	0x0E
 
+#define SIZE_64K 0x10000
+
 /* c structs go here */
 #ifndef ASM
 
@@ -33,7 +35,7 @@
 
 typedef struct vid_mem {
 	/* 64 kb video memory */
-	uint8_t data[0x10000];
+	uint8_t data[SIZE_64K];
 } __attribute__((packed)) vid_mem_t;
 
 typedef struct screen {
@@ -51,6 +53,8 @@ typedef struct screen {
 extern int screen_x, screen_y;
 /* location of video memory in a flat segment */
 extern char *video_mem;
+
+extern vid_mem_t *fake_video_mem;
 
 
 /****************************************

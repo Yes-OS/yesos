@@ -8,6 +8,8 @@ int screen_x;
 int screen_y;
 char* video_mem = (char *)VIDEO;
 
+vid_mem_t *fake_video_mem;
+
 /* Sets the vga cursor to the specified position */
 void vga_cursor_set_location(uint8_t row, uint8_t col)
 {
@@ -41,7 +43,7 @@ void screen_clear(screen_t *screen)
 void screen_save(screen_t *screen)
 {
 	/* copy from video memory into our buffer */
-	memcpy(screen->video, (const void *)VIDEO, sizeof *screen->video);
+	memcpy(screen->video->data, (const void *)VIDEO, sizeof *screen->video->data);
 
 	/* save cursor positions */
 	screen->x = screen_x;
@@ -50,12 +52,8 @@ void screen_save(screen_t *screen)
 
 void screen_restore(screen_t *screen)
 {
-	int32_t i;
-
 	/* copy from our buffer to video memory */
-	for (i = 0; i < NUM_ROWS * NUM_COLS * 2; i++) {
-		*((uint8_t *)video_mem + i) = screen->video->data[i];
-	}
+	memcpy((void *)VIDEO, screen->video->data, sizeof *screen->video->data);
 
 	/* restore cursor position */
 	screen_x = screen->x;

@@ -121,10 +121,6 @@ typedef struct pt {
 
 extern pd_t page_directories[];
 
-/* forward declaration */
-typedef struct vid_mem vid_mem_t;
-extern vid_mem_t *user_vid_mem;
-
 
 /****************************************
  *           Macro Definitions          *
