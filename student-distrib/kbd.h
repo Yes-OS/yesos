@@ -87,6 +87,12 @@
 #define KBD_KEY_D_ARROW				0x122
 #define KBD_KEY_R_ARROW				0x123
 
+/* define function keys */
+#define KBD_KEY_F1					0x130
+#define KBD_KEY_F2					0x131
+#define KBD_KEY_F3					0x132
+#define KBD_KEY_F4					0x133
+
 #ifndef ASM
 
 

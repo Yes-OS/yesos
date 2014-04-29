@@ -2,8 +2,8 @@
  * vim:ts=4 sw=4 noexpandtab
  */
 
-/* 00 */'\0',				'\0',				'\0',				'\0',				'\0',				'\0',				'\0',				'\0',
-/* 08 */'\0',				'\0',				'\0',				'\0',				'\0',				'\0',				KBD_KEY_BTICK,		'\0',
+/* 00 */'\0',				'\0',				'\0',				'\0',				KBD_KEY_F3,			KBD_KEY_F1,			KBD_KEY_F2,				'\0',
+/* 08 */'\0',				'\0',				'\0',				'\0',				KBD_KEY_F4,				'\0',				KBD_KEY_BTICK,		'\0',
 /* 10 */'\0',				KBD_KEY_LALT,		KBD_KEY_LSHIFT,		'\0',				KBD_KEY_LCTRL,		KBD_KEY_Q,			KBD_KEY_1,			'\0',
 /* 18 */'\0',				'\0',				KBD_KEY_Z,			KBD_KEY_S,			KBD_KEY_A,			KBD_KEY_W,			KBD_KEY_2,			'\0',
 /* 20 */'\0',				KBD_KEY_C,			KBD_KEY_X,			KBD_KEY_D,			KBD_KEY_E,			KBD_KEY_4,			KBD_KEY_3,			'\0',
