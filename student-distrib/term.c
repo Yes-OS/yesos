@@ -31,7 +31,12 @@ int8_t lctrl_held = 0;
 int8_t rctrl_held = 0;
 int8_t lshift_held = 0;
 int8_t rshift_held = 0;
+int8_t lalt_held = 0;
+int8_t ralt_held = 0;
 int8_t caps_lock = 0;
+
+/* current terminal number */
+int8_t terminal_num = 0;
 
 uint32_t chars_since_enter = 0;
 
@@ -90,7 +95,12 @@ int32_t term_open(const uint8_t *filename)
 	rctrl_held = 0;
 	lshift_held = 0;
 	rshift_held = 0;
+	lalt_held = 0;
+	ralt_held = 0;
 	caps_lock = 0;
+
+	/* Set the current terminal number */
+	terminal_num = 0;
 
 	chars_since_enter = 0;
 
@@ -188,6 +198,33 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 				sys_halt(-1);
 			}
 		}
+		if ((lalt_held || ralt_held) && (key >= KBD_KEY_F1 && key <= KBD_KEY_F4)) {
+			/* Get the value of the  new terminal */
+			int8_t new_terminal_num = key - KBD_KEY_F1;
+
+			/* If the new terminal is the same, do not switch. */
+			if (new_terminal_num == terminal_num) {
+				return;
+			}
+
+			/* Copy current terminal's video memory into its fake video memory. */
+
+			/* Tell the current terminal that it's video memory has been relocated */
+
+			/* Store the input information for that terminal. (Keyboard buffer) */
+
+
+			/* Check to see if new terminal has video memory to copy. */
+
+			/* If not, create a blank screen for the new terminal. */
+
+			/* Check to see if new terminal has any input information to load. (Keyboard buffer) */
+
+
+			/* Set the terminal number to the new terminal. */
+			terminal_num = new_terminal_num;
+			return;
+		}
 		switch (key) {
 			case KBD_KEY_LCTRL:
 				lctrl_held = 1;
@@ -200,6 +237,12 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 				break;
 			case KBD_KEY_RSHIFT:
 				rshift_held = 1;
+				break;
+			case KBD_KEY_LALT:
+				lalt_held = 1;
+				break;
+			case KBD_KEY_RALT:
+				ralt_held = 1;
 				break;
 			case KBD_KEY_CAPS:
 				caps_lock ^= 1;
@@ -258,6 +301,12 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 				break;
 			case KBD_KEY_RSHIFT:
 				rshift_held = 0;
+				break;
+			case KBD_KEY_LALT:
+				lalt_held = 0;
+				break;
+			case KBD_KEY_RALT:
+				ralt_held = 0;
 				break;
 			default:
 				break;
