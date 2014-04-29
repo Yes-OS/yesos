@@ -30,8 +30,8 @@ void screen_clear(screen_t *screen)
 
 	/* clear video memory */
 	for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
-		screen->data[(i << 1)] = ' ';
-		screen->data[(i << 1) + 1] = ATTRIB;
+		screen->video->data[(i << 1)] = ' ';
+		screen->video->data[(i << 1) + 1] = ATTRIB;
 	}
 
 	/* reset cursor position */
@@ -40,12 +40,8 @@ void screen_clear(screen_t *screen)
 
 void screen_save(screen_t *screen)
 {
-	int32_t i;
-
 	/* copy from video memory into our buffer */
-	for (i = 0; i < NUM_ROWS * NUM_COLS * 2; i++) {
-		screen->data[i] = *((uint8_t *)video_mem + i);
-	}
+	memcpy(screen->video, (const void *)VIDEO, sizeof *screen->video);
 
 	/* save cursor positions */
 	screen->x = screen_x;
@@ -58,7 +54,7 @@ void screen_restore(screen_t *screen)
 
 	/* copy from our buffer to video memory */
 	for (i = 0; i < NUM_ROWS * NUM_COLS * 2; i++) {
-		*((uint8_t *)video_mem + i) = screen->data[i];
+		*((uint8_t *)video_mem + i) = screen->video->data[i];
 	}
 
 	/* restore cursor position */

@@ -6,6 +6,10 @@
 
 #include "types.h"
 
+/****************************************
+ *            Global Defines            *
+ ****************************************/
+
 /* General constants related to video memory */
 #define NUM_COLS 80
 #define NUM_ROWS 25
@@ -23,16 +27,35 @@
 /* c structs go here */
 #ifndef ASM
 
+/****************************************
+ *              Data Types              *
+ ****************************************/
+
+typedef struct vid_mem {
+	/* 64 kb video memory */
+	uint8_t data[0x10000];
+} __attribute__((packed)) vid_mem_t;
+
 typedef struct screen {
-	uint8_t data[NUM_ROWS * NUM_COLS * 2];
+	vid_mem_t *video;
 	uint8_t x;
 	uint8_t y;
 } screen_t;
+
+
+/****************************************
+ *           Global Variables           *
+ ****************************************/
 
 /* location of soft cursor on the screen */
 extern int screen_x, screen_y;
 /* location of video memory in a flat segment */
 extern char *video_mem;
+
+
+/****************************************
+ *         Function Declarations        *
+ ****************************************/
 
 void vga_cursor_set_location(uint8_t row, uint8_t col);
 void update_cursor(void);

@@ -36,6 +36,19 @@
 #define PAGE_BASE_ADDR(addr)        (((addr) & PAGE_BASE_MASK) >> 12)
 #define PAGE_BASE_ADDR_4MB(addr)    (((addr) & PAGE_BASE_MASK) >> 22)
 
+/* bitfield defines for paging flags */
+#define PG_PRESENT     (1 << 1)
+#define PG_WRITE       (1 << 2)
+#define PG_SUPER       (1 << 3)
+#define PG_WRITETHRU   (1 << 4)
+#define PG_NOCACHE     (1 << 5)
+#define PG_ACCESSED    (1 << 6)
+#define PG_DIRTY       (1 << 7)
+#define PG_SIZE_4MB    (1 << 8)
+#define PG_GLOBAL      (1 << 9)
+#define PG_PT_ATTR_IDX (1 << 10)
+
+
 #ifndef ASM
 
 /****************************************
@@ -107,6 +120,10 @@ typedef struct pt {
  ****************************************/
 
 extern pd_t page_directories[];
+
+/* forward declaration */
+typedef struct vid_mem vid_mem_t;
+extern vid_mem_t *user_vid_mem;
 
 
 /****************************************

@@ -15,7 +15,7 @@ pd_t page_directories[MAX_PROCESSES + 1] __attribute__((aligned(PAGE_SIZE)));
 pt_t page_table __attribute__((aligned(PAGE_SIZE)));
 
 /* For user-level video memory */
-pt_t user_vid_mem __attribute__((aligned(PAGE_SIZE)));
+pt_t user_vid_mem_table __attribute__((aligned(PAGE_SIZE)));
 
 /* define some actions to set/clear status bits */
 
@@ -130,7 +130,7 @@ void install_user_vid_mem(uint32_t index)
 	vid_mem_dir.present = 1;
 	vid_mem_dir.read_write = 1;
 	vid_mem_dir.user_supervisor = 1;
-	vid_mem_dir.pt_base_addr = PAGE_BASE_ADDR((uint32_t)&user_vid_mem);
+	vid_mem_dir.pt_base_addr = PAGE_BASE_ADDR((uint32_t)&user_vid_mem_table);
 
 	page_directories[index].entry[PAGE_DIR_IDX(USER_VID)] = vid_mem_dir;
 
@@ -142,7 +142,7 @@ void install_user_vid_mem(uint32_t index)
 		video_mem_temp.user_supervisor = 1;
 		/* every 4kb page */
 		video_mem_temp.page_base_addr = PAGE_BASE_ADDR(VIDEO + i * 0x1000);
-		user_vid_mem.entry[PAGE_TABLE_IDX(USER_VID + i * 0x1000)] = video_mem_temp;
+		user_vid_mem_table.entry[PAGE_TABLE_IDX(USER_VID + i * 0x1000)] = video_mem_temp;
 	}
 }
 
