@@ -22,7 +22,7 @@ void init_sched(void);
 uint32_t add_proc_to_sched(uint32_t pid);
 
 /*Process finished. Remove it from the sched completely*/
-uint32_t remove_proc_from_sched(void);
+uint32_t remove_active_from_sched(void);
 
 /*Move process from active queue to expired queue*/
 uint32_t active_to_expired(uint32_t pid);

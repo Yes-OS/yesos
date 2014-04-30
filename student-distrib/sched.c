@@ -39,11 +39,13 @@ uint32_t add_proc_to_sched(uint32_t pid)
 /* Process finished. 
  * Remove it from the scheduler completely
  */
-uint32_t remove_proc_from_sched(void)
+uint32_t remove_active_from_sched(void)
 {
 	uint32_t ok, temp;
 	
 	CIRC_BUF_POP(*active_queue, temp, ok);
+	/* we don't actually use the value */
+	(void)temp;
 	
 	if(!ok) {
 		return -1;
