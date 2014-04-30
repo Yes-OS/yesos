@@ -13,6 +13,7 @@
 #define SLAVE_8259_PORT  0xA0
 
 /*IRQ device ports*/
+#define PIT_IRQ_PORT  0x00
 #define KBD_IRQ_PORT	0x01
 #define RTC_IRQ_PORT	0x08
 

@@ -8,6 +8,7 @@
 #include "i8259.h"
 #include "debug.h"
 #include "isr.h"
+#include "pit.h"
 #include "rtc.h"
 #include "kbd.h"
 #include "paging.h"
@@ -185,6 +186,12 @@ entry (unsigned long magic, unsigned long addr)
 	puts("    Installing Interrupts... ");
 	install_interrupts();
 	puts("done\n");
+
+  puts("    Initializing PIT... ");
+	pit_init();
+	enable_irq(PIT_IRQ_PORT);
+	puts("done\n");
+
 
 	puts("    Initializing RTC... ");
 	rtc_init();

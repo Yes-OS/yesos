@@ -9,6 +9,7 @@
 #include "types.h"
 #include "kbd.h"
 #include "rtc.h"
+#include "pit.h"
 #include "paging.h"
 #include "syscall.h"
 #include "proc.h"
@@ -210,7 +211,6 @@ void isr_impl(registers_t regs)
 		 * NOTE: These generally shouldn't be reached, since their respective lines will be masked
 		 *       the PIC.
 		 */
-		case IRQ0:
 		case IRQ2:
 		case IRQ3:
 		case IRQ4:
@@ -227,6 +227,15 @@ void isr_impl(registers_t regs)
 			printf("Unhandled IRQ(%d)\n", regs.isrno - IRQ_START);
 			send_eoi(regs.isrno - IRQ_START);
 			break;
+    
+    /*handle PIT interrupt*/
+    case IRQ_PIT:
+      /* mask the interrupt and immediately send EOI so we can service other interrupts */
+      disable_irq(PIT_IRQ_PORT);
+      send_eoi(PIT_IRQ_PORT);
+      pit_handle_interrupt();
+      enable_irq(PIT_IRQ_PORT);
+      break;
 
 		/* handle the keyboard interrupt */
 		case IRQ_KBD:
