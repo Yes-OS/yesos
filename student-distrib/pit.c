@@ -24,9 +24,7 @@ void pit_init(void)
 /*Interrupt handler for the PIT*/
 void pit_handle_interrupt(void)
 {
-  printf("PIT Interrupt occured");
-
-  /*context switch*/
+  /*context switching*/
 
   /*reset PIT counter*/
   pit_set_count();
