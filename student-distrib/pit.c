@@ -43,7 +43,7 @@ void pit_handle_interrupt(void)
 	else {
 		ok = active_to_expired();
 	}
-	
+
 	if (sched_flags.relaunch) {
 		/* When top shell is exited, must reboot */
 		sched_flags.relaunch = 0;
@@ -67,7 +67,6 @@ void pit_set_count(void)
 	 */
 	outb(SCHED_FREQ_LO, CHAN0_PORT);
 	outb(SCHED_FREQ_HI, CHAN0_PORT);
-  
 }
 
 /* Filler right now

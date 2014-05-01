@@ -6,9 +6,12 @@
 #ifndef _PIT_H
 #define _PIT_H
 
+/****************************************
+ *            Global Defines            *
+ ****************************************/
 
 /*Ports used for PIT initialization*/
-#define CHAN0_PORT   0x40
+#define CHAN0_PORT    0x40
 #define MODE_CMD_PORT 0x43
 
 /*0011 1000
@@ -26,8 +29,16 @@
 #define SCHED_FREQ_LO 0x38
 #define SCHED_FREQ_HI 0x5D
 
+#ifndef ASM
+
+/****************************************
+ *         Function Declarations        *
+ ****************************************/
+
 void pit_init(void);
 void pit_handle_interrupt(void);
+
+#endif
 
 #endif /* _PIT_H */
 

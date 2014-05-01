@@ -192,15 +192,15 @@ int32_t sys_exec(const uint8_t *command)
 		if (nprocs > 1) {
 			pcb->parent = get_proc_pcb();
 		}
-		
+
 		/* Add the process to the schedule queue */
-		if (!pcb->parent) { 
+		if (!pcb->parent) {
 			/* Parent process launched, push to active */
 			ok = push_to_active(pcb->pid);
 		}
 		else {
 			/* Child launched, Mark parent for removal from scheduling */
-			sched_flags.isZombie = 1; 
+			sched_flags.isZombie = 1;
 			ok = push_to_expired(pcb->pid);
 		}
 
