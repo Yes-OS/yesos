@@ -43,6 +43,8 @@ struct fops;
 typedef struct fops fops_t;
 extern fops_t term_fops;
 
+extern int8_t terminal_num;
+
 #endif
 
 #endif

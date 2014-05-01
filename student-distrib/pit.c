@@ -9,6 +9,7 @@
 #include "isr.h"
 #include "sched.h"
 #include "syscall.h"
+#include "term.h"
 
 /* Static helper functions */
 static void pit_set_count(void);
@@ -73,6 +74,16 @@ void pit_set_count(void)
  */
 void context_switch(void)
 {
-	puts("BAM!");
+	int x = screen_x;
+	int y = screen_y;
+	screen_x = NUM_COLS-8;
+	screen_y = NUM_ROWS-1;
+	update_cursor();
+
+	printf("TERM: %d", terminal_num);
+
+	screen_x = x;
+	screen_y = y;
+	update_cursor();
 	return;
 }
