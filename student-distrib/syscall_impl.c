@@ -10,6 +10,7 @@
 #include "x86_desc.h"
 #include "paging.h"
 #include "rtc.h"
+#include "sched.h"
 
 #define MAX_CMD_LEN 33
 
@@ -99,6 +100,7 @@ int32_t sys_exec(const uint8_t *command)
 	uint32_t user_esp;
 	pcb_t *pcb;
 	dentry_t dentry;
+	uint8_t ok = 0; /* error flag for sched funcs */
 
 	for (i = 0, c = command; *c == (uint8_t)' '; i++, c++) {
 		/* skip beginning spaces */
@@ -165,6 +167,17 @@ int32_t sys_exec(const uint8_t *command)
 			pcb->file_array[0] = file;
 			pcb->file_array[1] = file;
 		}
+		
+		/* Add the process to the schedule queue */
+		if (!pcb->parent) { 
+			/* Parent process launched, push to active */
+			ok = push_to_active(pcb->pid);
+		}
+		else {
+			/* Child launched, Mark parent for removal from scheduling */
+			sched_flags.isZombie = 1; 
+			ok = push_to_expired(pcb->pid);
+		}
 
 		tss.ss0 = KERNEL_DS;
 		tss.esp0 = kern_esp;
@@ -211,10 +224,26 @@ out:
 
 int32_t sys_halt(uint8_t status)
 {
+	uint32_t flags;	
+	cli_and_save(flags);
+	
 	nprocs--;
 	pcb_t *pcb = get_proc_pcb();
+	uint8_t ok = 0; /* error flag for sched funcs */
+	
+	/* Remove the process from the schedule queue */
+	if (!pcb->parent) {
+		/* halting parent shell, set for shell relaunch */
+		sched_flags.relaunch = 1;
+	}
+	else {
+		/* halting child, set for removal */
+		sched_flags.isZombie = 1;
+		ok = push_to_expired(pcb->parent->pid);
+	}
+	
 	if (nprocs > 0) {
-		/* We're still runnin a user process */
+		/* We're still running a user process */
 		pcb->parent_regs->eax = (int32_t)status;
 		set_pdbr(pcb->parent->page_directory);
 		tss.ss0 = KERNEL_DS;
@@ -238,6 +267,8 @@ int32_t sys_halt(uint8_t status)
 			"jmp exit_syscall"
 			: : "g"(pcb->parent_regs)
 			: "cc", "memory");
+
+	restore_flags(flags);
 	return 0;
 }
 

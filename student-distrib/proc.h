@@ -56,6 +56,9 @@ typedef int32_t read_t(int32_t fd, void *buf, int32_t nbytes);
 typedef int32_t write_t(int32_t fd, const void *buf, int32_t nbytes);
 typedef int32_t close_t(int32_t fd);
 
+/* Table for the file operations
+ * Generic
+ */
 typedef struct fops {
 	read_t *read;
 	write_t *write;

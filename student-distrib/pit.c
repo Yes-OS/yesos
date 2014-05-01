@@ -6,39 +6,73 @@
 #include "lib.h"
 #include "types.h"
 #include "i8259.h"
+#include "isr.h"
+#include "sched.h"
+#include "syscall.h"
 
-/*Static helper functions*/
+/* Static helper functions */
 static void pit_set_count(void);
+static void context_switch(void);
 
-/*Initialization of the PIT*/
+/* Initialization of the PIT */
 void pit_init(void)
 {
-  /*Set Initialization Command Number*/
-  outb(INIT_CMD, MODE_CMD_PORT);
+	/* Set Initialization Command Number */
+	outb(INIT_CMD, MODE_CMD_PORT);
 
-  /*Set PIT counter value*/
-  pit_set_count();
+	/* Set PIT counter value*/
+	pit_set_count();
 
 }
 
-/*Interrupt handler for the PIT*/
+/* Interrupt handler for the PIT*/
 void pit_handle_interrupt(void)
 {
-  /*context switching*/
+	uint8_t ok = 0; /* error flag for sched funcs */
 
-  /*reset PIT counter*/
-  pit_set_count();
+	/* context switching */
+	context_switch();
+
+	/* Update Scheduling queues */
+	if (sched_flags.isZombie){
+		/* Remove and discard from active queue */
+		ok = remove_active_from_sched();
+		sched_flags.isZombie = 0;
+	}
+	else {
+		ok = active_to_expired();
+	}
+	
+	if (sched_flags.relaunch) {
+		/* When top shell is exited, must reboot */
+		sched_flags.relaunch = 0;
+		sys_exec((uint8_t*)"shell"); /* CAN I DO DIS? */
+	}
+
+	if (CIRC_BUF_EMPTY(*active_queue)) {
+		swap_queues();
+	}
+
+	/* reset PIT counter */
+	pit_set_count();
 
 }
 
-/*set the count value for the PIT*/
+/* set the count value for the PIT */
 void pit_set_count(void)
 {
-  /*Set the frequency to the desired time-slice for scheduling
-   *Sends LO and HI bytes by convention
-   */
-  outb(SCHED_FREQ_LO, CHAN0_PORT);
-  outb(SCHED_FREQ_HI, CHAN0_PORT);
+	/* Set the frequency to the desired time-slice for scheduling
+	 * Sends LO and HI bytes by convention
+	 */
+	outb(SCHED_FREQ_LO, CHAN0_PORT);
+	outb(SCHED_FREQ_HI, CHAN0_PORT);
   
 }
 
+/* Filler right now
+ */
+void context_switch(void)
+{
+	puts("BAM!");
+	return;
+}
