@@ -110,6 +110,9 @@ typedef struct pcb
 	/*Parent State*/
 	registers_t *parent_regs;
 
+	/* Location of video memory */
+	uint32_t video_memory;
+
 } pcb_t;
 
 

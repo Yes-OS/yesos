@@ -93,6 +93,9 @@
 #define KBD_KEY_F3					0x132
 #define KBD_KEY_F4					0x133
 
+/* define other keys */
+ #define KBD_KEY_DEL				0x140
+
 #ifndef ASM
 
 

@@ -161,6 +161,9 @@ int32_t sys_exec(const uint8_t *command)
 		kern_esp = (KERNEL_MEM + MB_4_OFFSET - USER_STACK_SIZE * pid - 1) & 0xFFFFFFFC;
 		user_esp = (USER_MEM + MB_4_OFFSET - 1) & 0xFFFFFFFC;
 
+		/*
+		video_memory = 
+
 		/* obtain and initialize the PCB, 0xFFFFE000 */
 		pcb = (pcb_t *)(kern_esp & 0xFFFFE000);
 		memset(pcb, 0, sizeof(*pcb));
@@ -168,6 +171,10 @@ int32_t sys_exec(const uint8_t *command)
 		pcb->kern_stack = kern_esp;
 		pcb->user_stack = user_esp;
 		pcb->page_directory = &page_directories[pcb->pid];
+
+		/* Initialize video memory pointer */
+		pcb->video_memory = KERNEL_MEM + MB_4_OFFSET * (MAX_PROCESSES + 1 - pid);							//!!!!
+
 		/* XXX: Save old state */
 		pcb->parent_regs = (registers_t *)&command;
 

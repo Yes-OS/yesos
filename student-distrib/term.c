@@ -190,7 +190,8 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 			CIRC_BUF_PUSH(term_key_buf, KBD_KEY_NULL, ok);
 			return;
 		}
-		if ((lctrl_held || rctrl_held) && key == KBD_KEY_C) {
+		if ( ((lctrl_held || rctrl_held) && key == KBD_KEY_C) || 
+			((lctrl_held || rctrl_held) && (lalt_held || ralt_held) && key == KBD_KEY_DEL) ) {
 			/* kill a process, should be replaced later by signals */
 			if (nprocs > 0) {
 				/* XXX: AWFUL HACK */
