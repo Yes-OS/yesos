@@ -17,6 +17,7 @@
 #include "file_sys.h"
 #include "testing.h"
 #include "syscall.h"
+#include "sched.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -213,6 +214,10 @@ entry (unsigned long magic, unsigned long addr)
 
 	puts("    Initializing Terminal...");
 	term_open(NULL);
+	puts("done\n");
+
+	puts("    Initializing Scheduling...");
+	init_sched();
 	puts("done\n");
 
 	/* Enable interrupts */
