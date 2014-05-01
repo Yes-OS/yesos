@@ -161,9 +161,6 @@ int32_t sys_exec(const uint8_t *command)
 		kern_esp = (KERNEL_MEM + MB_4_OFFSET - USER_STACK_SIZE * pid - 1) & 0xFFFFFFFC;
 		user_esp = (USER_MEM + MB_4_OFFSET - 1) & 0xFFFFFFFC;
 
-		/*
-		video_memory = 
-
 		/* obtain and initialize the PCB, 0xFFFFE000 */
 		pcb = (pcb_t *)(kern_esp & 0xFFFFE000);
 		memset(pcb, 0, sizeof(*pcb));
@@ -173,7 +170,7 @@ int32_t sys_exec(const uint8_t *command)
 		pcb->page_directory = &page_directories[pcb->pid];
 
 		/* Initialize video memory pointer */
-		pcb->video_memory = KERNEL_MEM + MB_4_OFFSET * (MAX_PROCESSES + 1 - pid);							//!!!!
+		pcb->screen.video = get_proc_fake_vid_mem();
 
 		/* XXX: Save old state */
 		pcb->parent_regs = (registers_t *)&command;
@@ -253,11 +250,13 @@ out:
 
 int32_t sys_halt(uint8_t status)
 {
+	cli();
+
 	nprocs--;
 	pcb_t *pcb = get_proc_pcb();
 	free_pid(pcb->pid);
 
-	if (nprocs > 0) {
+	if (pcb->parent) {
 		/* We're still runnin a user process */
 		pcb->parent_regs->eax = (int32_t)status;
 		set_pdbr(pcb->parent->page_directory);
@@ -273,7 +272,7 @@ int32_t sys_halt(uint8_t status)
 		asm volatile (
 				"movl %0, %%esp\n"
 				"addl $-4, %%esp\n"
-				"sti\n" /* fuq tha polic */
+				"sti\n" /* needed or things break sometimes */
 				"ret"
 				: : "g"(pcb->parent_regs)
 				: "cc", "memory");
@@ -305,12 +304,15 @@ int32_t sys_getargs(uint8_t *buf, int32_t nbytes)
 
 int32_t sys_vidmap(uint8_t **screen_start)
 {
+	pcb_t *pcb;
 	if (screen_start < (uint8_t **)USER_MEM
 			|| screen_start >= (uint8_t **)(USER_MEM + MB_4_OFFSET)) {
 		return -1;
 	}
 
-	install_user_vid_mem(get_proc_pcb()->pid);
+	pcb = get_proc_pcb();
+	install_user_vid_mem(pcb->page_directory);
+	pcb->has_video_mapped = 1;
 
 	*screen_start = (uint8_t *)USER_VID;
 

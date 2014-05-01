@@ -82,6 +82,61 @@ static const int8_t key_values[2][128] = {
 	},
 };
 
+
+/* implementation of putc that uses information from a screen_t, so processes
+ * can print to the screen even when their video memory's not active */
+static void term_putc(screen_t *screen, uint8_t c)
+{
+	uint8_t *video_mem;
+	uint8_t screen_x, screen_y;
+	int16_t i;
+
+	/* set values from the screen struct */
+	video_mem = screen->video->data;
+	screen_x = screen->x;
+	screen_y = screen->y;
+
+    if(c == '\n' || c == '\r') {
+        screen_y++;
+        screen_x=0;
+	} else if (c == '\b') {
+		/* handle backspace */
+		screen_x--;
+		if (screen_x < 0) {
+			/* wrap backwards */
+			screen_x = NUM_COLS-1;
+			screen_y--;
+		}
+		/* clear the character */
+		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = ' ';
+		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
+	} else {
+		if (c == '\0') {
+			return;
+		}
+		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = c;
+		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
+		screen_x++;
+		screen_y = screen_y + (screen_x / NUM_COLS);
+		screen_x %= NUM_COLS;
+	}
+	if (screen_y >= NUM_ROWS) {
+		/* shift screen up */
+		for (i = 0; i < (NUM_ROWS - 1) * NUM_COLS; i++) {
+			*(uint8_t *)(video_mem + ((NUM_COLS*(i / NUM_COLS) + (i % NUM_COLS)) << 1)) =
+				*(uint8_t *)(video_mem + ((NUM_COLS*(i / NUM_COLS + 1) + (i % NUM_COLS)) << 1));
+			*(uint8_t *)(video_mem + ((NUM_COLS*(i / NUM_COLS) + (i % NUM_COLS)) << 1) + 1) =
+				*(uint8_t *)(video_mem + ((NUM_COLS*(i / NUM_COLS + 1) + (i % NUM_COLS)) << 1) + 1);
+		}
+		/* clear last row */
+		for (i = (NUM_ROWS - 1) * NUM_COLS; i < NUM_ROWS * NUM_COLS; i++) {
+			*(uint8_t *)(video_mem + ((NUM_COLS*(i / NUM_COLS) + (i % NUM_COLS)) << 1)) = ' ';
+			*(uint8_t *)(video_mem + ((NUM_COLS*(i / NUM_COLS) + (i % NUM_COLS)) << 1) + 1) = ATTRIB;
+		}
+		screen_y = NUM_ROWS - 1;
+	}
+}
+
 /* open terminal fd, returns STDIN */
 int32_t term_open(const uint8_t *filename)
 {
@@ -161,13 +216,19 @@ int32_t term_read(int32_t fd, void *buf, int32_t nbytes)
 int32_t term_write(int32_t fd, const void *buf, int32_t nbytes)
 {
 	int idx;
+	pcb_t *pcb;
 
 	if (fd != STDOUT) {
 		return -1;
 	}
 
+	pcb = get_proc_pcb();
+	if (!pcb) {
+		return -1;
+	}
+
 	for (idx = 0; idx < nbytes; idx++) {
-		putc(((int8_t *)buf)[idx]);
+		term_putc(&pcb->screen, ((int8_t *)buf)[idx]);
 	}
 
 	update_cursor();

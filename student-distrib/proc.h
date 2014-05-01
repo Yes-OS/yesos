@@ -7,6 +7,7 @@
 
 #include "isr.h"
 #include "paging.h"
+#include "vga.h"
 
 #define asm __asm
 
@@ -102,17 +103,19 @@ typedef struct pcb
 	uint8_t cmd_args[MAX_ARGS_LEN + 1];
 
 	/*Page table*/
-	pd_t * page_directory;
+	pd_t *page_directory;
 
 	/*Process Parent*/
-	struct pcb * parent;
+	struct pcb *parent;
 
 	/*Parent State*/
 	registers_t *parent_regs;
 
-	/* Location of video memory */
-	uint32_t video_memory;
+	/* stores video memory state */
+	screen_t screen;
 
+	/* flag denotes whether process has mapped video memory */
+	int8_t has_video_mapped;
 } pcb_t;
 
 
@@ -137,6 +140,12 @@ static inline pcb_t *get_proc_pcb()
 			: "=r"(pcb)
 			:
 			: "memory");
+
+	/* check if we're running as the kernel pre-execute first shell */
+	if (KERNEL_MEM + MB_4_OFFSET - USER_STACK_SIZE < pcb && pcb < KERNEL_MEM + MB_4_OFFSET) {
+		return NULL;
+	}
+
 	return (pcb_t *)pcb;
 }
 
@@ -203,6 +212,18 @@ static inline int32_t get_first_free_pid()
 static inline void free_pid(int32_t pid)
 {
 	proc_bitmap &= ~(1<<pid);
+}
+
+static inline vid_mem_t *get_proc_fake_vid_mem()
+{
+	pcb_t *pcb;
+
+	pcb = get_proc_pcb();
+	if (!pcb) {
+		return NULL;
+	}
+
+	return fake_video_mem + pcb->pid - 1;
 }
 
 #endif

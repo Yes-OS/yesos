@@ -153,7 +153,9 @@ extern pd_t page_directories[];
 
 /*Initialize paging*/
 void paging_init(void);
-void install_user_vid_mem(uint32_t index);
+void install_user_vid_mem(pd_t *page_directory);
+int32_t switch_to_fake_video_memory();
+int32_t switch_from_fake_video_memory();
 
 #endif
 
