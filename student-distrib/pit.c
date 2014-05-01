@@ -23,7 +23,6 @@ void pit_init(void)
 
 	/* Set PIT counter value*/
 	pit_set_count();
-
 }
 
 /* Interrupt handler for the PIT*/
@@ -44,11 +43,14 @@ void pit_handle_interrupt(void)
 		ok = active_to_expired();
 	}
 
+#if 0
+	/* No, you can't */
 	if (sched_flags.relaunch) {
 		/* When top shell is exited, must reboot */
 		sched_flags.relaunch = 0;
 		sys_exec((uint8_t*)"shell"); /* CAN I DO DIS? */
 	}
+#endif
 
 	if (CIRC_BUF_EMPTY(*active_queue)) {
 		swap_queues();
@@ -56,7 +58,6 @@ void pit_handle_interrupt(void)
 
 	/* reset PIT counter */
 	pit_set_count();
-
 }
 
 /* set the count value for the PIT */
@@ -73,6 +74,7 @@ void pit_set_count(void)
  */
 void context_switch(void)
 {
+	/* This won't actually work as we expect it to */
 	int x = screen_x;
 	int y = screen_y;
 	screen_x = NUM_COLS-8;

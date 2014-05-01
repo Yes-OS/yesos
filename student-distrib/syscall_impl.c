@@ -188,10 +188,9 @@ int32_t sys_exec(const uint8_t *command)
 		/* strncpy doesn't set last char to NULL if full length is read */
 		pcb->cmd_args[MAX_ARGS_LEN] = '\0';
 
-		/* store parent pcb if called from a process */
-		if (nprocs > 1) {
-			pcb->parent = get_proc_pcb();
-		}
+		/* store parent pcb if called from a process, will be null if called
+		 * from the kernel */
+		pcb->parent = get_proc_pcb();
 
 		/* Add the process to the schedule queue */
 		if (!pcb->parent) {
