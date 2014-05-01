@@ -435,9 +435,9 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 				break;
 		}
 	}
-	if (screen == &kern_screen) {
-		screen_x = screen->x;
-		screen_y = screen->y;
-	}
+
+	/* updates current global cursor, need to make sure we only print to current terminal */
+	screen_x = screen->x;
+	screen_y = screen->y;
 }
 
