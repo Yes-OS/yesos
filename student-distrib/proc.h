@@ -5,9 +5,11 @@
 #ifndef _PROC_H_
 #define _PROC_H_
 
-#include "isr.h"
-#include "paging.h"
+#include "types.h"
 #include "vga.h"
+#include "paging.h"
+#include "isr.h"
+#include "term.h"
 
 #define asm __asm
 
@@ -116,6 +118,9 @@ typedef struct pcb
 
 	/* flag denotes whether process has mapped video memory */
 	int8_t has_video_mapped;
+
+	/* terminal keyboard buffer */
+	term_t term_ctx;
 } pcb_t;
 
 

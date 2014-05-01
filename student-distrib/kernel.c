@@ -214,7 +214,7 @@ entry (unsigned long magic, unsigned long addr)
 	puts("done\n");
 
 	puts("    Initializing Terminal...");
-	term_open(NULL);
+	(void)term_init_global_ctx();
 	puts("done\n");
 
 	/* Enable interrupts */

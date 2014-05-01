@@ -191,17 +191,8 @@ int32_t sys_exec(const uint8_t *command)
 			pcb->parent = get_proc_pcb();
 		}
 
-		{
-			/* set up stdin/stdio fds */
-			file_t file;
-			file.flags = FILE_PRESENT | FILE_OPEN;
-			file.file_op = &term_fops;
-			file.file_pos = 0;
-			file.inode_ptr = 0;
-
-			pcb->file_array[0] = file;
-			pcb->file_array[1] = file;
-		}
+		/* set up the terminal driver */
+		term_fops.open(NULL);
 
 		tss.ss0 = KERNEL_DS;
 		tss.esp0 = kern_esp;
