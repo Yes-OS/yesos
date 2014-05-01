@@ -29,6 +29,7 @@
 		: "memory", "cc", "eax")
 
 uint8_t nprocs = 0;
+uint32_t proc_bitmap = 0;
 
 int32_t sys_open(const uint8_t *filename)
 {
@@ -117,6 +118,7 @@ int32_t sys_exec(const uint8_t *command)
 	uint32_t old_pdbr;
 	uint32_t kern_esp;
 	uint32_t user_esp;
+	int32_t pid;
 	pcb_t *pcb;
 	dentry_t dentry;
 	uint8_t ok = 0; /* error flag for sched funcs */
@@ -150,18 +152,28 @@ int32_t sys_exec(const uint8_t *command)
 		/* increase our process counter */
 		nprocs++;
 
+		/* Get first free pid, if none are available, call pid_fail */
+		pid = get_first_free_pid();
+		if(pid == -1) {
+			goto pid_fail;
+		}
+
 		/* calculate location of bottom of process's stack */
-		/* 0xFFFFFFFC aligns to a 16-byte boundary */
-		kern_esp = (KERNEL_MEM + MB_4_OFFSET - USER_STACK_SIZE * nprocs - 1) & 0xFFFFFFFC;
+		/* 0xFFFFFFFC aligns to a 4-byte boundary */
+		kern_esp = (KERNEL_MEM + MB_4_OFFSET - USER_STACK_SIZE * pid - 1) & 0xFFFFFFFC;
 		user_esp = (USER_MEM + MB_4_OFFSET - 1) & 0xFFFFFFFC;
 
 		/* obtain and initialize the PCB, 0xFFFFE000 */
 		pcb = (pcb_t *)(kern_esp & 0xFFFFE000);
 		memset(pcb, 0, sizeof(*pcb));
-		pcb->pid = nprocs;
+		pcb->pid = pid;
 		pcb->kern_stack = kern_esp;
 		pcb->user_stack = user_esp;
-		pcb->page_directory = &page_directories[nprocs];
+		pcb->page_directory = &page_directories[pcb->pid];
+
+		/* Initialize video memory pointer */
+		pcb->screen.video = (vid_mem_t *)VIDEO;
+
 		/* XXX: Save old state */
 		pcb->parent_regs = (registers_t *)&command;
 
@@ -179,18 +191,6 @@ int32_t sys_exec(const uint8_t *command)
 		/* store parent pcb if called from a process */
 		if (nprocs > 1) {
 			pcb->parent = get_proc_pcb();
-		}
-
-		{
-			/* set up stdin/stdio fds */
-			file_t file;
-			file.flags = FILE_PRESENT | FILE_OPEN;
-			file.file_op = &term_fops;
-			file.file_pos = 0;
-			file.inode_ptr = 0;
-
-			pcb->file_array[0] = file;
-			pcb->file_array[1] = file;
 		}
 		
 		/* Add the process to the schedule queue */
@@ -213,6 +213,11 @@ int32_t sys_exec(const uint8_t *command)
 		/* set new page directory */
 		set_pdbr(pcb->page_directory);
 
+		/* set up the terminal driver. this has to come after we switch stacks,
+		 * else it doesn't operate correctly */
+		/* XXX: rewrite this so it's not abusing pointers */
+		term_fops.open((uint8_t *)pcb);
+
 		/* load the executable */
 		/* XXX: do this earlier somehow? It's hard, since it needs to be done
 		 *      after swapping page tables, but swapping page tables screws up
@@ -234,13 +239,15 @@ int32_t sys_exec(const uint8_t *command)
 	}
 
 exit_paging:
-	--nprocs;
+	free_pid(pcb->pid);
 	set_pdbr(old_pdbr);
 	restore_flags(flags);
 	if (pcb->parent) {
 		tss.ss0 = KERNEL_DS;
 		tss.esp0 = pcb->parent->kern_stack;
 	}
+pid_fail:
+	--nprocs;
 fail:
 	return -1;
 out:
@@ -249,26 +256,21 @@ out:
 
 int32_t sys_halt(uint8_t status)
 {
-	uint32_t flags;	
-	cli_and_save(flags);
-	
+	cli();
+
 	nprocs--;
 	pcb_t *pcb = get_proc_pcb();
 	uint8_t ok = 0; /* error flag for sched funcs */
-	
+	free_pid(pcb->pid);
+
 	/* Remove the process from the schedule queue */
-	if (!pcb->parent) {
-		/* halting parent shell, set for shell relaunch */
-		sched_flags.relaunch = 1;
-	}
-	else {
+	if (pcb->parent) {
+		/* We're still runnin a user process */
+
 		/* halting child, set for removal */
 		sched_flags.isZombie = 1;
 		ok = push_to_expired(pcb->parent->pid);
-	}
-	
-	if (nprocs > 0) {
-		/* We're still running a user process */
+
 		pcb->parent_regs->eax = (int32_t)status;
 		set_pdbr(pcb->parent->page_directory);
 		tss.ss0 = KERNEL_DS;
@@ -283,7 +285,7 @@ int32_t sys_halt(uint8_t status)
 		asm volatile (
 				"movl %0, %%esp\n"
 				"addl $-4, %%esp\n"
-				"sti\n" /* fuq tha polic */
+				"sti\n" /* needed or things break sometimes */
 				"ret"
 				: : "g"(pcb->parent_regs)
 				: "cc", "memory");
@@ -295,8 +297,6 @@ int32_t sys_halt(uint8_t status)
 			"jmp exit_syscall"
 			: : "g"(pcb->parent_regs)
 			: "cc", "memory");
-
-	restore_flags(flags);
 	return 0;
 }
 
@@ -317,12 +317,15 @@ int32_t sys_getargs(uint8_t *buf, int32_t nbytes)
 
 int32_t sys_vidmap(uint8_t **screen_start)
 {
+	pcb_t *pcb;
 	if (screen_start < (uint8_t **)USER_MEM
 			|| screen_start >= (uint8_t **)(USER_MEM + MB_4_OFFSET)) {
 		return -1;
 	}
 
-	install_user_vid_mem(get_proc_pcb()->pid);
+	pcb = get_proc_pcb();
+	install_user_vid_mem(pcb->page_directory);
+	pcb->has_video_mapped = 1;
 
 	*screen_start = (uint8_t *)USER_VID;
 

@@ -8,10 +8,10 @@ WORKING_DIR=$MP3_DIR/student-distrib
 kvm=
 
 if [ "x$1" = "xkvm" ]; then
+  echo "---RUNNING KVM---"
   kvm="-enable-kvm"
 fi
 
-echo "---RUNNING KVM---"
 setsid qemu-system-i386 $kvm -hda "${WORKING_DIR}/mp3.img" -m 256 -s -S -name mp3 &
 QEMU_PID=$!
 

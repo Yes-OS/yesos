@@ -44,6 +44,15 @@
 /* Default RTC freq is 1024 Hz */
 #define RTC_FREQ HZ_1024
 
+#ifndef ASM
+
+/****************************************
+ *           Global Variables           *
+ ****************************************/
+
+/* file operations table for rtc */
+extern fops_t rtc_fops;
+
 
 /****************************************
  *         Function Declarations        *
@@ -64,12 +73,6 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes);
 int32_t rtc_open(const uint8_t* filename);
 int32_t rtc_close(int32_t fd);
 
-
-/****************************************
- *           Global Variables           *
- ****************************************/
-
-/* file operations table for rtc */
-extern fops_t rtc_fops;
+#endif
 
 #endif /* _RTC_H */

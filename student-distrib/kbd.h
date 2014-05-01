@@ -81,7 +81,30 @@
 #define KBD_KEY_LSUPER              0x107
 #define KBD_KEY_RSUPER              0x108
 
+/* define arrow keys */
+#define KBD_KEY_U_ARROW				0x120
+#define KBD_KEY_L_ARROW				0x121
+#define KBD_KEY_D_ARROW				0x122
+#define KBD_KEY_R_ARROW				0x123
+
+/* define function keys */
+#define KBD_KEY_F1					0x130
+#define KBD_KEY_F2					0x131
+#define KBD_KEY_F3					0x132
+#define KBD_KEY_F4					0x133
+
+/* define other keys */
+ #define KBD_KEY_DEL				0x140
+
 #ifndef ASM
+
+
+/****************************************
+ *           Global Variables           *
+ ****************************************/
+
+extern volatile int32_t kbd_initialized;
+
 
 /****************************************
  *         Function Declarations        *
@@ -90,13 +113,6 @@
 void kbd_init();
 void kbd_reset();
 void kbd_handle_interrupt();
-
-
-/****************************************
- *           Global Variables           *
- ****************************************/
-
-extern volatile int32_t kbd_initialized;
 
 #endif
 

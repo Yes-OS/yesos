@@ -5,8 +5,11 @@
 #ifndef _PROC_H_
 #define _PROC_H_
 
-#include "isr.h"
+#include "types.h"
+#include "vga.h"
 #include "paging.h"
+#include "isr.h"
+#include "term.h"
 
 #define asm __asm
 
@@ -105,15 +108,31 @@ typedef struct pcb
 	uint8_t cmd_args[MAX_ARGS_LEN + 1];
 
 	/*Page table*/
-	pd_t * page_directory;
+	pd_t *page_directory;
 
 	/*Process Parent*/
-	struct pcb * parent;
+	struct pcb *parent;
 
 	/*Parent State*/
 	registers_t *parent_regs;
 
+	/* stores video memory state */
+	screen_t screen;
+
+	/* flag denotes whether process has mapped video memory */
+	int8_t has_video_mapped;
+
+	/* terminal keyboard buffer */
+	term_t term_ctx;
 } pcb_t;
+
+
+/****************************************
+ *           Global Variables           *
+ ****************************************/
+
+extern uint8_t nprocs;
+extern uint32_t proc_bitmap;
 
 
 /****************************************
@@ -129,6 +148,12 @@ static inline pcb_t *get_proc_pcb()
 			: "=r"(pcb)
 			:
 			: "memory");
+
+	/* check if we're running as the kernel pre-execute first shell */
+	if (pcb == KERNEL_MEM + MB_4_OFFSET - USER_STACK_SIZE) {
+		return NULL;
+	}
+
 	return (pcb_t *)pcb;
 }
 
@@ -175,12 +200,57 @@ static inline void release_fd(int32_t fd)
 	}
 }
 
+static inline int32_t get_first_free_pid()
+{
+	int32_t index;
+	uint32_t bitmap = proc_bitmap >> 1;
 
-/****************************************
- *           Global Variables           *
- ****************************************/
+	for(index = 1; index < MAX_PROCESSES + 1; index++, bitmap>>=1) {
 
-extern uint8_t nprocs;
+		if((bitmap % 2) == 0) {
+			/* Mark that bit as active, and return bit. */
+			proc_bitmap |= (1<<index);
+			return index;
+		}
+	}
+
+	return -1;
+}
+
+static inline void free_pid(int32_t pid)
+{
+	proc_bitmap &= ~(1<<pid);
+}
+
+static inline vid_mem_t *get_proc_fake_vid_mem()
+{
+	pcb_t *pcb;
+
+	pcb = get_proc_pcb();
+	if (!pcb) {
+		return NULL;
+	}
+
+	return fake_video_mem + pcb->pid - 1;
+}
+
+/* needed because we only want to get the screen for the topmost shell process */
+static inline screen_t *get_screen_ctx()
+{
+	pcb_t *pcb;
+
+	pcb = get_proc_pcb();
+	if (!pcb) {
+		return NULL;
+	}
+
+	while (pcb->parent) {
+		/* this process can't be the top shell since it has a parent */
+		pcb = pcb->parent;
+	}
+
+	return &pcb->screen;
+}
 
 #endif
 

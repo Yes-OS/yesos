@@ -222,7 +222,7 @@ entry (unsigned long magic, unsigned long addr)
 	puts("done\n");
 
 	puts("    Initializing Terminal...");
-	term_open(NULL);
+	(void)term_init_global_ctx();
 	puts("done\n");
 
 	puts("    Initializing Scheduling...");
@@ -252,6 +252,6 @@ entry (unsigned long magic, unsigned long addr)
 	}
 
 	puts("Rebooting");
-	sleep(7000);    /* Wait for 7 seconds then reboot */
+	sleep(3000);    /* Wait for 3 seconds then reboot */
 	triple_fault();
 }
