@@ -165,6 +165,8 @@ entry (unsigned long magic, unsigned long addr)
 
 	yes_os_splash();
 
+	/************************************************************************/
+
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
 	 * PIC, any other initialization stuff... */
 
@@ -191,6 +193,8 @@ entry (unsigned long magic, unsigned long addr)
 	/* Enable interrupts */
 	sti();
 
+	/*****	Called after initialization  ***************************************/
+
 	set_colors(COLOR_WHITE,COLOR_DK_GRAY);
 	sleep(3000);
 	clear();
@@ -204,6 +208,8 @@ entry (unsigned long magic, unsigned long addr)
 		/* Execute the first program (`shell') ... */
 		sys_exec((uint8_t*)"shell");
 	}
+
+	/****** Called upon exit ****************************************************/
 
 	set_colors(COLOR_WHITE, COLOR_RED);
 	

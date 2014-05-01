@@ -63,7 +63,7 @@
 	int x = screen_x;
 	int y = screen_y;
 	int i,j;
-	for (i = 0; i < NUM_COLS/2; i++)
+	for (i = 0; i < NUM_COLS/2-1; i++)
 	{
 		clear();
 		set_cursor(NUM_COLS/2+i%NUM_COLS,NUM_ROWS*3/4);
@@ -87,15 +87,20 @@
 		
 		for(j = 0; j < 3; j++)
 		{
-			set_cursor(NUM_COLS/2-2-j+i%NUM_COLS,NUM_ROWS*3/4-j%2);
 			if(i < 10)
 			{
+			set_cursor(NUM_COLS/2-2-j+i%NUM_COLS,NUM_ROWS*3/4-j%2);
+
 				if(j == i%3) putc(14);
 				else putc(' ');
 			}
-			else if(j == 0) putc('S');
-			else if(j == 1) putc('E');
-			else if(j == 2) putc('Y');
+			else
+			{
+				set_cursor(NUM_COLS/2-4+i%NUM_COLS,NUM_ROWS*3/4-1);
+
+				puts("YES");
+				break;
+			}
 
 		}
 		
@@ -103,6 +108,13 @@
 
 		sleep(frame_duration);
 	}
+
+	sleep(1000);
+	set_cursor(NUM_COLS/2-6+NUM_COLS/2,NUM_ROWS*3/4-1);
+	puts("BYE");
+	hide_cursor();
+	sleep(500);
+
 	set_cursor(x,y);
  }
 
