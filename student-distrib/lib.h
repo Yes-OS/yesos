@@ -18,6 +18,7 @@ int8_t *strrev(int8_t* s);
 uint32_t strlen(const int8_t* s);
 void clear(void);
 void test_interrupts(void);
+void sleep(uint32_t ms);
 
 void* memset(void* s, int32_t c, uint32_t n);
 void* memset_word(void* s, int32_t c, uint32_t n);
@@ -166,6 +167,20 @@ do {                                    \
 do {                                     \
 	asm volatile("hlt");    \
 } while(1)
+
+/* Causes triple-fault
+ *		thus inciting a reboot
+ */
+#define triple_fault()					\
+do {									\
+	asm volatile(						\
+			"movl %cr0, %eax\n"			\
+			"andl $0x7FFFFFFF, %eax\n"	\
+			"movl %eax, %cr0\n"			\
+			"lidt 0\n"					\
+			"int $0x0"					\
+		);								\
+} while(0)
 
 /* compute max value */
 #define max(a,b) (((a) > (b)) ? (a) : (b))

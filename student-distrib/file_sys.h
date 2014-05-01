@@ -7,96 +7,95 @@
 #define _FILE_SYS_H
 
 #include "types.h"
-#include "lib.h"
-#include "x86_desc.h"
-#include "multiboot.h"
 #include "proc.h"
+
+/****************************************
+ *            Global Defines            *
+ ****************************************/
+
+#define FILE_NAME_SIZE 32
+
+#define FILE_TYPE_RTC 0
+#define FILE_TYPE_DIR 1
+#define FILE_TYPE_REG 2
+
+#define BLOCK_SIZE 4096
+
+#define ELF_EIP_OFFSET 24
 
 #ifndef ASM
 
-#define FILE_NAME_SIZE 		32
+/****************************************
+ *              Data Types              *
+ ****************************************/
 
-#define FILE_TYPE_RTC		0
-#define FILE_TYPE_DIR		1
-#define FILE_TYPE_REG		2
-
-#define BLOCK_SIZE			4096
-#define ADDRESSES_PER_BLOCK	1024
-
-extern fops_t file_fops;
-
-
-/* ________Data Structures________ */
-
-/*	Index Node Struct
- *	4096-bytes
+/*
+ * Index Node Struct
+ * Size: 4096 bytes
+ * Members:
+ *   - 4 byte length
+ *   - 4 byte index of data block #1
+ *   - 4 byte index of data block #2
+ *   - ...
+ *   - 4 byte index of data block #1023
  */
 typedef struct index_node{
-	/*4 bytes - length in bytes
-	 *4 bytes per data block #*/
 	uint32_t byte_length;
-	uint32_t data_blocks[ADDRESSES_PER_BLOCK - 1];
-
+	uint32_t data_blocks[(BLOCK_SIZE / sizeof(uint32_t)) - 1];
 } __attribute__((packed)) index_node_t;
 
-/*	Data Block Struct
- *	4096-bytes
+/*
+ * Data Block Struct
+ * Size: 4096 bytes
+ * Members:
+ *   - 4096 byte data
  */
 typedef struct data_block{
-	/*4096 bytes of data*/
-	
-	/*data in data block*/
 	uint8_t data[BLOCK_SIZE];
-
 } __attribute__((packed)) data_block_t;
 
-/*	Directory Entry Struct
- *	64-bytes
+/*
+ * Directory Entry Struct
+ * Size: 64 bytes
+ * Members:
+ *   - 32 byte file name
+ *   -  4 byte file type
+ *   -  4 byte inode index
+ *   - 24 byte reserved
  */
 typedef struct dentry{
-	/*32 bytes - file name
-	 *4 bytes	 - files type(0, 1, or 2)
-	 *4 bytes	 - inode number (ignored for type 0 and 1)
-	 *24 bytes - reserved */
-
 	uint8_t file_name[32];
 	uint32_t file_type;
-	uint32_t inode_num;
+	uint32_t inode;
 	uint8_t reserved[24];
-
 } __attribute__((packed)) dentry_t;
 
 
-/*	Boot Block
- *	4096 bytes
+/*
+ * Boot Block Struct
+ * Size: 4096 bytes
+ * Members:
+ *   -  4 byte number of directory entries
+ *   -  4 byte number of inodes
+ *   -  4 byte number of data blocks
+ *   - 52 byte reserved
+ *   - 63 directory entries
  */
 typedef struct boot_block{
-	/*	4 bytes - number of directory entries
-	 *	4 bytes - number of index nodes (inodes)
-	 *	4 bytes - number of data blocks
-	 *	52 bytes - reserved
-	 *	64-byte directory entries */
-
-	uint32_t num_entries;
-	uint32_t num_nodes;
-	uint32_t num_blocks;
+	uint32_t num_dentries;
+	uint32_t num_inodes;
+	uint32_t num_dblocks;
 	uint8_t reserved[52];
 	dentry_t entries[63];
-
-
 } __attribute__((packed)) boot_block_t;
 
-extern boot_block_t* mbi_val;
 
 
-/* ________Function prototypes________ */
+/****************************************
+ *         Function Declarations        *
+ ****************************************/
 
-void fs_init(void);
-
-int32_t file_read(int32_t fd, void* buf, int32_t nbytes);
-int32_t file_write(int32_t fd, const void* buf, int32_t nbytes);
-int32_t file_open(const uint8_t* filename);
-int32_t file_close(int32_t fd);
+void fs_init(boot_block_t* boot_val);
 
 int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry);
 int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry);
@@ -107,8 +106,21 @@ int32_t dir_write(int32_t fd, const void* buf, int32_t nbytes);
 int32_t dir_open(const uint8_t *filename);
 int32_t dir_close(int32_t fd);
 
-uint32_t file_loader(dentry_t* file, uint32_t* EIP);
+int32_t file_read(int32_t fd, void* buf, int32_t nbytes);
+int32_t file_write(int32_t fd, const void* buf, int32_t nbytes);
+int32_t file_open(const uint8_t* filename);
+int32_t file_close(int32_t fd);
 
+uint32_t file_loader(dentry_t* file, uint32_t* eip);
+
+
+/****************************************
+ *           Global Variables           *
+ ****************************************/
+
+/* file operations table for files and directories */
+extern fops_t file_fops;
+extern fops_t dir_fops;
 
 #endif /* ASM           */
 #endif /* _FILE_SYS_H   */

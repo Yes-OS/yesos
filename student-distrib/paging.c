@@ -115,7 +115,7 @@ static void install_user_page(uint32_t index)
 	user_mem.read_write = 1;
 	user_mem.user_supervisor = 1;
 	user_mem.page_size = 1;
-	user_mem.page_base_addr_4mb = PAGE_BASE_ADDR_4MB(KERNEL_MEM+index*0x400000);
+	user_mem.page_base_addr_4mb = PAGE_BASE_ADDR_4MB(KERNEL_MEM+index*MB_4_OFFSET);
 
 	page_directories[index].entry[PAGE_DIR_IDX(USER_MEM)] = user_mem;
 }
@@ -140,6 +140,7 @@ void install_user_vid_mem(uint32_t index)
 		video_mem_temp.present = 1;
 		video_mem_temp.read_write = 1;
 		video_mem_temp.user_supervisor = 1;
+		/* every 4kb page */
 		video_mem_temp.page_base_addr = PAGE_BASE_ADDR(VIDEO + i * 0x1000);
 		user_vid_mem.entry[PAGE_TABLE_IDX(USER_VID + i * 0x1000)] = video_mem_temp;
 	}

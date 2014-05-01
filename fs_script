@@ -1,0 +1,33 @@
+#!/bin/bash
+# This script simplifies the process of creating the filesys_img
+
+USER_DIR=$HOME
+ID=`whoami`
+
+# Do you really?
+#if [ "$ID" != 'root' ]; then
+#	echo Must be root to run this script
+#	exit
+#fi
+
+echo Make syscalls directory
+cd syscalls
+make clear && make
+
+echo Copy fs files to mp3/fsdir
+cp to_fsdir/* ../fsdir
+cd ..
+
+echo Creating RTC object
+rm -rf $USER_DIR/fsdir
+cp -R fsdir $USER_DIR/
+sudo mknod $USER_DIR/fsdir/rtc c 10 61
+
+./createfs $USER_DIR/fsdir -o filesys_img
+
+echo Cleaning up 
+rm -rf $USER_DIR/fsdir
+mv filesys_img student-distrib/
+#cd student-distrib
+#make clean && make
+

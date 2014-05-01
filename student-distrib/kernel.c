@@ -30,6 +30,9 @@ entry (unsigned long magic, unsigned long addr)
 {
 	multiboot_info_t *mbi;
 
+	boot_block_t* boot_val = NULL;
+	uint8_t fs_pres = 0;
+
 	/* Clear the screen. */
 	clear();
 
@@ -60,29 +63,30 @@ entry (unsigned long magic, unsigned long addr)
 		printf ("cmdline = %s\n", (char *) mbi->cmdline);
 
 	if (CHECK_FLAG (mbi->flags, 3)) {
-		int mod_count = 0;
+		unsigned int mod_count = 0;
 		int i;
 		module_t* mod = (module_t*)mbi->mods_addr;
 		while(mod_count < mbi->mods_count) {
 			printf("Module %d loaded at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_start);
 			printf("Module %d ends at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_end);
-			printf("First few bytes of module:\n");
+			puts("First few bytes of module:\n");
 			for(i = 0; i<16; i++) {
 				printf("0x%x ", *((char*)(mod->mod_start+i)));
 			}
-			printf("\n");
+			puts("\n");
 			mod_count++;
 		}
+		fs_pres = 1;
 	}
 
 	/* File system head */
 	module_t* temp = (module_t*)mbi->mods_addr;
-	mbi_val = (boot_block_t *)temp->mod_start;
+	boot_val = (boot_block_t *)temp->mod_start;
 
 	/* Bits 4 and 5 are mutually exclusive! */
 	if (CHECK_FLAG (mbi->flags, 4) && CHECK_FLAG (mbi->flags, 5))
 	{
-		printf ("Both bits 4 and 5 are set.\n");
+		puts ("Both bits 4 and 5 are set.\n");
 		return;
 	}
 
@@ -159,10 +163,14 @@ entry (unsigned long magic, unsigned long addr)
 		ltr(KERNEL_TSS);
 	}
 
+
+	/* Initialize devices, memory, filesystem, enable device interrupts on the
+	 * PIC, any other initialization stuff... */
+
 	clear();
 
-	puts("----------------------------------------\n");
-	puts("Welcome to\n\n");
+
+	puts("--------------------------------Welcome to----------------------------------\n");
 	puts("YYY    YYY      EEEEEEEEEE       SSSSSSSSS                                  \n");
 	puts(" YY    YY       EE              SS                                          \n");
 	puts("  YY  YY        EE              SS                                          \n");
@@ -172,7 +180,7 @@ entry (unsigned long magic, unsigned long addr)
 	puts("    YY          EE                      SS        OO      OO       SSSSSSSS \n");
 	puts("    YY          EE                      SS        OO      OO              SS\n");
 	puts("    YY          EEEEEEEEEE      SSSSSSSSS     oo   OOOOOOOO       SSSSSSSSS \n");
-	puts("----------------------------------------\n");
+	puts("----------------------------------------------------------------------------\n");
 
 	puts("Initializing subsystems\n");
 
@@ -180,9 +188,6 @@ entry (unsigned long magic, unsigned long addr)
 	puts("    Initializing PIC... ");
 	i8259_init();
 	puts("done\n");
-
-	/* Initialize devices, memory, filesystem, enable device interrupts on the
-	 * PIC, any other initialization stuff... */
 
 	puts("    Installing Interrupts... ");
 	install_interrupts();
@@ -202,11 +207,15 @@ entry (unsigned long magic, unsigned long addr)
 	puts("    Initializing Keyboard... ");
 	kbd_init();
 	enable_irq(KBD_IRQ_PORT);
-	puts("... done\n");
+	puts("done\n");
 
 	puts("    Initializing File System... ");
-	fs_init();
-	puts("done\n");
+	if (!fs_pres){
+		puts("    File System Unavailable!\n");
+	} else {
+		fs_init(boot_val);
+		puts("done\n");
+	}
 
 	puts("    Initializing Paging... ");
 	paging_init();
@@ -231,21 +240,18 @@ entry (unsigned long magic, unsigned long addr)
 	puts("\nWelcome!\n");
 	update_cursor();
 
-	/* Execute the first program (`shell') ... */
-	sys_exec((uint8_t*)"shell");
+	/* Wait for keyboard to initialize, or we could get some funky results */
+	while (!kbd_initialized);
+	puts("\n");
 
-	puts("Shell exited successfully\n");
+	/* Ensure the filesystem actually is in memory before attempting to use it */
+	if(fs_pres){
+		/* Execute the first program (`shell') ... */
+		sys_exec((uint8_t*)"shell");
+		puts("Shell exited successfully\n");
+	}
 
-	/* XXX: reboot */
-	asm (
-			"movl %cr0, %eax\n"
-			"andl $0x7FFFFFFF, %eax\n"
-			"movl %eax, %cr0\n"
-			"lidt 0\n"
-			"int $0x0"
-		);
-
-	/* Spin (nicely, so we don't chew up cycles) */
-	halt();
+	puts("Rebooting");
+	sleep(7000);    /* Wait for 7 seconds then reboot */
+	triple_fault();
 }
-

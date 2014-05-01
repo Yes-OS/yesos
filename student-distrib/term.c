@@ -123,6 +123,8 @@ int32_t term_read(int32_t fd, void *buf, int32_t nbytes)
 			if (c == '\b') {
 				if (idx > 0) {
 					idx--;
+					putc((int8_t)c);
+					update_cursor();
 				}
 			}
 			else if (c == KBD_KEY_NULL) {
@@ -166,6 +168,7 @@ int32_t term_write(int32_t fd, const void *buf, int32_t nbytes)
 void term_handle_keypress(uint16_t key, uint8_t status)
 {
 	int ok;
+	int c;
 	/* just echo the key value for now, we'll handle things specifically later */
 	if (status) {
 		if ((lctrl_held || rctrl_held) && key == KBD_KEY_L) {
@@ -175,16 +178,13 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 			chars_since_enter = 0;
 			CIRC_BUF_INIT(term_key_buf);
 			CIRC_BUF_PUSH(term_key_buf, KBD_KEY_NULL, ok);
-			if (!ok) {
-				printf("ERR: failed when clearing screen\n");
-			}
 			return;
 		}
 		if ((lctrl_held || rctrl_held) && key == KBD_KEY_C) {
 			/* kill a process, should be replaced later by signals */
 			if (nprocs > 0) {
 				/* XXX: AWFUL HACK */
-				enable_irq(KBD_IRQ_PORT);
+				send_eoi(KBD_IRQ_PORT);
 				sys_halt(-1);
 			}
 		}
@@ -216,27 +216,25 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 						key = key_values[lshift_held | rshift_held][key];
 					}
 					if (key) {
-						/* queue the key in the buffer */
-						CIRC_BUF_PUSH(term_key_buf, key, ok);
-
-						if (ok) {
-							/* if it's a backspace and there are characters since the last enter, go back */
-							if (key == '\b') {
-								if (chars_since_enter > 0) {
-									chars_since_enter--;
+						if (key == '\b') {
+							CIRC_BUF_PEEK_TAIL(term_key_buf, c, ok);
+							if (ok) {
+								if (c != '\n' && c != '\b') {
+									CIRC_BUF_POP_TAIL(term_key_buf, c, ok);
 									putc((int8_t)key);
 								}
 							}
-							else if (key == '\n') {
-								chars_since_enter = 0;
-								putc((int8_t)key);
-							}
 							else {
-								chars_since_enter++;
+								CIRC_BUF_PUSH(term_key_buf, key, ok);
+							}
+						}
+						else {
+							CIRC_BUF_PUSH(term_key_buf, key, ok);
+							if (ok) {
 								putc((int8_t)key);
 							}
-							update_cursor();
 						}
+						update_cursor();
 					}
 				}
 				break;

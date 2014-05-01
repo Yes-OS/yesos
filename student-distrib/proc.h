@@ -10,22 +10,26 @@
 
 #define asm __asm
 
+/****************************************
+ *            Global Defines            *
+ ****************************************/
+
 /*PCB STATE DEFINTIONS*/
 
 /*process is executing or waiting to execute*/
-#define TASK_RUNNING			0
+#define TASK_RUNNING            0
 /*process suspended until a condition becomes true*/
-#define TASK_INTERRUPTIBLE		1
+#define TASK_INTERRUPTIBLE      1
 /*process suspended until a given event executes uninterrupted*/
-#define TASK_UNINTERRUPTIBLE	2
+#define TASK_UNINTERRUPTIBLE    2
 /*process has been stopped*/
-#define TASK_STOPPED			3
+#define TASK_STOPPED            3
 /*process stopped by debugger*/
-#define TASK_TRACED				4
+#define TASK_TRACED             4
 /*execution terminated, waiting for parent*/
-#define EXIT_ZOMBIE				5
+#define EXIT_ZOMBIE             5
 /*execution terminated, process being removed*/
-#define EXIT_DEAD				6
+#define EXIT_DEAD               6
 
 /* File flags */
 #define FILE_PRESENT 1
@@ -34,30 +38,32 @@
 #define FILE_RTC     8
 
 /*FILE ARRAY DEFINTIONS*/
-#define MAX_FILES		8
+#define MAX_FILES       8
 
 /*Maximum length of command line arguments*/
-#define MAX_ARGS_LEN	63
+#define MAX_ARGS_LEN    63
 
 /* Maximum number of processes */
 #define MAX_PROCESSES 10
 
 /* User Space virtual addressing values */
-#define MB_4_OFFSET			0x400000
-#define EXEC_OFFSET			0x48000
-#define USER_STACK_SIZE		0x2000
-
-#define get_pcb_from_pid(_pid) ((pcb_t *)((KERNEL_MEM + MB_4_OFFSET - USER_STACK_SIZE * _pid - 1) & 0xFFFFE000))
+#define MB_4_OFFSET         0x400000
+#define EXEC_OFFSET         0x48000
+#define USER_STACK_SIZE     0x2000
 
 #ifndef ASM
+
+/****************************************
+ *              Data Types              *
+ ****************************************/
 
 typedef int32_t open_t(const uint8_t *filename);
 typedef int32_t read_t(int32_t fd, void *buf, int32_t nbytes);
 typedef int32_t write_t(int32_t fd, const void *buf, int32_t nbytes);
 typedef int32_t close_t(int32_t fd);
 
-/* Table for the file operations
- * Generic
+/*
+ * File Operations Table
  */
 typedef struct fops {
 	read_t *read;
@@ -66,8 +72,9 @@ typedef struct fops {
 	close_t *close;
 } fops_t;
 
-/* File descriptor structure
- * 16-bytes
+/*
+ * File descriptor structure
+ * 16 bytes
  */
 typedef struct file {
     fops_t* file_op;
@@ -76,6 +83,9 @@ typedef struct file {
     volatile uint32_t flags;
 } __attribute__((packed)) file_t;
 
+/*
+ * Process Control Block
+ */
 typedef struct pcb
 {
 	/*Process State*/
@@ -104,6 +114,11 @@ typedef struct pcb
 	registers_t *parent_regs;
 
 } pcb_t;
+
+
+/****************************************
+ *         Function Declarations        *
+ ****************************************/
 
 /* Gets the process's PCB */
 static inline pcb_t *get_proc_pcb()
@@ -161,7 +176,9 @@ static inline void release_fd(int32_t fd)
 }
 
 
-
+/****************************************
+ *           Global Variables           *
+ ****************************************/
 
 extern uint8_t nprocs;
 

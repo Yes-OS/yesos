@@ -6,6 +6,10 @@
 
 #include "types.h"
 
+/****************************************
+ *            Global Defines            *
+ ****************************************/
+
 #define SYS_HALT    1
 #define SYS_EXECUTE 2
 #define SYS_READ    3
@@ -19,6 +23,10 @@
 #define MAX_SYSCALL 8
 
 #ifndef ASM
+
+/****************************************
+ *         Function Declarations        *
+ ****************************************/
 
 void enter_syscall();
 int32_t sys_open(const uint8_t *filename);

@@ -15,6 +15,10 @@
 #define MAX_CMD_LEN 33
 
 #define enter_userland(_ss, _esp, _flags, _cs, _eip) asm volatile (           \
+		"movl     %0, %%eax\n"                                                \
+		"movl     %%eax, %%ds\n"                                              \
+		"movl     %%eax, %%es\n"                                              \
+		"movl     %%eax, %%fs\n"                                              \
 		"pushl    %0\n"                                                       \
 		"pushl    %1\n"                                                       \
 		"pushl    %2\n"                                                       \
@@ -22,7 +26,7 @@
 		"pushl    %4\n"                                                       \
 		"iret"                                                                \
 		: : "g"((_ss)), "g"((_esp)), "g"((_flags)), "g"((_cs)), "g"((_eip))   \
-		: "memory", "cc")
+		: "memory", "cc", "eax")
 
 uint8_t nprocs = 0;
 
@@ -31,6 +35,11 @@ int32_t sys_open(const uint8_t *filename)
 	dentry_t dentry;
 	int32_t status;
 
+	/* don't try to open null file */
+	if (!filename) {
+		return -1;
+	}
+
 	status = read_dentry_by_name(filename, &dentry);
 	if (status) {
 		return -1;
@@ -38,11 +47,11 @@ int32_t sys_open(const uint8_t *filename)
 
 	switch (dentry.file_type) {
 		case FILE_TYPE_REG:
-			return file_open(filename);
+			return file_fops.open(filename);
 		case FILE_TYPE_DIR:
-			return dir_open(filename);
+			return dir_fops.open(filename);
 		case FILE_TYPE_RTC:
-			return rtc_open(filename);
+			return rtc_fops.open(filename);
 		default:
 			/* unknown type */
 			return -1;
@@ -53,6 +62,11 @@ int32_t sys_open(const uint8_t *filename)
 
 int32_t sys_read(int32_t fd, void *buf, int32_t nbytes)
 {
+	/* don't try to fill null buffer */
+	if (!buf) {
+		return -1;
+	}
+
 	file_t *file = get_file_from_fd(fd);
 
 	/* get_file_from_fd validates the fd for us */
@@ -65,6 +79,11 @@ int32_t sys_read(int32_t fd, void *buf, int32_t nbytes)
 
 int32_t sys_write(int32_t fd, const void *buf, int32_t nbytes)
 {
+	/* no point writing if it's a null buffer */
+	if (!buf) {
+		return -1;
+	}
+
 	file_t *file = get_file_from_fd(fd);
 
 	/* get_file_from_fd validates the fd for us */
@@ -102,6 +121,11 @@ int32_t sys_exec(const uint8_t *command)
 	dentry_t dentry;
 	uint8_t ok = 0; /* error flag for sched funcs */
 
+	/* can't exec a null command */
+	if (!command) {
+		return -1;
+	}
+
 	for (i = 0, c = command; *c == (uint8_t)' '; i++, c++) {
 		/* skip beginning spaces */
 	}
@@ -127,10 +151,11 @@ int32_t sys_exec(const uint8_t *command)
 		nprocs++;
 
 		/* calculate location of bottom of process's stack */
+		/* 0xFFFFFFFC aligns to a 16-byte boundary */
 		kern_esp = (KERNEL_MEM + MB_4_OFFSET - USER_STACK_SIZE * nprocs - 1) & 0xFFFFFFFC;
 		user_esp = (USER_MEM + MB_4_OFFSET - 1) & 0xFFFFFFFC;
 
-		/* obtain and initialize the PCB */
+		/* obtain and initialize the PCB, 0xFFFFE000 */
 		pcb = (pcb_t *)(kern_esp & 0xFFFFE000);
 		memset(pcb, 0, sizeof(*pcb));
 		pcb->pid = nprocs;
@@ -253,15 +278,18 @@ int32_t sys_halt(uint8_t status)
 		/* returning to kernel mode */
 		set_pdbr(&page_directories[0]);
 		tss.ss0 = KERNEL_DS;
-		tss.esp0 = (KERNEL_MEM + 0x400000 -1) & 0xFFFFFFF0;
+		tss.esp0 = (KERNEL_MEM + MB_4_OFFSET -1) & 0xFFFFFFF0;
+		/* returns to kernel space */
 		asm volatile (
 				"movl %0, %%esp\n"
 				"addl $-4, %%esp\n"
+				"sti\n" /* fuq tha polic */
 				"ret"
 				: : "g"(pcb->parent_regs)
 				: "cc", "memory");
 		/* control doesn't pass here */
 	}
+	/* Restores registers and exits syscalls */
 	asm volatile (
 			"movl %0, %%esp\n"
 			"jmp exit_syscall"
@@ -274,6 +302,11 @@ int32_t sys_halt(uint8_t status)
 
 int32_t sys_getargs(uint8_t *buf, int32_t nbytes)
 {
+	/* can't copy to null buffer */
+	if (!buf) {
+		return -1;
+	}
+
 	pcb_t *pcb = get_proc_pcb();
 
 	strncpy((int8_t *)buf, (int8_t *)pcb->cmd_args, nbytes);

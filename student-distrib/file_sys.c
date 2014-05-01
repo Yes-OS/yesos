@@ -31,8 +31,7 @@ fops_t dir_fops = {
 /*Variables for File_sys functions*/
 static index_node_t* node_head;
 static data_block_t* data_head;
-static boot_block_t * boot_block;
-boot_block_t* mbi_val;
+static boot_block_t* boot_block;
 
 
 /* Sets up the head pointer for the file system
@@ -41,12 +40,12 @@ boot_block_t* mbi_val;
  * Inputs:	pointer to fs head
  * Outputs:	none
  */
-void fs_init(void)
+void fs_init(boot_block_t* boot_val)
 {
-	boot_block = mbi_val;
+	boot_block = boot_val;
 
 	node_head = (index_node_t*)boot_block + 1;
-	data_head = (data_block_t*)node_head + boot_block->num_nodes;
+	data_head = (data_block_t*)node_head + boot_block->num_inodes;
 }
 
 /*  Read data from specified file into specified buffer
@@ -107,7 +106,7 @@ int32_t file_open(const uint8_t *filename)
 
 	/* set up the file */
 	file->flags |= FILE_OPEN;
-	file->inode_ptr = dentry.inode_num;
+	file->inode_ptr = dentry.inode;
 	file->file_pos = 0;
 	file->file_op = &file_fops;
 
@@ -138,7 +137,7 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry)
 {
 	dentry_t* temp;
 	uint8_t i;
-	uint32_t entries = boot_block->num_entries;
+	uint32_t entries = boot_block->num_dentries;
 	uint32_t len_filename;
 
 	for(i = 0; i <= entries ; i++) {
@@ -159,7 +158,7 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry)
 			/* just in case the filename doesn't end in a null character */
 			dentry->file_name[len_filename] = '\0';
 			dentry->file_type = temp->file_type;
-			dentry->inode_num = temp->inode_num;
+			dentry->inode = temp->inode;
 
 			return 0;
 		}
@@ -181,11 +180,10 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry)
 int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry)
 {
 	//Check for non-existant file or invalid index
-	if(index <= boot_block->num_entries)
-	{
+	if(index <= boot_block->num_dentries) {
 		strncpy((int8_t*)dentry->file_name, (int8_t*)boot_block->entries[index].file_name, FILE_NAME_SIZE);
 		dentry->file_type = boot_block->entries[index].file_type;
-		dentry->inode_num = boot_block->entries[index].inode_num;
+		dentry->inode = boot_block->entries[index].inode;
 
 		return 0;
 	}
@@ -218,7 +216,7 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 	uint8_t *data;
 
 	/* verify bounds */
-	if (inode > boot_block->num_nodes) {
+	if (inode > boot_block->num_inodes) {
 		return -1;
 	}
 
@@ -323,7 +321,7 @@ int32_t dir_open(const uint8_t *filename)
 
 	/* set up the file */
 	file->flags |= FILE_OPEN;
-	file->inode_ptr = dentry.inode_num;
+	file->inode_ptr = dentry.inode;
 	file->file_pos = 0;
 	file->file_op = &dir_fops;
 
@@ -347,32 +345,33 @@ int32_t dir_close(int32_t fd)
  * returns 0 on success (for now)
  *		  -1 on failure
  */
-uint32_t file_loader(dentry_t* file, uint32_t* EIP){
+uint32_t file_loader(dentry_t* file, uint32_t* eip)
+{
+	uint32_t b_rem;
+	uint32_t file_eip, b_read;
+	uint32_t f_pos;
+	uint8_t *dest;
 
-	uint32_t bytes_remaining = node_head[file->inode_num].byte_length;
-	uint32_t curEIP, temp_read;
-	uint32_t buf_length = 128;
-	uint32_t bytes_read = 0;
-	uint8_t file_buf[buf_length];
+	/* Read the entire file */
+	b_rem = node_head[file->inode].byte_length;
 
-	/* populate file's page directory
-	 * 		use memcpy to new page in new page directory
-	 * 		should fill one page table (no more than 4MB a task)
-	 */
-	while(bytes_remaining > 0) {
-		temp_read = read_data(file->inode_num, bytes_read, file_buf, buf_length);
-		memcpy((uint32_t*)(USER_MEM + EXEC_OFFSET + bytes_read), file_buf, temp_read);
-		bytes_read += temp_read;
-		bytes_remaining -= temp_read;
+	f_pos = 0;
+
+	/* Desitination is user space at the executable load offset */
+	dest = (uint8_t *)(USER_MEM + EXEC_OFFSET);
+	while(b_rem > 0) {
+		b_read = read_data(file->inode, f_pos, dest + f_pos, b_rem);
+		f_pos += b_read;
+		b_rem -= b_read;
 	}
 
-	/*EIP is bytes 24-27 of executable*/
-	curEIP = *(uint32_t*)(USER_MEM + EXEC_OFFSET + 24);
-	if(curEIP < USER_MEM + EXEC_OFFSET || curEIP > USER_MEM + MB_4_OFFSET) {
+	/* get EIP from bytes 24-27 of executable */
+	file_eip = *(uint32_t *)(dest + ELF_EIP_OFFSET);
+	if(file_eip < USER_MEM + EXEC_OFFSET || file_eip > USER_MEM + MB_4_OFFSET) {
 		return -1;
 	}
 
-	*EIP = curEIP;
+	*eip = file_eip;
 
 	return 0;
 }
