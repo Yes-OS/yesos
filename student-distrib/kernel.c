@@ -16,6 +16,7 @@
 #include "file_sys.h"
 #include "testing.h"
 #include "syscall.h"
+#include "graphics.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -162,97 +163,52 @@ entry (unsigned long magic, unsigned long addr)
 		ltr(KERNEL_TSS);
 	}
 
+	yes_os_splash();
 
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
 	 * PIC, any other initialization stuff... */
 
-	
-	set_colors(COLOR_LT_BLUE, COLOR_DK_GRAY);
-	clear();
-
-	puts("\n");
-	puts(" _________                                                            _________ ");	
-	puts("[_________]__________________________________________________________[_________]");
-	puts(" \\_______/____________________________________________________________\\_______/ ");
-	puts("  |     |         ___   ___                    ______                  |     |  ");
-	puts("  |     |        |   | |   | _____   ____     /  __  \\    ____         |     |  ");
-	puts("  |     |         \\  \\ /  / |  ___| /  __|   /  /  \\  \\  /  __|        |     |  ");
-	puts("  |     |          \\  V  /  | |_   |  /_    |  |    |  ||  /_          |     |  ");
-	puts("  |     |           |   |   |  _|   \\_  \\   |  |    |  | \\_  \\         |     |  ");
-	puts("  |     |           |   |   | |___  __/  |   \\  \\__/  /  __/  |        |     |  ");
-	puts("  |     |          |_____|  |_____||____/     \\______/  |____/         |     |  ");
-	puts("  |_____|______________________________________________________________|_____|  ");
-	puts(" /_______\\____________________________________________________________/_______\\ ");
-	puts("[_________]__________________________________________________________[_________]");
-
-	set_colors(COLOR_GREEN,COLOR_LT_GREEN);
-
-	screen_x = 0;
-	screen_y = NUM_ROWS-1;
-	update_cursor();
-	puts("\n");
-
-	screen_x = 0;
-	screen_y = NUM_ROWS-1;
-	update_cursor();
-	puts("Yes");
-	//puts("Initializing subsystems\n");
-
-	/* Init the PIC 
-	puts("    Initializing PIC... ");
+	/* Init the PIC */
 	i8259_init();
-	puts("done\n");
 
-	puts("    Initializing Interrupts... ");
 	install_interrupts();
-	puts("done\n");
 
-	puts("    Initializing RTC... ");
 	rtc_init();
 	enable_irq(RTC_IRQ_PORT);
-	puts("done\n");
 
-	puts("    Initializing Keyboard... ");
 	kbd_init();
 	enable_irq(KBD_IRQ_PORT);
-	puts("done\n");
 
-	puts("    Initializing File System... ");
 	if (!fs_pres){
-		puts("    File System Unavailable!\n");
 	} else {
 		fs_init(boot_val);
-		puts("done\n");
 	}
 
-	puts("    Initializing Paging... ");
 	paging_init();
-	puts("done\n");
 
-	puts("    Initializing Terminal...");
 	term_open(NULL);
-	puts("done\n");
 
-	/* Enable interrupts 
-	puts("    Enabling Interrupts (STI)... ");
+	/* Enable interrupts */
 	sti();
-	puts("done\n");
 
-	puts("\nWelcome!\n");
-	update_cursor();
+	set_colors(COLOR_WHITE,COLOR_DK_GRAY);
+	sleep(3000);
+	clear();
+	set_cursor(0,0);
 
-	/* Wait for keyboard to initialize, or we could get some funky results 
+	/* Wait for keyboard to initialize, or we could get some funky results */
 	while (!kbd_initialized);
-	puts("\n");
 
-	/* Ensure the filesystem actually is in memory before attempting to use it 
+	/* Ensure the filesystem actually is in memory before attempting to use it */
 	if(fs_pres){
-		/* Execute the first program (`shell') ... 
+		/* Execute the first program (`shell') ... */
 		sys_exec((uint8_t*)"shell");
-		puts("Shell exited successfully\n");
 	}
 
-	puts("Rebooting");
-	sleep(7000);    /* Wait for 7 seconds then reboot 
-	triple_fault();*/
+	set_colors(COLOR_WHITE, COLOR_RED);
+	
+	make_the_man(150);
+
+	triple_fault();
+
 }

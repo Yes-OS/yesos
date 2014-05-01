@@ -9,7 +9,6 @@
 /* General constants related to video memory */
 #define NUM_COLS 80
 #define NUM_ROWS 25
-#define ATTRIB 0xF0
 
 #define VIDEO 0xB8000
 
@@ -59,8 +58,7 @@ extern uint8_t background_color;
 #define FG_DEFAULT		COLOR_WHITE
 #define BG_DEFAULT		COLOR_BLACK
 
-void set_foreground_color(uint8_t color);
-void set_background_color(uint8_t color);
+
 void set_colors(uint8_t fg, uint8_t bg);
 void set_color_palette(uint8_t palette);
 void set_default_colors(void);
@@ -73,6 +71,10 @@ void update_cursor(void);
 void screen_clear(screen_t *screen);
 void screen_save(screen_t *screen);
 void screen_restore(screen_t *screen);
+
+/********************************/
+void set_cursor(uint8_t x, uint8_t y);
+void hide_cursor();
 
 #endif /* ASM */
 #endif /* _VGA_H_ */

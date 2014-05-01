@@ -611,8 +611,8 @@ sleep( uint32_t ms)
 {
 	uint32_t i;
 	for (i = 0; i < ms; i++){
-		if (i%1000 == 0)
-			puts(".");
+		if (i%1000 == 0){}
+			//puts(".");
 		asm ("hlt");
 	}
 }

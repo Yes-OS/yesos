@@ -93,3 +93,17 @@ void set_default_colors()
 	foreground_color = FG_DEFAULT;
 	background_color = BG_DEFAULT;
 }
+
+void set_cursor(uint8_t x, uint8_t y)
+{
+	screen_x = x;
+	screen_y = y;
+	update_cursor();
+}
+
+void hide_cursor()
+{
+	screen_x = -1;
+	screen_y = -1;
+	update_cursor();
+}
