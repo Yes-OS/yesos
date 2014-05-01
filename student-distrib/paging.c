@@ -190,6 +190,7 @@ int32_t switch_to_fake_video_memory()
 {
 	pcb_t *pcb;
 	pd_t *proc_pd;
+	screen_t *screen;
 	uint32_t flags;
 	vid_mem_t *fake;
 
@@ -200,7 +201,18 @@ int32_t switch_to_fake_video_memory()
 	}
 
 	proc_pd = pcb->page_directory;
-	fake = pcb->screen.video;
+	fake = get_proc_fake_vid_mem();
+
+	screen = get_screen_ctx();
+	if (!screen) {
+		return -1;
+	}
+
+	/* sanity check, don't swap video memory if the process is already
+	 * operating with fake video memory */
+	if (screen->video == fake) {
+		return -1;
+	}
 
 	/* temporarily map fake video memory */
 	map_fake_video_mem(fake, proc_pd);
@@ -209,7 +221,7 @@ int32_t switch_to_fake_video_memory()
 	set_pdbr(proc_pd);
 
 	/* now actually copy to fake video memory */
-	screen_save(&pcb->screen);
+	screen_save(screen);
 
 	/* unmap fake video memory */
 	proc_pd->entry[PAGE_DIR_IDX((uint32_t)fake)].present = 0;
@@ -229,6 +241,7 @@ int32_t switch_from_fake_video_memory()
 {
 	pcb_t *pcb;
 	pd_t *proc_pd;
+	screen_t *screen;
 	uint32_t flags;
 	vid_mem_t *fake;
 
@@ -238,8 +251,19 @@ int32_t switch_from_fake_video_memory()
 		return -1;
 	}
 
+	screen = get_screen_ctx();
+	if (!screen) {
+		return -1;
+	}
+
 	proc_pd = pcb->page_directory;
-	fake = pcb->screen.video;
+	fake = get_proc_fake_vid_mem();
+
+	/* sanity check, don't swap video memory if the process is already
+	 * operating with fake video memory */
+	if (screen->video == fake) {
+		return -1;
+	}
 
 	/* temporarily map fake video memory */
 	map_fake_video_mem(fake, proc_pd);
@@ -248,7 +272,7 @@ int32_t switch_from_fake_video_memory()
 	set_pdbr(proc_pd);
 
 	/* now actually copy to fake video memory */
-	screen_restore(&pcb->screen);
+	screen_restore(screen);
 
 	/* unmap fake video memory */
 	proc_pd->entry[PAGE_DIR_IDX((uint32_t)fake)].present = 0;

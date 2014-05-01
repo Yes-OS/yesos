@@ -63,3 +63,8 @@ void screen_restore(screen_t *screen)
 	update_cursor();
 }
 
+void screen_update_cursor(screen_t *screen)
+{
+	vga_cursor_set_location(screen->y, screen->x);
+}
+

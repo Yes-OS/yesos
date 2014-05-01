@@ -147,7 +147,7 @@ static inline pcb_t *get_proc_pcb()
 			: "memory");
 
 	/* check if we're running as the kernel pre-execute first shell */
-	if (KERNEL_MEM + MB_4_OFFSET - USER_STACK_SIZE < pcb && pcb < KERNEL_MEM + MB_4_OFFSET) {
+	if (pcb == KERNEL_MEM + MB_4_OFFSET - USER_STACK_SIZE) {
 		return NULL;
 	}
 
@@ -229,6 +229,24 @@ static inline vid_mem_t *get_proc_fake_vid_mem()
 	}
 
 	return fake_video_mem + pcb->pid - 1;
+}
+
+/* needed because we only want to get the screen for the topmost shell process */
+static inline screen_t *get_screen_ctx()
+{
+	pcb_t *pcb;
+
+	pcb = get_proc_pcb();
+	if (!pcb) {
+		return NULL;
+	}
+
+	while (pcb->parent) {
+		/* this process can't be the top shell since it has a parent */
+		pcb = pcb->parent;
+	}
+
+	return &pcb->screen;
 }
 
 #endif

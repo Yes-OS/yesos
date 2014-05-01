@@ -67,6 +67,7 @@ void update_cursor(void);
 void screen_clear(screen_t *screen);
 void screen_save(screen_t *screen);
 void screen_restore(screen_t *screen);
+void screen_update_cursor(screen_t *screen);
 
 #endif /* ASM */
 #endif /* _VGA_H_ */

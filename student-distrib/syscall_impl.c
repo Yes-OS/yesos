@@ -170,7 +170,7 @@ int32_t sys_exec(const uint8_t *command)
 		pcb->page_directory = &page_directories[pcb->pid];
 
 		/* Initialize video memory pointer */
-		pcb->screen.video = get_proc_fake_vid_mem();
+		pcb->screen.video = (vid_mem_t *)VIDEO;
 
 		/* XXX: Save old state */
 		pcb->parent_regs = (registers_t *)&command;
@@ -191,9 +191,6 @@ int32_t sys_exec(const uint8_t *command)
 			pcb->parent = get_proc_pcb();
 		}
 
-		/* set up the terminal driver */
-		term_fops.open(NULL);
-
 		tss.ss0 = KERNEL_DS;
 		tss.esp0 = kern_esp;
 
@@ -202,6 +199,11 @@ int32_t sys_exec(const uint8_t *command)
 
 		/* set new page directory */
 		set_pdbr(pcb->page_directory);
+
+		/* set up the terminal driver. this has to come after we switch stacks,
+		 * else it doesn't operate correctly */
+		/* XXX: rewrite this so it's not abusing pointers */
+		term_fops.open((uint8_t *)pcb);
 
 		/* load the executable */
 		/* XXX: do this earlier somehow? It's hard, since it needs to be done

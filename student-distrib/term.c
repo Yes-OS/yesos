@@ -23,6 +23,7 @@ fops_t term_fops = {
 
 /* global terminal context, used by the kernel */
 term_t term_global_ctx;
+static screen_t kern_screen;
 
 /* current terminal number */
 int8_t terminal_num = 0;
@@ -74,53 +75,46 @@ static const int8_t key_values[2][128] = {
  * can print to the screen even when their video memory's not active */
 static void term_putc(screen_t *screen, uint8_t c)
 {
-	uint8_t *video_mem;
-	uint8_t screen_x, screen_y;
 	int16_t i;
 
-	/* set values from the screen struct */
-	video_mem = screen->video->data;
-	screen_x = screen->x;
-	screen_y = screen->y;
-
     if(c == '\n' || c == '\r') {
-        screen_y++;
-        screen_x=0;
+        screen->y++;
+        screen->x=0;
 	} else if (c == '\b') {
 		/* handle backspace */
-		screen_x--;
-		if (screen_x < 0) {
+		screen->x--;
+		if (screen->x < 0) {
 			/* wrap backwards */
-			screen_x = NUM_COLS-1;
-			screen_y--;
+			screen->x = NUM_COLS-1;
+			screen->y--;
 		}
 		/* clear the character */
-		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = ' ';
-		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
+		*(uint8_t *)(screen->video->data + ((NUM_COLS*screen->y + screen->x) << 1)) = ' ';
+		*(uint8_t *)(screen->video->data + ((NUM_COLS*screen->y + screen->x) << 1) + 1) = ATTRIB;
 	} else {
 		if (c == '\0') {
 			return;
 		}
-		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1)) = c;
-		*(uint8_t *)(video_mem + ((NUM_COLS*screen_y + screen_x) << 1) + 1) = ATTRIB;
-		screen_x++;
-		screen_y = screen_y + (screen_x / NUM_COLS);
-		screen_x %= NUM_COLS;
+		*(uint8_t *)(screen->video->data + ((NUM_COLS*screen->y + screen->x) << 1)) = c;
+		*(uint8_t *)(screen->video->data + ((NUM_COLS*screen->y + screen->x) << 1) + 1) = ATTRIB;
+		screen->x++;
+		screen->y = screen->y + (screen->x / NUM_COLS);
+		screen->x %= NUM_COLS;
 	}
-	if (screen_y >= NUM_ROWS) {
+	if (screen->y >= NUM_ROWS) {
 		/* shift screen up */
 		for (i = 0; i < (NUM_ROWS - 1) * NUM_COLS; i++) {
-			*(uint8_t *)(video_mem + ((NUM_COLS*(i / NUM_COLS) + (i % NUM_COLS)) << 1)) =
-				*(uint8_t *)(video_mem + ((NUM_COLS*(i / NUM_COLS + 1) + (i % NUM_COLS)) << 1));
-			*(uint8_t *)(video_mem + ((NUM_COLS*(i / NUM_COLS) + (i % NUM_COLS)) << 1) + 1) =
-				*(uint8_t *)(video_mem + ((NUM_COLS*(i / NUM_COLS + 1) + (i % NUM_COLS)) << 1) + 1);
+			*(uint8_t *)(screen->video->data + ((NUM_COLS*(i / NUM_COLS) + (i % NUM_COLS)) << 1)) =
+				*(uint8_t *)(screen->video->data + ((NUM_COLS*(i / NUM_COLS + 1) + (i % NUM_COLS)) << 1));
+			*(uint8_t *)(screen->video->data + ((NUM_COLS*(i / NUM_COLS) + (i % NUM_COLS)) << 1) + 1) =
+				*(uint8_t *)(screen->video->data + ((NUM_COLS*(i / NUM_COLS + 1) + (i % NUM_COLS)) << 1) + 1);
 		}
 		/* clear last row */
 		for (i = (NUM_ROWS - 1) * NUM_COLS; i < NUM_ROWS * NUM_COLS; i++) {
-			*(uint8_t *)(video_mem + ((NUM_COLS*(i / NUM_COLS) + (i % NUM_COLS)) << 1)) = ' ';
-			*(uint8_t *)(video_mem + ((NUM_COLS*(i / NUM_COLS) + (i % NUM_COLS)) << 1) + 1) = ATTRIB;
+			*(uint8_t *)(screen->video->data + ((NUM_COLS*(i / NUM_COLS) + (i % NUM_COLS)) << 1)) = ' ';
+			*(uint8_t *)(screen->video->data + ((NUM_COLS*(i / NUM_COLS) + (i % NUM_COLS)) << 1) + 1) = ATTRIB;
 		}
-		screen_y = NUM_ROWS - 1;
+		screen->y = NUM_ROWS - 1;
 	}
 }
 
@@ -151,10 +145,18 @@ int32_t term_open(const uint8_t *filename)
 {
 	(void)filename; /* we don't use the filename for terminal */
 	pcb_t *pcb;
+	screen_t *screen;
 
-	pcb = get_proc_pcb();
+	/* XXX: no bueno, see relevant call in sys_exec */
+	pcb = (pcb_t *)filename;
 	if (!pcb) {
 		return -1;
+	}
+
+	screen = get_screen_ctx();
+	if (!screen) {
+		/* edge case where this must be the first shell */
+		screen = &pcb->screen;
 	}
 
 	init_ctx(&pcb->term_ctx);
@@ -172,11 +174,11 @@ int32_t term_open(const uint8_t *filename)
 	}
 
 	/* set cursor location based on the current cursor location */
-	pcb->screen.x = screen_x;
-	pcb->screen.y = screen_y;
+	screen->x = screen_x;
+	screen->y = screen_y;
 
 	/* flush the cursor location just to be safe */
-	update_cursor();
+	screen_update_cursor(screen);
 
 	return STDIN;
 }
@@ -193,6 +195,7 @@ int32_t term_read(int32_t fd, void *buf, int32_t nbytes)
 {
 	pcb_t *pcb;
 	term_t *term_ctx;
+	screen_t *screen;
 	int idx = 0;
 	int ok;
 	int8_t c = 0;
@@ -206,6 +209,12 @@ int32_t term_read(int32_t fd, void *buf, int32_t nbytes)
 	if (!pcb) {
 		return -1;
 	}
+
+	screen = get_screen_ctx();
+	if (!screen) {
+		return -1;
+	}
+
 	term_ctx = &pcb->term_ctx;
 
 	do {
@@ -215,8 +224,8 @@ int32_t term_read(int32_t fd, void *buf, int32_t nbytes)
 			if (c == '\b') {
 				if (idx > 0) {
 					idx--;
-					putc((int8_t)c);
-					update_cursor();
+					term_putc(screen, (int8_t)c);
+					screen_update_cursor(screen);
 				}
 			}
 			else if (c == KBD_KEY_NULL) {
@@ -240,23 +249,23 @@ int32_t term_read(int32_t fd, void *buf, int32_t nbytes)
 int32_t term_write(int32_t fd, const void *buf, int32_t nbytes)
 {
 	int idx;
-	pcb_t *pcb;
+	screen_t *screen;
 
 	if (fd != STDOUT) {
 		return -1;
 	}
 
-	pcb = get_proc_pcb();
-	if (!pcb) {
+	screen = get_screen_ctx();
+	if (!screen) {
 		return -1;
 	}
 
 	for (idx = 0; idx < nbytes; idx++) {
-		term_putc(&pcb->screen, ((int8_t *)buf)[idx]);
+		term_putc(screen, ((int8_t *)buf)[idx]);
 	}
 
 	/* update based on screen location */
-	vga_cursor_set_location(pcb->screen.x, pcb->screen.y);
+	screen_update_cursor(screen);
 
 	return idx;
 }
@@ -264,6 +273,7 @@ int32_t term_write(int32_t fd, const void *buf, int32_t nbytes)
 void term_handle_keypress(uint16_t key, uint8_t status)
 {
 	pcb_t *pcb;
+	screen_t *screen;
 	term_t *term_ctx;
 	int ok;
 	int c;
@@ -275,18 +285,27 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 		 *       experience weird results sending keys to programs that aren't
 		 *       visible */
 		term_ctx = &pcb->term_ctx;
+		screen = get_screen_ctx();
+		if (!screen) {
+			/* shouldn't really happen */
+			return;
+		}
 	}
 	else {
 		/* otherwise, use the one given to the kernel */
 		term_ctx = &term_global_ctx;
+		screen = &kern_screen;
+		kern_screen.video = (vid_mem_t *)VIDEO;
+		kern_screen.x = screen_x;
+		kern_screen.y = screen_y;
 	}
 
 	/* just echo the key value for now, we'll handle things specifically later */
 	if (status) {
 		if ((term_ctx->lctrl_held || term_ctx->rctrl_held) && key == KBD_KEY_L) {
 			/* clear the screen, update the cursor, and clear the key buffer */
-			clear();
-			update_cursor();
+			screen_clear(screen);
+			screen_update_cursor(screen);
 			CIRC_BUF_INIT(term_ctx->term_key_buf);
 			CIRC_BUF_PUSH(term_ctx->term_key_buf, KBD_KEY_NULL, ok);
 			return;
@@ -373,7 +392,7 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 								}
 								else if (c != '\n' && c != '\b') {
 									CIRC_BUF_POP_TAIL(term_ctx->term_key_buf, c, ok);
-									putc((int8_t)key);
+									term_putc(screen, (int8_t)key);
 								}
 							}
 							else {
@@ -383,10 +402,10 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 						else {
 							CIRC_BUF_PUSH(term_ctx->term_key_buf, key, ok);
 							if (ok) {
-								putc((int8_t)key);
+								term_putc(screen, (int8_t)key);
 							}
 						}
-						update_cursor();
+						screen_update_cursor(screen);
 					}
 				}
 				break;
@@ -415,6 +434,10 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 			default:
 				break;
 		}
+	}
+	if (screen == &kern_screen) {
+		screen_x = screen->x;
+		screen_y = screen->y;
 	}
 }
 
