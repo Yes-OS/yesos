@@ -202,7 +202,7 @@ int32_t sys_exec(const uint8_t *command)
 		}
 
 		/* Don't use ok for error checking, so just ignore */
-		(void)ok; 
+		(void)ok;
 
 		tss.ss0 = KERNEL_DS;
 		tss.esp0 = kern_esp;
@@ -278,7 +278,7 @@ int32_t sys_halt(uint8_t status)
 	}
 	else {
 		/* Halting from parent */
-		
+
 		/* Scheduling: halting parent shell. Relaunch */
 		sched_flags.relaunch = 1;    //currently not designed action
 

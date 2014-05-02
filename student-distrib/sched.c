@@ -189,8 +189,8 @@ void context_switch(registers_t* regs)
 
 	pcb = get_pcb_from_pid(pid);
 
-	tss.esp0 = pcb->user_stack; 
-	tss.ss0 = pcb->kern_stack;
+	tss.esp0 = pcb->kern_stack;
+	tss.ss0 = KERNEL_DS;
 
 	/*reload CR3*/
 	set_pdbr(pcb->page_directory);
