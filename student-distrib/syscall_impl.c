@@ -319,6 +319,9 @@ int32_t sys_vidmap(uint8_t **screen_start)
 	install_user_vid_mem(pcb->page_directory, &user_video_mems[terminal_num]);
 	pcb->has_video_mapped = 1;
 
+	/* flush TLB */
+	set_pdbr(pcb->page_directory);
+
 	*screen_start = (uint8_t *)USER_VID;
 
 	return 0;

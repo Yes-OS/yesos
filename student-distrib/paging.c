@@ -100,28 +100,7 @@ static void install_user_page(uint32_t index, pd_t *page_directory)
 
 void install_user_vid_mem(pd_t *page_directory, pt_t *user_vid_mem_table)
 {
-	int i;
-
-	/* setup first page directory */
-	pde_t vid_mem_dir = empty_dir_entry;
-
-	vid_mem_dir.present = 1;
-	vid_mem_dir.read_write = 1;
-	vid_mem_dir.user_supervisor = 1;
-	vid_mem_dir.pt_base_addr = PAGE_BASE_ADDR((uint32_t)&user_vid_mem_table);
-
-	page_directory->entry[PAGE_DIR_IDX(USER_VID)] = vid_mem_dir;
-
-	/* setup video memory */
-	pte_t video_mem_temp = empty_page_entry;
-	for (i = 0; i < 16; i++) {
-		video_mem_temp.present = 1;
-		video_mem_temp.read_write = 1;
-		video_mem_temp.user_supervisor = 1;
-		/* every 4kb page */
-		video_mem_temp.page_base_addr = PAGE_BASE_ADDR(VIDEO + i * 0x1000);
-		user_vid_mem_table->entry[PAGE_TABLE_IDX(USER_VID + i * 0x1000)] = video_mem_temp;
-	}
+	map_video_mem((void *)VIDEO, (void *)USER_VID, page_directory, user_vid_mem_table);
 }
 
 static void map_video_mem(const vid_mem_t *vidmem, const void *virt_addr, pd_t *proc_pd, pt_t *page_table)
@@ -144,7 +123,7 @@ static void map_video_mem(const vid_mem_t *vidmem, const void *virt_addr, pd_t *
 		pde_t temp_entry = empty_dir_entry;
 
 		temp_entry.present = 1;
-		temp_entry.read_write = 0;
+		temp_entry.read_write = 1;
 		temp_entry.user_supervisor = 1;
 		temp_entry.pt_base_addr = PAGE_BASE_ADDR((uint32_t)page_table);
 
