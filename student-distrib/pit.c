@@ -29,11 +29,11 @@ void pit_init(void)
 /* Interrupt handler for the PIT*/
 void pit_handle_interrupt(registers_t* regs)
 {
-	/* Update scheduling queues and context switch */
-	scheduler(regs);
-
 	/* reset PIT counter */
 	pit_set_count();
+
+	/* Update scheduling queues and context switch */
+	scheduler(regs);
 }
 
 /* set the count value for the PIT */

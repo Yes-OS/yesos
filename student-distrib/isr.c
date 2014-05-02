@@ -230,15 +230,12 @@ void isr_impl(registers_t regs)
 			printf("Unhandled IRQ(%d)\n", regs.isrno - IRQ_START);
 			send_eoi(regs.isrno - IRQ_START);
 			break;
-    
+
     /*handle PIT interrupt*/
-    case IRQ_PIT:
-      /* mask the interrupt and immediately send EOI so we can service other interrupts */
-      disable_irq(PIT_IRQ_PORT);
-      send_eoi(PIT_IRQ_PORT);
-      pit_handle_interrupt(&regs);
-      enable_irq(PIT_IRQ_PORT);
-      break;
+		case IRQ_PIT:
+			/* mask the interrupt and immediately send EOI so we can service other interrupts */
+			pit_handle_interrupt(&regs);
+			break;
 
 		/* handle the keyboard interrupt */
 		case IRQ_KBD:

@@ -6,6 +6,7 @@
 #include "queue.h"
 #include "proc.h"
 #include "x86_desc.h"
+#include "i8259.h"
 #include "sched.h"
 
 /* Helper functions */
@@ -186,6 +187,9 @@ void context_switch(registers_t* regs)
 
 	/*reload CR3*/
 	set_pdbr(pcb->page_directory);
+
+	/* TODO: move this? */
+	send_eoi(PIT_IRQ_PORT);
 
 	asm volatile (	"movl %0, %%esp\n"
 			"jmp exit_syscall"
