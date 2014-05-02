@@ -203,18 +203,16 @@ static inline void release_fd(int32_t fd)
 static inline int32_t get_first_free_pid()
 {
 	int32_t index;
-	uint32_t bitmap = proc_bitmap >> 1;
 
-	for(index = 1; index < MAX_PROCESSES + 1; index++, bitmap>>=1) {
+	for (index = 1; ((1 << index) & proc_bitmap) && index <= MAX_PROCESSES; index++);
 
-		if((bitmap % 2) == 0) {
-			/* Mark that bit as active, and return bit. */
-			proc_bitmap |= (1<<index);
-			return index;
-		}
+	if (index > MAX_PROCESSES) {
+		return -1;
 	}
 
-	return -1;
+	proc_bitmap |= 1 << index;
+
+	return index;
 }
 
 static inline void free_pid(int32_t pid)

@@ -169,7 +169,7 @@ int32_t sys_exec(const uint8_t *command)
 		pcb->pid = pid;
 		pcb->kern_stack = kern_esp;
 		pcb->user_stack = user_esp;
-    pcb->context_esp = NULL;
+		pcb->context_esp = NULL;
 		pcb->page_directory = &page_directories[pcb->pid];
 
 		/* XXX: Save old state */
@@ -189,17 +189,6 @@ int32_t sys_exec(const uint8_t *command)
 		/* store parent pcb if called from a process, will be null if called
 		 * from the kernel */
 		pcb->parent = get_proc_pcb();
-
-		/* Add the process to the schedule queue */
-		if (!pcb->parent) {
-			/* Parent process launched, push to active */
-			ok = push_to_active(pcb->pid);
-		}
-		else {
-			/* Child launched, Mark parent for removal from scheduling */
-			sched_flags.isZombie = 1;
-			ok = push_to_expired(pcb->pid);
-		}
 
 		/* Don't use ok for error checking, so just ignore */
 		(void)ok;
@@ -260,7 +249,6 @@ int32_t sys_halt(uint8_t status)
 
 	nprocs--;
 	pcb_t *pcb = get_proc_pcb();
-	uint8_t ok = 0; /* error flag for sched funcs */
 	free_pid(pcb->pid);
 
 	/* Remove the process from the schedule queue */
@@ -268,8 +256,7 @@ int32_t sys_halt(uint8_t status)
 		/* Halting from child process */
 
 		/* Scheduling: halting child, set for removal */
-		sched_flags.isZombie = 1;
-		ok = push_to_expired(pcb->parent->pid);
+		pcb->state |= EXIT_DEAD;
 
 		pcb->parent_regs->eax = (int32_t)status;
 		set_pdbr(pcb->parent->page_directory);

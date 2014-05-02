@@ -7,6 +7,7 @@
 #include "proc.h"
 #include "x86_desc.h"
 #include "i8259.h"
+#include "lib.h"
 #include "sched.h"
 
 /* Helper functions */
@@ -27,12 +28,12 @@ void init_sched(void)
 	/* Create and set pointers to two queues */
 	CIRC_BUF_INIT(SCHED_QUEUE_1);
 	CIRC_BUF_INIT(SCHED_QUEUE_2);
-    
-  active_queue = (sched_queue_t*)&SCHED_QUEUE_1;
+
+	active_queue = (sched_queue_t*)&SCHED_QUEUE_1;
 	expired_queue = (sched_queue_t*)&SCHED_QUEUE_2;
 
 	sched_flags.isZombie = 0;
-  sched_flags.relaunch = 0;
+	sched_flags.relaunch = 0;
 }
 
 /* When a new process is started:
@@ -41,15 +42,15 @@ void init_sched(void)
  */
 uint8_t push_to_active(uint32_t pid)
 {
-	  uint32_t ok;
+	uint32_t ok;
 
-	  CIRC_BUF_PUSH(*active_queue, pid, ok);
+	CIRC_BUF_PUSH(*active_queue, pid, ok);
 
-	  if(!ok) {
-		  return -1;
-	  }
+	if(!ok) {
+		return -1;
+	}
 
-	  return 0;
+	return 0;
 }
 
 /* When a special process is started:
@@ -75,6 +76,7 @@ uint8_t push_to_expired(uint32_t pid)
  */
 uint8_t remove_active_from_sched(void)
 {
+#if 0
 	uint32_t ok, temp;
 
 	CIRC_BUF_POP(*active_queue, temp, ok);
@@ -84,6 +86,9 @@ uint8_t remove_active_from_sched(void)
 	if(!ok) {
 		return -1;
 	}
+#else
+	get_proc_pcb()->state |= EXIT_DEAD;
+#endif
 
 	return 0;
 }
@@ -123,21 +128,20 @@ void swap_queues(void)
 }
 
 /* Manage schedule queues and context switch
- */
+*/
 void scheduler(registers_t* regs)
 {
 	/* context switching */
 	context_switch(regs);
 
+	/* this never actually runs because context_switch() doesn't return */
 #if reboot
 	if (sched_flags.relaunch) {
 		/* When top shell is exited, must reboot */
 		sched_flags.relaunch = 0;
 		sys_exec((uint8_t*)"shell"); /* XXX: CAN'T DO DIS! */
 	}
-#endif
-
-#if !reboot
+#else
 	/* Reset flag, since not relaunching base shell */
 	sched_flags.relaunch = 0;
 #endif
@@ -152,24 +156,21 @@ void context_switch(registers_t* regs)
 	pcb_t* pcb;
 	uint32_t pid, ok;
 
-	/* Check to make sure there are processes running before attempting to
-	 * execute a context switch */
-	if (nprocs == 0) {
-		send_eoi(PIT_IRQ_PORT);
-		return;
+	/* get the current process's pcb */
+	pcb = get_proc_pcb();
+	if (!pcb) {
+		/* we're not currently running a process, so we should just leave */
+		goto leave;
 	}
 
-	/* Update Scheduling queues */
-	if (sched_flags.isZombie){
-		/* Remove and discard from active queue */
-		ok = remove_active_from_sched();
-		sched_flags.isZombie = 0;
+	if (!(pcb->state & EXIT_DEAD)) {
+		/* if we're not dead, we're expired */
+		push_to_expired(pcb->pid);
 	}
 	else {
-		ok = active_to_expired();
+		printf("DEAD! [%d]\n", pcb->pid);
+		pcb->state &= ~EXIT_DEAD;
 	}
-
-	(void)ok;
 
 	/*Eflags, the general registers and data segments have been pushed already
 	 * during privilege switch
@@ -180,17 +181,43 @@ void context_switch(registers_t* regs)
 	}
 
 	/*Set ESP/EIP for exiting process*/
-	pcb = get_proc_pcb();
 	pcb->context_esp = regs;
 
-
+next_process:
 	/*reload tss with new process stack info*/
-	CIRC_BUF_PEEK(*active_queue, pid, ok);
+	CIRC_BUF_POP(*active_queue, pid, ok);
+
+	if (!ok) {
+		puts("PANIC: nothing to resume to...\n");
+		if (CIRC_BUF_EMPTY(*expired_queue)) {
+			puts("PANIC: nothing in the expired queue either...\n");
+		}
+		else {
+			/* why... */
+			swap_queues();
+			goto next_process;
+		}
+		halt();
+		goto leave;
+	}
 
 	pcb = get_pcb_from_pid(pid);
+	if (!pcb) {
+		puts("PANIC: invalid process in sched queue\n");
+		goto leave;
+	}
+
+	if (!pcb->context_esp) {
+		push_to_expired(pid);
+		printf("WARN: No context, returning [%d][%x]\n", pcb->pid, (uint32_t)pcb);
+		goto leave;
+	}
 
 	tss.esp0 = pcb->kern_stack;
 	tss.ss0 = KERNEL_DS;
+
+	regs = pcb->context_esp;
+	pcb->context_esp = NULL;
 
 	/*reload CR3*/
 	set_pdbr(pcb->page_directory);
@@ -200,7 +227,9 @@ void context_switch(registers_t* regs)
 
 	asm volatile (	"movl %0, %%esp\n"
 			"jmp exit_syscall"
-			: : "g"(pcb->context_esp)
+			: : "g"(regs)
 			: "cc", "memory");
+leave:
+	send_eoi(PIT_IRQ_PORT);
 }
 
