@@ -13,7 +13,7 @@
 
 /* Static helper functions */
 static void pit_set_count(void);
-//static void context_switch(void);
+static void context_switch(void);
 
 /* Initialization of the PIT */
 void pit_init(void)
@@ -60,7 +60,6 @@ void pit_handle_interrupt(registers_t* regs)
 
 	/* reset PIT counter */
 	pit_set_count();
-
 }
 
 /* set the count value for the PIT */
@@ -72,27 +71,4 @@ void pit_set_count(void)
 	outb(SCHED_FREQ_LO, CHAN0_PORT);
 	outb(SCHED_FREQ_HI, CHAN0_PORT);
 }
-
-/* Filler right now
- */
-
-/*
- void context_switch(void)
-{
-	This won't actually work as we expect it to 
-	int x = screen_x;
-	int y = screen_y;
-	screen_x = NUM_COLS-8;
-	screen_y = NUM_ROWS-1;
-	update_cursor();
-
-	printf("TERM: %d", terminal_num);
-
-	screen_x = x;
-	screen_y = y;
-	update_cursor();
-	return;
-}
-*/
-
 

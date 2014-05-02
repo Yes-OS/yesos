@@ -172,9 +172,6 @@ int32_t sys_exec(const uint8_t *command)
     pcb->context_esp = NULL;
 		pcb->page_directory = &page_directories[pcb->pid];
 
-		/* Initialize video memory pointer */
-		pcb->screen.video = (vid_mem_t *)VIDEO;
-
 		/* XXX: Save old state */
 		pcb->parent_regs = (registers_t *)&command;
 
@@ -324,7 +321,7 @@ int32_t sys_vidmap(uint8_t **screen_start)
 	}
 
 	pcb = get_proc_pcb();
-	install_user_vid_mem(pcb->page_directory);
+	install_user_vid_mem(pcb->page_directory, &user_video_mems[terminal_num]);
 	pcb->has_video_mapped = 1;
 
 	*screen_start = (uint8_t *)USER_VID;

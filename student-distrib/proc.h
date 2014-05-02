@@ -122,14 +122,8 @@ typedef struct pcb
 	/*Parent State*/
 	registers_t *parent_regs;
 
-	/* stores video memory state */
-	screen_t screen;
-
 	/* flag denotes whether process has mapped video memory */
 	int8_t has_video_mapped;
-
-	/* terminal keyboard buffer */
-	term_t term_ctx;
 } pcb_t;
 
 
@@ -237,25 +231,36 @@ static inline vid_mem_t *get_proc_fake_vid_mem()
 		return NULL;
 	}
 
+	while (pcb->parent) {
+		pcb = pcb->parent;
+	}
+
 	return fake_video_mem + pcb->pid - 1;
+}
+
+static inline term_t *get_term_ctx()
+{
+	int32_t term_pid;
+
+	term_pid = term_pids[terminal_num];
+	if (term_pid < 0) {
+		return NULL;
+	}
+
+	return &term_terms[terminal_num];
 }
 
 /* needed because we only want to get the screen for the topmost shell process */
 static inline screen_t *get_screen_ctx()
 {
-	pcb_t *pcb;
+	term_t *term;
 
-	pcb = get_proc_pcb();
-	if (!pcb) {
+	term = get_term_ctx();
+	if (!term) {
 		return NULL;
 	}
 
-	while (pcb->parent) {
-		/* this process can't be the top shell since it has a parent */
-		pcb = pcb->parent;
-	}
-
-	return &pcb->screen;
+	return &term->screen;
 }
 
 #define get_pcb_from_pid(_pid) ((pcb_t *)((KERNEL_MEM + MB_4_OFFSET - USER_STACK_SIZE * _pid - 1) & 0xFFFFE000))

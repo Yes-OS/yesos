@@ -120,6 +120,7 @@ typedef struct pt {
  ****************************************/
 
 extern pd_t page_directories[];
+extern pt_t user_video_mems[];
 
 
 /****************************************
@@ -153,7 +154,7 @@ extern pd_t page_directories[];
 
 /*Initialize paging*/
 void paging_init(void);
-void install_user_vid_mem(pd_t *page_directory);
+void install_user_vid_mem(pd_t *page_directory, pt_t *user_vid_mem_table);
 int32_t switch_to_fake_video_memory();
 int32_t switch_from_fake_video_memory();
 

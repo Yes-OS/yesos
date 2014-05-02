@@ -11,16 +11,13 @@
 /* +1 is for the kernel's Page Directory */
 pd_t page_directories[MAX_PROCESSES + 1] __attribute__((aligned(PAGE_SIZE)));
 
-/* For Video Memory */
-pt_t page_table __attribute__((aligned(PAGE_SIZE)));
+/* For Real Video Memory */
+pt_t video_memories[MAX_PROCESSES + 1] __attribute__((aligned(PAGE_SIZE)));
 
-/* For user-level video memory */
-pt_t user_vid_mem_table __attribute__((aligned(PAGE_SIZE)));
+/* For mapping user video memory */
+pt_t user_video_mems[NUM_TERMS] __attribute__((aligned(PAGE_SIZE)));
 
-/* For fake video memory */
-pt_t fake_video_mem_table __attribute__((aligned(PAGE_SIZE)));
-
-/* only used by one process at a time for temporary operations, like 
+/* only used by one process at a time for temporary operations, like
  * swapping video memory */
 pt_t temp_table __attribute__((aligned(PAGE_SIZE)));
 
@@ -66,40 +63,13 @@ pt_t temp_table __attribute__((aligned(PAGE_SIZE)));
 static void clear_page_dir(pd_t* directory);
 static void clear_page_table(pt_t* table);
 static void install_pages();
-static void install_vid_mem(pd_t *page_directory);
 static void install_kernel_page(pd_t *page_directory);
 static void install_user_page(uint32_t index, pd_t *page_directory);
-static void map_fake_video_mem(vid_mem_t *fake, pd_t *proc_pd);
+static void map_video_mem(const vid_mem_t *vidmem, const void *virt_addr, pd_t *proc_pd, pt_t *page_table);
 
 /* define some empty values, useful for initialization */
 static const pte_t empty_page_entry = {{.val = 0UL}};
 static const pde_t empty_dir_entry = {{.val = 0UL}};
-
-/* set up video memory*/
-static void install_vid_mem(pd_t *page_directory)
-{
-	int i;
-
-	/* setup first page directory */
-	pde_t first_page_dir = empty_dir_entry;
-
-	first_page_dir.present = 1;
-	first_page_dir.read_write = 1;
-	first_page_dir.user_supervisor = 0;
-	first_page_dir.pt_base_addr = PAGE_BASE_ADDR((uint32_t)&page_table);
-
-	page_directory->entry[0] = first_page_dir;
-
-	/* setup video memory */
-	pte_t video_mem_temp = empty_page_entry;
-	for (i = 0; i < 16; i++) {
-		video_mem_temp.present = 1;
-		video_mem_temp.read_write = 1;
-		video_mem_temp.user_supervisor = 0;
-		video_mem_temp.page_base_addr = PAGE_BASE_ADDR(VIDEO + i * 0x1000);
-		page_table.entry[PAGE_TABLE_IDX(VIDEO + i * 0x1000)] = video_mem_temp;
-	}
-}
 
 /* setup kernel page */
 static void install_kernel_page(pd_t *page_directory)
@@ -128,7 +98,7 @@ static void install_user_page(uint32_t index, pd_t *page_directory)
 	page_directory->entry[PAGE_DIR_IDX(USER_MEM)] = user_mem;
 }
 
-void install_user_vid_mem(pd_t *page_directory)
+void install_user_vid_mem(pd_t *page_directory, pt_t *user_vid_mem_table)
 {
 	int i;
 
@@ -150,24 +120,24 @@ void install_user_vid_mem(pd_t *page_directory)
 		video_mem_temp.user_supervisor = 1;
 		/* every 4kb page */
 		video_mem_temp.page_base_addr = PAGE_BASE_ADDR(VIDEO + i * 0x1000);
-		user_vid_mem_table.entry[PAGE_TABLE_IDX(USER_VID + i * 0x1000)] = video_mem_temp;
+		user_vid_mem_table->entry[PAGE_TABLE_IDX(USER_VID + i * 0x1000)] = video_mem_temp;
 	}
 }
 
-static void map_fake_video_mem(vid_mem_t *fake, pd_t *proc_pd)
+static void map_video_mem(const vid_mem_t *vidmem, const void *virt_addr, pd_t *proc_pd, pt_t *page_table)
 {
 	int32_t i;
 
-	clear_page_table(&temp_table);
-	for (i = 0; i < (int32_t)(sizeof fake->data)/PAGE_SIZE; i++) {
+	clear_page_table(page_table);
+	for (i = 0; i < (int32_t)(sizeof vidmem->data)/PAGE_SIZE; i++) {
 		pte_t temp_entry = empty_page_entry;
 
 		temp_entry.present = 1;
-		temp_entry.read_write = 0;
+		temp_entry.read_write = 1;
 		temp_entry.user_supervisor = 1;
-		temp_entry.page_base_addr = PAGE_BASE_ADDR((uint32_t)fake + i * PAGE_SIZE);
+		temp_entry.page_base_addr = PAGE_BASE_ADDR((uint32_t)vidmem + i * PAGE_SIZE);
 
-		temp_table.entry[PAGE_TABLE_IDX((uint32_t)fake + i * PAGE_SIZE)] = temp_entry;
+		page_table->entry[PAGE_TABLE_IDX((uint32_t)virt_addr + i * PAGE_SIZE)] = temp_entry;
 	}
 
 	{
@@ -176,9 +146,9 @@ static void map_fake_video_mem(vid_mem_t *fake, pd_t *proc_pd)
 		temp_entry.present = 1;
 		temp_entry.read_write = 0;
 		temp_entry.user_supervisor = 1;
-		temp_entry.pt_attr_idx = PAGE_BASE_ADDR((uint32_t)&temp_entry);
+		temp_entry.pt_base_addr = PAGE_BASE_ADDR((uint32_t)page_table);
 
-		proc_pd->entry[PAGE_DIR_IDX((uint32_t)fake)] = temp_entry;
+		proc_pd->entry[PAGE_DIR_IDX((uint32_t)virt_addr)] = temp_entry;
 	}
 }
 
@@ -214,8 +184,11 @@ int32_t switch_to_fake_video_memory()
 		return -1;
 	}
 
+	/* otherwise, set the screen to point to fake memory */
+	screen->video = fake;
+
 	/* temporarily map fake video memory */
-	map_fake_video_mem(fake, proc_pd);
+	map_video_mem(fake, fake, proc_pd, &temp_table);
 
 	/* flush tlb */
 	set_pdbr(proc_pd);
@@ -225,6 +198,11 @@ int32_t switch_to_fake_video_memory()
 
 	/* unmap fake video memory */
 	proc_pd->entry[PAGE_DIR_IDX((uint32_t)fake)].present = 0;
+	map_video_mem(fake, (void *)VIDEO, proc_pd, &video_memories[terminal_num]);
+
+	if (pcb->has_video_mapped) {
+		map_video_mem(fake, (void *)USER_VID, proc_pd, &user_video_mems[pcb->pid]);
+	}
 
 	/* flush tlb again */
 	set_pdbr(proc_pd);
@@ -266,7 +244,7 @@ int32_t switch_from_fake_video_memory()
 	}
 
 	/* temporarily map fake video memory */
-	map_fake_video_mem(fake, proc_pd);
+	map_video_mem(fake, fake, proc_pd, &temp_table);
 
 	/* flush tlb */
 	set_pdbr(proc_pd);
@@ -276,6 +254,12 @@ int32_t switch_from_fake_video_memory()
 
 	/* unmap fake video memory */
 	proc_pd->entry[PAGE_DIR_IDX((uint32_t)fake)].present = 0;
+	map_video_mem((void *)VIDEO, (void *)VIDEO, proc_pd, &video_memories[terminal_num]);
+	screen->video = (vid_mem_t *)VIDEO;
+
+	if (pcb->has_video_mapped) {
+		map_video_mem((void *)USER_VID, (void *)USER_VID, proc_pd, &user_video_mems[pcb->pid]);
+	}
 
 	/* flush tlb again */
 	set_pdbr(proc_pd);
@@ -319,12 +303,11 @@ static void install_pages()
 {
 	int i;
 
-	clear_page_table(&page_table);
-
 	for(i = 0; i < MAX_PROCESSES + 1; i++) {
 		clear_page_dir(&page_directories[i]);
+		clear_page_table(&video_memories[i]);
 		install_kernel_page(&page_directories[i]);
-		install_vid_mem(&page_directories[i]);
+		map_video_mem((void *)VIDEO, (void *)VIDEO, &page_directories[i], &video_memories[i]);
 		if (i > 0) {
 			install_user_page(i, &page_directories[i]);
 		}

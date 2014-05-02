@@ -23,10 +23,12 @@ fops_t term_fops = {
 
 /* global terminal context, used by the kernel */
 term_t term_global_ctx;
-static screen_t kern_screen;
+screen_t kern_screen;
 
 /* current terminal number */
-int8_t terminal_num = 0;
+int32_t terminal_num = 0;
+int32_t term_pids[NUM_TERMS] = { -1 };
+term_t term_terms[NUM_TERMS];
 
 /* Translate virtual keys to printable values */
 static const int8_t key_values[2][128] = {
@@ -118,25 +120,32 @@ static void term_putc(screen_t *screen, uint8_t c)
 	}
 }
 
-static void init_ctx(term_t *term_ctx)
+static void init_ctx(term_t *term)
 {
 	/* initialize the keyboard buffer */
-	CIRC_BUF_INIT(term_ctx->term_key_buf);
+	CIRC_BUF_INIT(term->key_buf);
 
 	/* clear the status flags */
-	term_ctx->lctrl_held = 0;
-	term_ctx->rctrl_held = 0;
-	term_ctx->lshift_held = 0;
-	term_ctx->rshift_held = 0;
-	term_ctx->lalt_held = 0;
-	term_ctx->ralt_held = 0;
-	term_ctx->caps_lock = 0;
+	term->lctrl_held = 0;
+	term->rctrl_held = 0;
+	term->lshift_held = 0;
+	term->rshift_held = 0;
+	term->lalt_held = 0;
+	term->ralt_held = 0;
+	term->caps_lock = 0;
 }
 
 int32_t term_init_global_ctx()
 {
+	int32_t i;
+
 	init_ctx(&term_global_ctx);
 	terminal_num = 0;
+	for (i = 0; i < NUM_TERMS; i++) {
+		term_terms[i].screen.video = (vid_mem_t *)VIDEO;
+		term_terms[i].screen.x = screen_x;
+		term_terms[i].screen.y = screen_y;
+	}
 	return 0;
 }
 
@@ -146,6 +155,7 @@ int32_t term_open(const uint8_t *filename)
 	(void)filename; /* we don't use the filename for terminal */
 	pcb_t *pcb;
 	screen_t *screen;
+	term_t *term;
 
 	/* XXX: no bueno, see relevant call in sys_exec */
 	pcb = (pcb_t *)filename;
@@ -153,13 +163,15 @@ int32_t term_open(const uint8_t *filename)
 		return -1;
 	}
 
-	screen = get_screen_ctx();
-	if (!screen) {
-		/* edge case where this must be the first shell */
-		screen = &pcb->screen;
+	term = get_term_ctx();
+	if (!term) {
+		/* we're spawning a new terminal */
+		term = &term_terms[terminal_num];
+		init_ctx(term);
+		term_pids[terminal_num] = pcb->pid;
 	}
 
-	init_ctx(&pcb->term_ctx);
+	screen = get_screen_ctx();
 
 	{
 		/* set up stdin/stdio fds */
@@ -173,9 +185,12 @@ int32_t term_open(const uint8_t *filename)
 		pcb->file_array[1] = file;
 	}
 
-	/* set cursor location based on the current cursor location */
-	screen->x = screen_x;
-	screen->y = screen_y;
+	if (!pcb->parent) {
+		/* if we're the true parent, set the screen info to the kernel info */
+		screen = &term->screen;
+		screen->x = screen_x;
+		screen->y = screen_y;
+	}
 
 	/* flush the cursor location just to be safe */
 	screen_update_cursor(screen);
@@ -193,8 +208,7 @@ int32_t term_close(int32_t fd)
 /* if fd is STDIN, proceed as normal, otherwise fail */
 int32_t term_read(int32_t fd, void *buf, int32_t nbytes)
 {
-	pcb_t *pcb;
-	term_t *term_ctx;
+	term_t *term;
 	screen_t *screen;
 	int idx = 0;
 	int ok;
@@ -205,8 +219,8 @@ int32_t term_read(int32_t fd, void *buf, int32_t nbytes)
 		return -1;
 	}
 
-	pcb = get_proc_pcb();
-	if (!pcb) {
+	term = get_term_ctx();
+	if (!term) {
 		return -1;
 	}
 
@@ -215,11 +229,9 @@ int32_t term_read(int32_t fd, void *buf, int32_t nbytes)
 		return -1;
 	}
 
-	term_ctx = &pcb->term_ctx;
-
 	do {
 		/* dequeue a character and test for backspace and screen clear */
-		CIRC_BUF_POP(term_ctx->term_key_buf, c, ok);
+		CIRC_BUF_POP(term->key_buf, c, ok);
 		if (ok) {
 			if (c == '\b') {
 				if (idx > 0) {
@@ -272,19 +284,17 @@ int32_t term_write(int32_t fd, const void *buf, int32_t nbytes)
 
 void term_handle_keypress(uint16_t key, uint8_t status)
 {
-	pcb_t *pcb;
 	screen_t *screen;
-	term_t *term_ctx;
+	term_t *term;
 	int ok;
 	int c;
 
-	pcb = get_proc_pcb();
-	if (pcb) {
+	term = get_term_ctx();
+	if (term) {
 		/* if we're running a process, grab the process's ctx */
 		/* TODO: this should probably be the foreground process so we don't
 		 *       experience weird results sending keys to programs that aren't
 		 *       visible */
-		term_ctx = &pcb->term_ctx;
 		screen = get_screen_ctx();
 		if (!screen) {
 			/* shouldn't really happen */
@@ -293,7 +303,7 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 	}
 	else {
 		/* otherwise, use the one given to the kernel */
-		term_ctx = &term_global_ctx;
+		term = &term_global_ctx;
 		screen = &kern_screen;
 		kern_screen.video = (vid_mem_t *)VIDEO;
 		kern_screen.x = screen_x;
@@ -302,17 +312,17 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 
 	/* just echo the key value for now, we'll handle things specifically later */
 	if (status) {
-		if ((term_ctx->lctrl_held || term_ctx->rctrl_held) && key == KBD_KEY_L) {
+		if ((term->lctrl_held || term->rctrl_held) && key == KBD_KEY_L) {
 			/* clear the screen, update the cursor, and clear the key buffer */
 			screen_clear(screen);
 			screen_update_cursor(screen);
-			CIRC_BUF_INIT(term_ctx->term_key_buf);
-			CIRC_BUF_PUSH(term_ctx->term_key_buf, KBD_KEY_NULL, ok);
+			CIRC_BUF_INIT(term->key_buf);
+			CIRC_BUF_PUSH(term->key_buf, KBD_KEY_NULL, ok);
 			return;
 		}
-		if ( ((term_ctx->lctrl_held || term_ctx->rctrl_held) && key == KBD_KEY_C) ||
-				((term_ctx->lctrl_held || term_ctx->rctrl_held) &&
-				(term_ctx->lalt_held || term_ctx->ralt_held) && key == KBD_KEY_DEL) ) {
+		if ( ((term->lctrl_held || term->rctrl_held) && key == KBD_KEY_C) ||
+				((term->lctrl_held || term->rctrl_held) &&
+				(term->lalt_held || term->ralt_held) && key == KBD_KEY_DEL) ) {
 			/* kill a process, should be replaced later by signals */
 			if (nprocs > 0) {
 				/* XXX: AWFUL HACK */
@@ -320,7 +330,7 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 				sys_halt(-1);
 			}
 		}
-		if ((term_ctx->lalt_held || term_ctx->ralt_held) && (key >= KBD_KEY_F1 && key <= KBD_KEY_F4)) {
+		if ((term->lalt_held || term->ralt_held) && (key >= KBD_KEY_F1 && key <= KBD_KEY_F4)) {
 			/* Get the value of the  new terminal */
 			int8_t new_terminal_num = key - KBD_KEY_F1;
 
@@ -349,58 +359,58 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 		}
 		switch (key) {
 			case KBD_KEY_LCTRL:
-				term_ctx->lctrl_held = 1;
+				term->lctrl_held = 1;
 				break;
 			case KBD_KEY_RCTRL:
-				term_ctx->rctrl_held = 1;
+				term->rctrl_held = 1;
 				break;
 			case KBD_KEY_LSHIFT:
-				term_ctx->lshift_held = 1;
+				term->lshift_held = 1;
 				break;
 			case KBD_KEY_RSHIFT:
-				term_ctx->rshift_held = 1;
+				term->rshift_held = 1;
 				break;
 			case KBD_KEY_LALT:
-				term_ctx->lalt_held = 1;
+				term->lalt_held = 1;
 				break;
 			case KBD_KEY_RALT:
-				term_ctx->ralt_held = 1;
+				term->ralt_held = 1;
 				break;
 			case KBD_KEY_CAPS:
-				term_ctx->caps_lock ^= 1;
+				term->caps_lock ^= 1;
 				break;
 			default:
 				if (key < 128) {
 					/* printable */
 					/* toggle alphanumeric when capslock is on */
-					if (term_ctx->caps_lock && (key >= KBD_KEY_Q && key <= KBD_KEY_M)) {
-						key = key_values[term_ctx->caps_lock ^
-							(term_ctx->lshift_held | term_ctx->rshift_held)][key];
+					if (term->caps_lock && (key >= KBD_KEY_Q && key <= KBD_KEY_M)) {
+						key = key_values[term->caps_lock ^
+							(term->lshift_held | term->rshift_held)][key];
 					}
 					else {
 						/* handle symbols as normal */
-						key = key_values[term_ctx->lshift_held | term_ctx->rshift_held][key];
+						key = key_values[term->lshift_held | term->rshift_held][key];
 					}
 					if (key) {
 						if (key == '\b') {
-							CIRC_BUF_PEEK_TAIL(term_ctx->term_key_buf, c, ok);
+							CIRC_BUF_PEEK_TAIL(term->key_buf, c, ok);
 							if (ok) {
 								if (c == KBD_KEY_NULL) {
 									/* remove the character because it's technically not needed,
 									 * but don't emit a backspace character since it's invisible */
-									CIRC_BUF_POP_TAIL(term_ctx->term_key_buf, c, ok);
+									CIRC_BUF_POP_TAIL(term->key_buf, c, ok);
 								}
 								else if (c != '\n' && c != '\b') {
-									CIRC_BUF_POP_TAIL(term_ctx->term_key_buf, c, ok);
+									CIRC_BUF_POP_TAIL(term->key_buf, c, ok);
 									term_putc(screen, (int8_t)key);
 								}
 							}
 							else {
-								CIRC_BUF_PUSH(term_ctx->term_key_buf, key, ok);
+								CIRC_BUF_PUSH(term->key_buf, key, ok);
 							}
 						}
 						else {
-							CIRC_BUF_PUSH(term_ctx->term_key_buf, key, ok);
+							CIRC_BUF_PUSH(term->key_buf, key, ok);
 							if (ok) {
 								term_putc(screen, (int8_t)key);
 							}
@@ -414,22 +424,22 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 	else {
 		switch (key) {
 			case KBD_KEY_LCTRL:
-				term_ctx->lctrl_held = 0;
+				term->lctrl_held = 0;
 				break;
 			case KBD_KEY_RCTRL:
-				term_ctx->rctrl_held = 0;
+				term->rctrl_held = 0;
 				break;
 			case KBD_KEY_LSHIFT:
-				term_ctx->lshift_held = 0;
+				term->lshift_held = 0;
 				break;
 			case KBD_KEY_RSHIFT:
-				term_ctx->rshift_held = 0;
+				term->rshift_held = 0;
 				break;
 			case KBD_KEY_LALT:
-				term_ctx->lalt_held = 0;
+				term->lalt_held = 0;
 				break;
 			case KBD_KEY_RALT:
-				term_ctx->ralt_held = 0;
+				term->ralt_held = 0;
 				break;
 			default:
 				break;
@@ -437,7 +447,9 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 	}
 
 	/* updates current global cursor, need to make sure we only print to current terminal */
-	screen_x = screen->x;
-	screen_y = screen->y;
+	if (screen == &kern_screen) {
+		screen_x = screen->x;
+		screen_y = screen->y;
+	}
 }
 
