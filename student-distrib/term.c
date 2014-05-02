@@ -85,11 +85,14 @@ static void term_putc(screen_t *screen, uint8_t c)
 	} else if (c == '\b') {
 		/* handle backspace */
 		screen->x--;
+#if 0
+		/* Never happens since screen->x is a uint8_t */
 		if (screen->x < 0) {
 			/* wrap backwards */
 			screen->x = NUM_COLS-1;
 			screen->y--;
 		}
+#endif
 		/* clear the character */
 		*(uint8_t *)(screen->video->data + ((NUM_COLS*screen->y + screen->x) << 1)) = ' ';
 		*(uint8_t *)(screen->video->data + ((NUM_COLS*screen->y + screen->x) << 1) + 1) = ATTRIB;
