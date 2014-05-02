@@ -152,6 +152,12 @@ void context_switch(registers_t* regs)
 	pcb_t* pcb;
 	uint32_t pid, ok;
 
+	/* Check to make sure there are processes running before attempting to
+	 * execute a context switch */
+	if (nprocs == 0) {
+		return;
+	}
+
 	/* Update Scheduling queues */
 	if (sched_flags.isZombie){
 		/* Remove and discard from active queue */
