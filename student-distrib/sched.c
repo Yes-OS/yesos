@@ -155,6 +155,7 @@ void context_switch(registers_t* regs)
 	/* Check to make sure there are processes running before attempting to
 	 * execute a context switch */
 	if (nprocs == 0) {
+		send_eoi(PIT_IRQ_PORT);
 		return;
 	}
 
@@ -201,6 +202,5 @@ void context_switch(registers_t* regs)
 			"jmp exit_syscall"
 			: : "g"(pcb->context_esp)
 			: "cc", "memory");
-
 }
 
