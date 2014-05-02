@@ -51,7 +51,8 @@ uint8_t push_to_expired(uint32_t pid);
 uint8_t remove_active_from_sched(void);
 uint8_t active_to_expired(void);
 void swap_queues(void);
-void context_switch(registers_t* regs);
+void scheduler(registers_t* regs);
+
 
 #endif
 

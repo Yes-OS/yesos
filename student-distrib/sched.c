@@ -8,12 +8,14 @@
 #include "x86_desc.h"
 #include "sched.h"
 
+/* Helper functions */
+static void context_switch(registers_t* regs);
+
+/* Local variables */
 DECLARE_CIRC_BUF(uint32_t, SCHED_QUEUE_1, MAX_PROCESSES + 1);
 DECLARE_CIRC_BUF(uint32_t, SCHED_QUEUE_2, MAX_PROCESSES + 1);
-
 sched_queue_t* active_queue;
 sched_queue_t* expired_queue;
-
 sched_flags_t sched_flags;
 
 /* Initialize the scheduler
@@ -119,27 +121,64 @@ void swap_queues(void)
 	expired_queue = temp;
 }
 
-/*Context switching function*/
+/* Manage schedule queues and context switch
+ */
+void scheduler(registers_t* regs)
+{
+	/* context switching */
+	context_switch(regs);
+
+#if reboot
+	if (sched_flags.relaunch) {
+		/* When top shell is exited, must reboot */
+		sched_flags.relaunch = 0;
+		sys_exec((uint8_t*)"shell"); /* XXX: CAN'T DO DIS! */
+	}
+#endif
+
+#if !reboot
+	/* Reset flag, since not relaunching base shell */
+	sched_flags.relaunch = 0;
+#endif
+
+
+}
+
+/* Context switching function*/
 void context_switch(registers_t* regs)
 {
 	/*set ESP/EIP of current process by means of PID*/
 	pcb_t* pcb;
 	uint32_t pid, ok;
 
-	/*Remove current process from active to expired*/
-	ok = active_to_expired();
+	/* Update Scheduling queues */
+	if (sched_flags.isZombie){
+		/* Remove and discard from active queue */
+		ok = remove_active_from_sched();
+		sched_flags.isZombie = 0;
+	}
+	else {
+		ok = active_to_expired();
+	}
+
+	(void)ok;
 
 	/*Eflags, the general registers and data segments have been pushed already
 	 * during privilege switch
 	 */
 
+	if (CIRC_BUF_EMPTY(*active_queue)) {
+		swap_queues();
+	}
+
 	/*Set ESP/EIP for exiting process*/
 	pcb = get_pcb_from_pid(pid);
 	pcb->context_esp = regs;
 
+
 	/*reload tss with new process stack info*/
 	CIRC_BUF_PEEK(*active_queue, pid, ok);
-	
+
 	pcb = get_pcb_from_pid(pid);
 
 	tss.esp0 = pcb->user_stack; 
@@ -148,11 +187,9 @@ void context_switch(registers_t* regs)
 	/*reload CR3*/
 	set_pdbr(pcb->page_directory);
 
-	asm volatile (
-			"movl %0, %%esp\n"
+	asm volatile (	"movl %0, %%esp\n"
 			"jmp exit_syscall"
-			: 
-		    : "g"(pcb->context_esp)
+			: : "g"(pcb->context_esp)
 			: "cc", "memory");
 
 }

@@ -11,9 +11,10 @@
 #include "syscall.h"
 #include "term.h"
 
+#define reboot 0
+
 /* Static helper functions */
 static void pit_set_count(void);
-static void context_switch(void);
 
 /* Initialization of the PIT */
 void pit_init(void)
@@ -28,35 +29,8 @@ void pit_init(void)
 /* Interrupt handler for the PIT*/
 void pit_handle_interrupt(registers_t* regs)
 {
-	uint8_t ok = 0; /* error flag for sched funcs */
-
-	/* context switching */
-	context_switch(regs);
-
-	/* Update Scheduling queues */
-	if (sched_flags.isZombie){
-		/* Remove and discard from active queue */
-		ok = remove_active_from_sched();
-		sched_flags.isZombie = 0;
-	}
-	else {
-		ok = active_to_expired();
-	}
-
-  (void)ok;
-
-#if 0
-	/* No, you can't */
-	if (sched_flags.relaunch) {
-		/* When top shell is exited, must reboot */
-		sched_flags.relaunch = 0;
-		sys_exec((uint8_t*)"shell"); /* CAN I DO DIS? */
-	}
-#endif
-
-	if (CIRC_BUF_EMPTY(*active_queue)) {
-		swap_queues();
-	}
+	/* Update scheduling queues and context switch */
+	scheduler(regs);
 
 	/* reset PIT counter */
 	pit_set_count();

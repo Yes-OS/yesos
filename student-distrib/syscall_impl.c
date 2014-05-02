@@ -201,6 +201,9 @@ int32_t sys_exec(const uint8_t *command)
 			ok = push_to_expired(pcb->pid);
 		}
 
+		/* Don't use ok for error checking, so just ignore */
+		(void)ok; 
+
 		tss.ss0 = KERNEL_DS;
 		tss.esp0 = kern_esp;
 
@@ -262,9 +265,9 @@ int32_t sys_halt(uint8_t status)
 
 	/* Remove the process from the schedule queue */
 	if (pcb->parent) {
-		/* We're still runnin a user process */
+		/* Halting from child process */
 
-		/* halting child, set for removal */
+		/* Scheduling: halting child, set for removal */
 		sched_flags.isZombie = 1;
 		ok = push_to_expired(pcb->parent->pid);
 
@@ -274,6 +277,11 @@ int32_t sys_halt(uint8_t status)
 		tss.esp0 = pcb->parent->kern_stack;
 	}
 	else {
+		/* Halting from parent */
+		
+		/* Scheduling: halting parent shell. Relaunch */
+		sched_flags.relaunch = 1;    //currently not designed action
+
 		/* returning to kernel mode */
 		set_pdbr(&page_directories[0]);
 		tss.ss0 = KERNEL_DS;

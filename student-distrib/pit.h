@@ -7,6 +7,7 @@
 #define _PIT_H
 
 #include "isr.h"
+#include "sched.h"
 
 /****************************************
  *            Global Defines            *
@@ -39,6 +40,7 @@
 
 void pit_init(void);
 void pit_handle_interrupt(registers_t* regs);
+extern void scheduler(registers_t* regs);
 
 #endif
 
