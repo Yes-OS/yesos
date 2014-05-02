@@ -22,9 +22,7 @@
 
 /* forward declare to break dependency loop */
 struct fops;
-typedef struct fops fops_t;
 struct screen;
-typedef struct screen screen_t;
 
 
 typedef struct terminal {
@@ -40,7 +38,7 @@ typedef struct terminal {
 	int8_t ralt_held;
 	int8_t caps_lock;
 
-	screen_t screen;
+	struct screen screen;
 } term_t;
 
 int32_t term_open(const uint8_t *filename);
@@ -50,9 +48,9 @@ int32_t term_write(int32_t fd, const void *buf, int32_t nbytes);
 void term_handle_keypress(uint16_t key, uint8_t status);
 int32_t term_init_global_ctx();
 
-extern fops_t term_fops;
+extern struct fops term_fops;
 extern int32_t terminal_num;
-extern screen_t kern_screen;
+extern struct screen kern_screen;
 extern int32_t term_pids[];
 extern term_t term_terms[];
 
