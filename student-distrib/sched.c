@@ -21,15 +21,15 @@ sched_flags_t sched_flags;
  */
 void init_sched(void)
 {
-	  /* Create and set pointers to two queues */
-	  CIRC_BUF_INIT(SCHED_QUEUE_1);
-	  CIRC_BUF_INIT(SCHED_QUEUE_2);
+	/* Create and set pointers to two queues */
+	CIRC_BUF_INIT(SCHED_QUEUE_1);
+	CIRC_BUF_INIT(SCHED_QUEUE_2);
+    
+  active_queue = (sched_queue_t*)&SCHED_QUEUE_1;
+	expired_queue = (sched_queue_t*)&SCHED_QUEUE_2;
 
-	  active_queue = (sched_queue_t*)&SCHED_QUEUE_1;
-	  expired_queue = (sched_queue_t*)&SCHED_QUEUE_2;
-
-	  sched_flags.isZombie = 0;
-	  sched_flags.relaunch = 0;
+	sched_flags.isZombie = 0;
+  sched_flags.relaunch = 0;
 }
 
 /* When a new process is started:
@@ -38,15 +38,15 @@ void init_sched(void)
  */
 uint8_t push_to_active(uint32_t pid)
 {
-	uint32_t ok;
+	  uint32_t ok;
 
-	CIRC_BUF_PUSH(*active_queue, pid, ok);
+	  CIRC_BUF_PUSH(*active_queue, pid, ok);
 
-	if(!ok) {
-		return -1;
-	}
+	  if(!ok) {
+		  return -1;
+	  }
 
-	return 0;
+	  return 0;
 }
 
 /* When a special process is started:
@@ -122,48 +122,37 @@ void swap_queues(void)
 /*Context switching function*/
 void context_switch(registers_t* regs)
 {
-  /*set ESP/EIP of current process by means of PID*/
-  pcb_t* pcb;
-  uint32_t pid, ok;
+	/*set ESP/EIP of current process by means of PID*/
+	pcb_t* pcb;
+	uint32_t pid, ok;
 
-  /*Remove from at*/
-  CIRC_BUF_POP(*active_queue, pid, ok);
-  if(!ok)
-  {
-    /*error handling*/
-    return;
-  }
-  CIRC_BUF_PUSH(*expired_queue, pid, ok);
-  if(!ok)
-  {
-    /*error handling*/
-    return;
-  }
+	/*Remove current process from active to expired*/
+	ok = active_to_expired();
 
-  /*Eflags, the general registers and data segments have been pushed already
-   * during privilege switch
-   */
+	/*Eflags, the general registers and data segments have been pushed already
+	 * during privilege switch
+	 */
 
-  /*Set ESP/EIP for exiting process*/
-  pcb = get_pcb_from_pid(pid);
-  pcb->context_esp = regs;
+	/*Set ESP/EIP for exiting process*/
+	pcb = get_pcb_from_pid(pid);
+	pcb->context_esp = regs;
 
-  /*reload tss with new process stack info*/
-  CIRC_BUF_PEEK(*active_queue, pid, ok);
+	/*reload tss with new process stack info*/
+	CIRC_BUF_PEEK(*active_queue, pid, ok);
+	
+	pcb = get_pcb_from_pid(pid);
 
-  pcb = get_pcb_from_pid(pid);
+	tss.esp0 = pcb->user_stack; 
+	tss.ss0 = pcb->kern_stack;
 
-  tss.esp0 = pcb->user_stack; 
-  tss.ss0 = pcb->kern_stack;
+	/*reload CR3*/
+	set_pdbr(pcb->page_directory);
 
-  /*reload CR3*/
-  set_pdbr(pcb->page_directory);
-
-  asm volatile (
+	asm volatile (
 			"movl %0, %%esp\n"
 			"jmp exit_syscall"
 			: 
-      : "g"(pcb->context_esp)
+		    : "g"(pcb->context_esp)
 			: "cc", "memory");
 
 }
