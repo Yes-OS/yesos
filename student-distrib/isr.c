@@ -236,7 +236,7 @@ void isr_impl(registers_t regs)
       /* mask the interrupt and immediately send EOI so we can service other interrupts */
       disable_irq(PIT_IRQ_PORT);
       send_eoi(PIT_IRQ_PORT);
-      pit_handle_interrupt();
+      pit_handle_interrupt(&regs);
       enable_irq(PIT_IRQ_PORT);
       break;
 

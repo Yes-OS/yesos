@@ -13,7 +13,7 @@
 
 /* Static helper functions */
 static void pit_set_count(void);
-static void context_switch(void);
+//static void context_switch(void);
 
 /* Initialization of the PIT */
 void pit_init(void)
@@ -42,6 +42,8 @@ void pit_handle_interrupt(registers_t* regs)
 	else {
 		ok = active_to_expired();
 	}
+
+  (void)ok;
 
 #if 0
 	/* No, you can't */

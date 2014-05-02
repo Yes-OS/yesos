@@ -107,6 +107,9 @@ typedef struct pcb
   /*Context switch esp tracker*/
   registers_t* context_esp;
 
+  /*context switch eip tracker*/
+  uint32_t context_eip;
+
 	/*Process arguments*/
 	uint8_t cmd_args[MAX_ARGS_LEN + 1];
 
@@ -254,6 +257,8 @@ static inline screen_t *get_screen_ctx()
 
 	return &pcb->screen;
 }
+
+#define get_pcb_from_pid(_pid) ((pcb_t *)((KERNEL_MEM + MB_4_OFFSET - USER_STACK_SIZE * _pid - 1) & 0xFFFFE000))
 
 #endif
 

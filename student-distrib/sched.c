@@ -5,6 +5,7 @@
 #include "types.h"
 #include "queue.h"
 #include "proc.h"
+#include "x86_desc.h"
 #include "sched.h"
 
 DECLARE_CIRC_BUF(uint32_t, SCHED_QUEUE_1, MAX_PROCESSES + 1);
@@ -121,30 +122,49 @@ void swap_queues(void)
 /*Context switching function*/
 void context_switch(registers_t* regs)
 {
-  /*set ESP of current process by means of PID*/
-  pcb_t pcb;
+  /*set ESP/EIP of current process by means of PID*/
+  pcb_t* pcb;
   uint32_t pid, ok;
 
-  /*get PID*/
-  CIRC_BUF_PEEK(*active_queue, pid, ok);
+  /*Remove from at*/
+  CIRC_BUF_POP(*active_queue, pid, ok);
+  if(!ok)
+  {
+    /*error handling*/
+    return;
+  }
+  CIRC_BUF_PUSH(*expired_queue, pid, ok);
   if(!ok)
   {
     /*error handling*/
     return;
   }
 
-  /*Set ESP for exiting process*/
+  /*Eflags, the general registers and data segments have been pushed already
+   * during privilege switch
+   */
+
+  /*Set ESP/EIP for exiting process*/
   pcb = get_pcb_from_pid(pid);
   pcb->context_esp = regs;
 
-   /*reload ESP for the new task*/
+  /*reload tss with new process stack info*/
+  CIRC_BUF_PEEK(*active_queue, pid, ok);
 
-  /*Eflags, the general registers and any data segment registers must be pushed
-   */
+  pcb = get_pcb_from_pid(pid);
+
+  tss.esp0 = pcb->user_stack; 
+  tss.ss0 = pcb->kern_stack;
 
   /*reload CR3*/
+  set_pdbr(pcb->page_directory);
 
- 
-
+  asm volatile (
+			"movl %0, %%esp\n"
+			"jmp exit_syscall"
+			: 
+      : "g"(pcb->context_esp)
+			: "cc", "memory");
 
 }
+
