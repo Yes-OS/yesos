@@ -172,7 +172,7 @@ void context_switch(registers_t* regs)
 	}
 
 	/*Set ESP/EIP for exiting process*/
-	pcb = get_pcb_from_pid(pid);
+	pcb = get_proc_pcb();
 	pcb->context_esp = regs;
 
 
