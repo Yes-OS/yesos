@@ -20,15 +20,15 @@ sched_flags_t sched_flags;
  */
 void init_sched(void)
 {
-	/* Create and set pointers to two queues */
-	CIRC_BUF_INIT(SCHED_QUEUE_1);
-	CIRC_BUF_INIT(SCHED_QUEUE_2);
+	  /* Create and set pointers to two queues */
+	  CIRC_BUF_INIT(SCHED_QUEUE_1);
+	  CIRC_BUF_INIT(SCHED_QUEUE_2);
 
-	active_queue = (sched_queue_t*)&SCHED_QUEUE_1;
-	expired_queue = (sched_queue_t*)&SCHED_QUEUE_2;
+	  active_queue = (sched_queue_t*)&SCHED_QUEUE_1;
+	  expired_queue = (sched_queue_t*)&SCHED_QUEUE_2;
 
-	sched_flags.isZombie = 0;
-	sched_flags.relaunch = 0;
+	  sched_flags.isZombie = 0;
+	  sched_flags.relaunch = 0;
 }
 
 /* When a new process is started:
@@ -116,4 +116,35 @@ void swap_queues(void)
 	sched_queue_t* temp = active_queue;
 	active_queue = expired_queue;
 	expired_queue = temp;
+}
+
+/*Context switching function*/
+void context_switch(registers_t* regs)
+{
+  /*set ESP of current process by means of PID*/
+  pcb_t pcb;
+  uint32_t pid, ok;
+
+  /*get PID*/
+  CIRC_BUF_PEEK(*active_queue, pid, ok);
+  if(!ok)
+  {
+    /*error handling*/
+    return;
+  }
+
+  /*Set ESP for exiting process*/
+  pcb = get_pcb_from_pid(pid);
+  pcb->context_esp = regs;
+
+   /*reload ESP for the new task*/
+
+  /*Eflags, the general registers and any data segment registers must be pushed
+   */
+
+  /*reload CR3*/
+
+ 
+
+
 }

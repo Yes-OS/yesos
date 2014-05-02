@@ -104,6 +104,9 @@ typedef struct pcb
 	uint32_t kern_stack;
 	uint32_t user_stack;
 
+  /*Context switch esp tracker*/
+  registers_t* context_esp;
+
 	/*Process arguments*/
 	uint8_t cmd_args[MAX_ARGS_LEN + 1];
 

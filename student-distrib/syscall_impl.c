@@ -169,6 +169,7 @@ int32_t sys_exec(const uint8_t *command)
 		pcb->pid = pid;
 		pcb->kern_stack = kern_esp;
 		pcb->user_stack = user_esp;
+    pcb->context_esp = NULL;
 		pcb->page_directory = &page_directories[pcb->pid];
 
 		/* Initialize video memory pointer */
