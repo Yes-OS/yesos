@@ -13,7 +13,6 @@
 
 /* Static helper functions */
 static void pit_set_count(void);
-static void context_switch(void);
 
 /* Initialization of the PIT */
 void pit_init(void)
