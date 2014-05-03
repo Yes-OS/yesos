@@ -156,32 +156,31 @@ void context_switch(registers_t* regs)
 	pcb_t* pcb;
 	uint32_t pid, ok;
 
-	/* get the current process's pcb */
-	pcb = get_proc_pcb();
-	if (!pcb) {
-		/* we're not currently running a process, so we should just leave */
+	/* if no processes are running, we have nothing to switch to */
+	if (!nprocs) {
 		goto leave;
 	}
 
-	if (!(pcb->state & EXIT_DEAD)) {
-		/* if we're not dead, we're expired */
-		push_to_expired(pcb->pid);
-	}
-	else {
-		printf("DEAD! [%d]\n", pcb->pid);
-		pcb->state &= ~EXIT_DEAD;
-	}
+	/* get the current process's pcb */
+	pcb = get_proc_pcb();
+	if (pcb) {
+		/* we're switching from another process */
+		if (!(pcb->state & EXIT_DEAD)) {
+			/* if we're not dead, we're expired */
+			push_to_expired(pcb->pid);
+		}
+		else {
+			printf("DEAD! [%d]\n", pcb->pid);
+			pcb->state &= ~EXIT_DEAD;
+		}
 
-	/*Eflags, the general registers and data segments have been pushed already
-	 * during privilege switch
-	 */
+		/*Set ESP/EIP for exiting process*/
+		pcb->context_esp = regs;
+	}
 
 	if (CIRC_BUF_EMPTY(*active_queue)) {
 		swap_queues();
 	}
-
-	/*Set ESP/EIP for exiting process*/
-	pcb->context_esp = regs;
 
 next_process:
 	/*reload tss with new process stack info*/

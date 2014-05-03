@@ -134,6 +134,7 @@ void rtc_handle_interrupt()
 	file_t *rtc;
 	pcb_t *pcb;
 	int32_t i;
+	uint32_t flags;
 
 	/* read a byte from reg c to allow interrupts to continue */
 	outb(REG_C, NMI_RTC_PORT);
@@ -146,9 +147,12 @@ void rtc_handle_interrupt()
 	 * this currently only touches the currently running process,
 	 * and will need to be modified once scheduling is implemented */
 	if (nprocs > 0) {
-		cli();
+		cli_and_save(flags);
 
 		pcb = get_proc_pcb();
+		if (!pcb) {
+			return;
+		}
 		for (i = 0; i < MAX_FILES; i++) {
 			if (pcb->file_array[i].flags & FILE_RTC) {
 				rtc = pcb->file_array + i;
@@ -159,7 +163,7 @@ void rtc_handle_interrupt()
 				}
 			}
 		}
-		sti();
+		restore_flags(flags);
 	}
 }
 

@@ -38,5 +38,8 @@ int32_t sys_halt(uint8_t status);
 int32_t sys_getargs(uint8_t *buf, int32_t nbytes);
 int32_t sys_vidmap(uint8_t **screen_start);
 
+/* for internal use to spawn parentless processes */
+int32_t sys_exec_internal(const uint8_t *command, registers_t *parent_ctx);
+
 #endif
 #endif

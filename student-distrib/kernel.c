@@ -247,8 +247,8 @@ entry (unsigned long magic, unsigned long addr)
 	/* Ensure the filesystem actually is in memory before attempting to use it */
 	if(fs_pres){
 		/* Execute the first program (`shell') ... */
-		sys_exec((uint8_t*)"shell");
-		puts("Shell exited successfully\n");
+		sys_exec_internal((uint8_t*)"shell", NULL);
+		halt();
 	}
 
 	puts("Rebooting");
