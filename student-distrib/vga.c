@@ -4,9 +4,9 @@
 #include "lib.h"
 #include "vga.h"
 
-int screen_x;
-int screen_y;
-char* video_mem = (char *)VIDEO;
+int32_t screen_x;
+int32_t screen_y;
+uint8_t* video_mem = (uint8_t *)VIDEO;
 
 vid_mem_t *fake_video_mem;
 

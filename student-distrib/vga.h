@@ -40,8 +40,8 @@ typedef struct vid_mem {
 
 typedef struct screen {
 	vid_mem_t *video;
-	uint8_t x;
-	uint8_t y;
+	int32_t x;
+	int32_t y;
 } screen_t;
 
 
@@ -50,9 +50,9 @@ typedef struct screen {
  ****************************************/
 
 /* location of soft cursor on the screen */
-extern int screen_x, screen_y;
+extern int32_t screen_x, screen_y;
 /* location of video memory in a flat segment */
-extern char *video_mem;
+extern uint8_t *video_mem;
 
 extern vid_mem_t *fake_video_mem;
 
