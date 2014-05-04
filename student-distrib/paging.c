@@ -230,11 +230,12 @@ int32_t switch_from_fake_video_memory(pcb_t *pcb)
 	term_id = term - term_terms;
 	fake = get_term_fake_vid_mem(term_id);
 
-	/* restore the screen */
-	screen_restore(screen);
-
 	/* save old pdbr */
 	get_pdbr(old_pdbr);
+
+	/* restore the screen */
+	set_pdbr(pcb->page_directory);
+	screen_restore(screen);
 
 	/* for each process in the terminal */
 	for (; pcb; pcb = pcb->parent) {
