@@ -12,6 +12,9 @@
 #include "rtc.h"
 #include "sched.h"
 
+/* IF is bit 9 in EFLAGS */
+#define FLAG_INT (1<<9)
+
 #define MAX_CMD_LEN 33
 
 #define enter_userland(_ss, _esp, _flags, _cs, _eip) asm volatile(            \
@@ -117,10 +120,14 @@ int32_t sys_close(int32_t fd)
 
 int32_t sys_exec(const uint8_t *command)
 {
+	int32_t ret;
 	/* since command was actually passed in as eax, and since eax is the top of
 	 * the registers_t structure, the address of command is also a pointer to the
 	 * top of the hardware context of the syscall */
-	return sys_exec_internal(command, (registers_t *)&command);
+	ret = sys_exec_internal(command, (registers_t *)&command);
+
+	/* if ret > 0, we started a new process, else we've failed */
+	return (ret > 0) ? 0 : -1;
 }
 
 int32_t sys_halt(uint8_t status)
@@ -300,11 +307,6 @@ int32_t sys_exec_internal(const uint8_t *command, registers_t *parent_ctx)
 		/* XXX: rewrite this so it's not abusing pointers */
 		term_fops.open((uint8_t *)pcb);
 
-		/* if we're executing on behalf of a userspace program, we'll jump straight
-		 * into execution */
-		tss.ss0 = KERNEL_DS;
-		tss.esp0 = kern_esp;
-
 		/* save old page directory */
 		get_pdbr(old_pdbr);
 
@@ -322,6 +324,11 @@ int32_t sys_exec_internal(const uint8_t *command, registers_t *parent_ctx)
 		}
 
 		if (parent_ctx) {
+			/* if we're executing on behalf of a userspace program, we'll jump straight
+			 * into execution */
+			tss.ss0 = KERNEL_DS;
+			tss.esp0 = kern_esp;
+
 			/* exec the actual process. this WON'T return */
 			enter_userland(USER_DS, user_esp, flags, USER_CS, eip);
 		}
@@ -331,7 +338,8 @@ int32_t sys_exec_internal(const uint8_t *command, registers_t *parent_ctx)
 		/* iret context */
 		pcb->context_esp->ss = USER_DS;
 		pcb->context_esp->user_esp = user_esp;
-		pcb->context_esp->eflags = flags;
+		/* ensure interrupt flag is set, as this may be called with the flag cleared */
+		pcb->context_esp->eflags = FLAG_INT;
 		pcb->context_esp->cs = USER_CS;
 		pcb->context_esp->eip = eip;
 		/* unused filler */
@@ -353,6 +361,9 @@ int32_t sys_exec_internal(const uint8_t *command, registers_t *parent_ctx)
 		/* needed so the process will get scheduled eventually */
 		push_to_active(pcb->pid);
 
+		/* since we may be returning to the parent process, restore the pdbr */
+		set_pdbr(old_pdbr);
+
 		goto out;
 	}
 	else {
@@ -373,5 +384,5 @@ fail:
 	return -1;
 out:
 	restore_flags(flags);
-	return 0;
+	return pcb->pid;
 }

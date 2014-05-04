@@ -3,6 +3,7 @@
  */
 #include "lib.h"
 #include "vga.h"
+#include "term.h"
 
 int32_t screen_x;
 int32_t screen_y;
@@ -43,7 +44,7 @@ void screen_clear(screen_t *screen)
 void screen_save(screen_t *screen)
 {
 	/* copy from video memory into our buffer */
-	memcpy(screen->video->data, (const void *)VIDEO, sizeof *screen->video->data);
+	memcpy(screen->video->data, (const void *)VIDEO, sizeof screen->video->data);
 
 	/* save cursor positions */
 	screen->x = screen_x;
@@ -53,14 +54,14 @@ void screen_save(screen_t *screen)
 void screen_restore(screen_t *screen)
 {
 	/* copy from our buffer to video memory */
-	memcpy((void *)VIDEO, screen->video->data, sizeof *screen->video->data);
+	memcpy((void *)VIDEO, screen->video->data, sizeof screen->video->data);
 
 	/* restore cursor position */
 	screen_x = screen->x;
 	screen_y = screen->y;
 
 	/* refresh cursor position */
-	update_cursor();
+	screen_update_cursor(screen);
 }
 
 void screen_update_cursor(screen_t *screen)

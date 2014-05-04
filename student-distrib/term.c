@@ -27,8 +27,13 @@ screen_t kern_screen;
 
 /* current terminal number */
 int32_t terminal_num = 0;
-int32_t term_pids[NUM_TERMS] = { -1 };
+int32_t term_pids[NUM_TERMS];
 term_t term_terms[NUM_TERMS];
+
+/* local functions */
+static int32_t switch_terminals(int32_t new_terminal);
+static void term_putc(screen_t *screen, uint8_t c);
+static void init_ctx(term_t *term);
 
 /* Translate virtual keys to printable values */
 static const int8_t key_values[2][128] = {
@@ -141,11 +146,20 @@ int32_t term_init_global_ctx()
 
 	init_ctx(&term_global_ctx);
 	terminal_num = 0;
+
 	for (i = 0; i < NUM_TERMS; i++) {
+		/* clear screen */
 		term_terms[i].screen.video = (vid_mem_t *)VIDEO;
 		term_terms[i].screen.x = screen_x;
 		term_terms[i].screen.y = screen_y;
+
+		/* clear pid */
+		term_pids[i] = -1;
+
+		/* initialize individual terminal */
+		init_ctx(&term_terms[i]);
 	}
+
 	return 0;
 }
 
@@ -163,15 +177,12 @@ int32_t term_open(const uint8_t *filename)
 		return -1;
 	}
 
-	term = get_term_ctx();
-	if (!term) {
+	if (!pcb->parent) {
 		/* we're spawning a new terminal */
 		term = &term_terms[terminal_num];
-		init_ctx(term);
+		pcb->term_ctx = term;
 		term_pids[terminal_num] = pcb->pid;
 	}
-
-	screen = get_screen_ctx();
 
 	{
 		/* set up stdin/stdio fds */
@@ -190,6 +201,9 @@ int32_t term_open(const uint8_t *filename)
 		screen = &term->screen;
 		screen->x = screen_x;
 		screen->y = screen_y;
+	}
+	else {
+		screen = get_screen_ctx();
 	}
 
 	/* flush the cursor location just to be safe */
@@ -276,8 +290,10 @@ int32_t term_write(int32_t fd, const void *buf, int32_t nbytes)
 		term_putc(screen, ((int8_t *)buf)[idx]);
 	}
 
-	/* update based on screen location */
-	screen_update_cursor(screen);
+	/* update based on screen location, but only if it's active */
+	if (screen->video == (vid_mem_t *)VIDEO) {
+		screen_update_cursor(screen);
+	}
 
 	return idx;
 }
@@ -286,16 +302,18 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 {
 	screen_t *screen;
 	term_t *term;
+	uint32_t flags;
+	int32_t new_terminal_num;
 	int ok;
 	int c;
 
-	term = get_term_ctx();
+	term = get_current_term();
 	if (term) {
 		/* if we're running a process, grab the process's ctx */
 		/* TODO: this should probably be the foreground process so we don't
 		 *       experience weird results sending keys to programs that aren't
 		 *       visible */
-		screen = get_screen_ctx();
+		screen = &term->screen;
 		if (!screen) {
 			/* shouldn't really happen */
 			return;
@@ -331,30 +349,14 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 			}
 		}
 		if ((term->lalt_held || term->ralt_held) && (key >= KBD_KEY_F1 && key <= KBD_KEY_F4)) {
+			cli_and_save(flags);
+
 			/* Get the value of the  new terminal */
-			int8_t new_terminal_num = key - KBD_KEY_F1;
+			new_terminal_num = key - KBD_KEY_F1;
 
-			/* If the new terminal is the same, do not switch. */
-			if (new_terminal_num == terminal_num) {
-				return;
-			}
+			switch_terminals(new_terminal_num);
 
-			/* Copy current terminal's video memory into its fake video memory. */
-
-			/* Tell the current terminal that it's video memory has been relocated */
-
-			/* Store the input information for that terminal. (Keyboard buffer) */
-
-
-			/* Check to see if new terminal has video memory to copy. */
-
-			/* If not, create a blank screen for the new terminal. */
-
-			/* Check to see if new terminal has any input information to load. (Keyboard buffer) */
-
-
-			/* Set the terminal number to the new terminal. */
-			terminal_num = new_terminal_num;
+			restore_flags(flags);
 			return;
 		}
 		switch (key) {
@@ -453,3 +455,51 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 	}
 }
 
+static int32_t switch_terminals(int32_t new_terminal)
+{
+	pcb_t *pcb;
+	int32_t new_pid;
+
+	/* If the new terminal is the same, do not switch. */
+	if (new_terminal == terminal_num) {
+		return -1;
+	}
+
+	/* Copy current terminal's video memory into its fake video memory. */
+
+	/* Tell the current terminal that it's video memory has been relocated */
+
+	/* Store the input information for that terminal. (Keyboard buffer) */
+	pcb = get_proc_pcb();
+	switch_to_fake_video_memory(pcb);
+
+
+	/* Check to see if new terminal has video memory to copy. */
+
+	/* If not, create a blank screen for the new terminal. */
+
+	/* Check to see if new terminal has any input information to load. (Keyboard buffer) */
+
+
+	/* Set the terminal number to the new terminal. */
+	terminal_num = new_terminal;
+
+	if (term_pids[terminal_num] < 0) {
+		/* spawn a new terminal */
+		new_pid = sys_exec_internal((uint8_t*)"shell", NULL);
+		if (new_pid <= 0) {
+			return -1;
+		}
+
+		pcb = get_pcb_from_pid(new_pid);
+
+		/* clear video */
+		screen_clear(&pcb->term_ctx->screen);
+	}
+	else {
+		pcb = get_pcb_from_pid(term_pids[terminal_num]);
+		switch_from_fake_video_memory(pcb);
+	}
+
+	return 0;
+}

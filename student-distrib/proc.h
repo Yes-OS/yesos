@@ -124,6 +124,9 @@ typedef struct pcb
 
 	/* flag denotes whether process has mapped video memory */
 	int8_t has_video_mapped;
+
+	/* holds a pointer to the terminal context the process uses */
+	term_t *term_ctx;
 } pcb_t;
 
 
@@ -220,7 +223,12 @@ static inline void free_pid(int32_t pid)
 	proc_bitmap &= ~(1<<pid);
 }
 
-static inline vid_mem_t *get_proc_fake_vid_mem()
+static inline vid_mem_t *get_term_fake_vid_mem(int32_t term_id)
+{
+	return fake_video_mem + term_id;
+}
+
+static inline term_t *get_term_ctx()
 {
 	pcb_t *pcb;
 
@@ -233,15 +241,12 @@ static inline vid_mem_t *get_proc_fake_vid_mem()
 		pcb = pcb->parent;
 	}
 
-	return fake_video_mem + pcb->pid - 1;
+	return pcb->term_ctx;
 }
 
-static inline term_t *get_term_ctx()
+static inline term_t *get_current_term()
 {
-	int32_t term_pid;
-
-	term_pid = term_pids[terminal_num];
-	if (term_pid < 0) {
+	if (term_pids[terminal_num] < 0) {
 		return NULL;
 	}
 

@@ -11,8 +11,11 @@
 /* +1 is for the kernel's Page Directory */
 pd_t page_directories[MAX_PROCESSES + 1] __attribute__((aligned(PAGE_SIZE)));
 
-/* For Real Video Memory */
-pt_t video_memories[MAX_PROCESSES + 1] __attribute__((aligned(PAGE_SIZE)));
+/* for video memory */
+pt_t first_table __attribute__((aligned(PAGE_SIZE)));
+
+/* For Fake Video Memory */
+pt_t video_memories[NUM_TERMS] __attribute__((aligned(PAGE_SIZE)));
 
 /* For mapping user video memory */
 pt_t user_video_mems[NUM_TERMS] __attribute__((aligned(PAGE_SIZE)));
@@ -135,53 +138,61 @@ static void map_video_mem(const vid_mem_t *vidmem, const void *virt_addr, pd_t *
  * called from the scheduler to swap the running process's video memory
  * into fake video memory
  */
-int32_t switch_to_fake_video_memory()
+int32_t switch_to_fake_video_memory(pcb_t *pcb)
 {
-	pcb_t *pcb;
+	pcb_t *parent;
 	pd_t *proc_pd;
 	screen_t *screen;
+	term_t *term;
 	uint32_t flags;
 	vid_mem_t *fake;
+	int32_t term_id;
+	uint32_t old_pdbr;
 
-	cli_and_save(flags);
-	pcb = get_proc_pcb();
 	if (!pcb) {
 		return -1;
 	}
 
-	proc_pd = pcb->page_directory;
-	fake = get_proc_fake_vid_mem();
+	cli_and_save(flags);
 
-	screen = get_screen_ctx();
-	if (!screen) {
-		return -1;
+	for (parent = pcb->parent; parent && parent->parent; parent = parent->parent);
+
+	/* did we actually find a parent? no? grab pcb */
+	parent = parent ? parent : pcb;
+
+	term = parent->term_ctx;
+	screen = &term->screen;
+
+	term_id = term - term_terms;
+	fake = get_term_fake_vid_mem(term_id);
+
+	/* save old pdbr */
+	get_pdbr(old_pdbr);
+
+	/* for each process in the terminal */
+	for (; pcb; pcb = pcb->parent) {
+		proc_pd = pcb->page_directory;
+		/* map in fake video memory */
+		map_video_mem(fake, fake, proc_pd, &video_memories[term_id]);
+
+		/* if we've mapped video memory for the user program, update that too */
+		if (pcb->has_video_mapped) {
+			map_video_mem(fake, (void *)USER_VID, proc_pd, &user_video_mems[pcb->pid]);
+		}
 	}
 
-	/* otherwise, set the screen to point to fake memory */
+	/* it doesn't really matter which process in this group we use to save the screen,
+	 * so we'll use the last one */
+	set_pdbr(proc_pd);
+
+	/* update pointer in terminal's screen context */
 	screen->video = fake;
 
-	/* temporarily map fake video memory */
-	map_video_mem(fake, fake, proc_pd, &temp_table);
-
-	/* flush tlb */
-	set_pdbr(proc_pd);
-
-	/* now actually copy to fake video memory */
+	/* save current screen to new memory */
 	screen_save(screen);
 
-	/* unmap fake video memory */
-	proc_pd->entry[PAGE_DIR_IDX((uint32_t)fake)].present = 0;
-	map_video_mem(fake, (void *)VIDEO, proc_pd, &video_memories[terminal_num]);
-
-	if (pcb->has_video_mapped) {
-		map_video_mem(fake, (void *)USER_VID, proc_pd, &user_video_mems[pcb->pid]);
-	}
-
-	/* restore video memory pointer */
-	screen->video = (vid_mem_t *)VIDEO;
-
-	/* flush tlb again */
-	set_pdbr(proc_pd);
+	/* restore pd */
+	set_pdbr(old_pdbr);
 
 	restore_flags(flags);
 	return 0;
@@ -191,52 +202,58 @@ int32_t switch_to_fake_video_memory()
  * called from the scheduler to swap the running process's video memory
  * from fake video memory into real video memory
  */
-int32_t switch_from_fake_video_memory()
+int32_t switch_from_fake_video_memory(pcb_t *pcb)
 {
-	pcb_t *pcb;
+	pcb_t *parent;
 	pd_t *proc_pd;
 	screen_t *screen;
+	term_t *term;
 	uint32_t flags;
 	vid_mem_t *fake;
+	int32_t term_id;
+	uint32_t old_pdbr;
 
-	cli_and_save(flags);
-	pcb = get_proc_pcb();
 	if (!pcb) {
 		return -1;
 	}
 
-	proc_pd = pcb->page_directory;
-	fake = get_proc_fake_vid_mem();
+	cli_and_save(flags);
 
-	screen = get_screen_ctx();
-	if (!screen) {
-		return -1;
-	}
+	for (parent = pcb->parent; parent && parent->parent; parent = parent->parent);
 
-	screen->video = fake;
+	/* did we actually find a parent? no? grab pcb */
+	parent = parent ? parent : pcb;
 
-	/* temporarily map fake video memory */
-	map_video_mem(fake, fake, proc_pd, &temp_table);
+	term = parent->term_ctx;
+	screen = &term->screen;
 
-	/* flush tlb */
-	set_pdbr(proc_pd);
+	term_id = term - term_terms;
+	fake = get_term_fake_vid_mem(term_id);
 
-	/* now actually copy to fake video memory */
+	/* restore the screen */
 	screen_restore(screen);
 
-	/* unmap fake video memory */
-	proc_pd->entry[PAGE_DIR_IDX((uint32_t)fake)].present = 0;
-	map_video_mem((void *)VIDEO, (void *)VIDEO, proc_pd, &video_memories[terminal_num]);
+	/* save old pdbr */
+	get_pdbr(old_pdbr);
 
-	if (pcb->has_video_mapped) {
-		map_video_mem((void *)VIDEO, (void *)USER_VID, proc_pd, &user_video_mems[pcb->pid]);
+	/* for each process in the terminal */
+	for (; pcb; pcb = pcb->parent) {
+		proc_pd = pcb->page_directory;
+
+		/* unmap fake memory */
+		proc_pd->entry[PAGE_DIR_IDX((uint32_t)fake)].present = 0;
+
+		/* if we've mapped video memory for the user program, update that too */
+		if (pcb->has_video_mapped) {
+			map_video_mem((void *)VIDEO, (void *)USER_VID, proc_pd, &user_video_mems[pcb->pid]);
+		}
 	}
 
-	/* restore video memory pointer */
+	/* restore the video memory pointer */
 	screen->video = (vid_mem_t *)VIDEO;
 
-	/* flush tlb again */
-	set_pdbr(proc_pd);
+	/* restore pd */
+	set_pdbr(old_pdbr);
 
 	restore_flags(flags);
 	return 0;
@@ -281,7 +298,7 @@ static void install_pages()
 		clear_page_dir(&page_directories[i]);
 		clear_page_table(&video_memories[i]);
 		install_kernel_page(&page_directories[i]);
-		map_video_mem((void *)VIDEO, (void *)VIDEO, &page_directories[i], &video_memories[i]);
+		map_video_mem((void *)VIDEO, (void *)VIDEO, &page_directories[i], &first_table);
 		if (i > 0) {
 			install_user_page(i, &page_directories[i]);
 		}

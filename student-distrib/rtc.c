@@ -199,6 +199,7 @@ int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes)
 {
 	file_t *rtc;
 	uint32_t ticks;
+	uint32_t flags;
 
 	rtc = get_file_from_fd(fd);
 	if (!rtc || !(rtc->flags & (FILE_OPEN | FILE_RTC))) {
@@ -211,13 +212,13 @@ int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes)
 	}
 
 	/* don't get interrupted when messing with rtc counts */
-	cli();
+	cli_and_save(flags);
 	rtc_virt_clr_ticked(rtc);
 
 	ticks = rtc_virt_ticks(rtc);
 	memcpy(buf, &ticks, min(sizeof ticks, (uint32_t)nbytes));
 	rtc_virt_clr_ticks(rtc);
-	sti();
+	restore_flags(flags);
 
 	return 0;
 }
@@ -229,6 +230,7 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes)
 	uint32_t sc = 0;
 	uint32_t freq;
 	uint32_t req_freq;
+	uint32_t flags;
 	file_t *rtc;
 
 	if (!buf || nbytes != sizeof req_freq) {
@@ -256,12 +258,12 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes)
 
 	/*check if the requested freq was a power of 2*/
 	if (req_freq == (1 << sc)) {
-		cli();
+		cli_and_save(flags);
 		rtc_virt_set_freq(rtc, sc);
 		rtc_virt_clr_ticked(rtc);
 		rtc_virt_clr_ticks(rtc);
 		rtc_virt_rst_ctr(rtc);
-		sti();
+		restore_flags(flags);
 
 		return 4;
 	}
@@ -274,6 +276,7 @@ int32_t rtc_open(const uint8_t* filename)
 {
 	int32_t fd;
 	file_t *file;
+	uint32_t flags;
 
 	fd = get_unused_fd();
 	if (fd < 0) {
@@ -288,12 +291,12 @@ int32_t rtc_open(const uint8_t* filename)
 	file->inode_ptr = -1;
 
 	/*sets the rtc to 2_Hz by default*/
-	cli();
+	cli_and_save(flags);
 	rtc_virt_set_freq(file, HZ_2);
 	rtc_virt_clr_ticked(file);
 	rtc_virt_clr_ticks(file);
 	rtc_virt_rst_ctr(file);
-	sti();
+	restore_flags(flags);
 
 	return fd;
 }
