@@ -5,6 +5,7 @@
 #define _SYSCALLS_H_
 
 #include "types.h"
+#include "isr.h"
 
 /****************************************
  *            Global Defines            *
@@ -40,6 +41,7 @@ int32_t sys_vidmap(uint8_t **screen_start);
 
 /* for internal use to spawn parentless processes */
 int32_t sys_exec_internal(const uint8_t *command, registers_t *parent_ctx);
+int32_t sys_halt_internal(int32_t pid, int32_t status);
 
 #endif
 #endif

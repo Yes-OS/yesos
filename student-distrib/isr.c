@@ -25,17 +25,17 @@ void isr_impl(registers_t regs)
         case EXCEPTION_DIVIDE:
             puts("Interrupt occurred(0): divide_error\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
-				sys_halt(-1);
+				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
 			/* just halt for now */
-			halt(); 
+			halt();
             break;
 
         case EXCEPTION_DEBUG:
             puts("Interrupt occurred(1): debug\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
-				sys_halt(-1);
+				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
             halt(); /* just halt for now */
@@ -44,7 +44,7 @@ void isr_impl(registers_t regs)
         case EXCEPTION_NMI:
             puts("Interrupt occurred(2): nmi\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
-				sys_halt(-1);
+				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
             halt(); /* just halt for now */
@@ -53,7 +53,7 @@ void isr_impl(registers_t regs)
         case EXCEPTION_BREAKPOINT:
             puts("Interrupt occurred(3): breakpoint\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
-				sys_halt(-1);
+				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
             halt(); /* just halt for now */
@@ -62,7 +62,7 @@ void isr_impl(registers_t regs)
         case EXCEPTION_OVERFLOW:
             puts("Interrupt occurred(4): overflow\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
-				sys_halt(-1);
+				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
             halt(); /* just halt for now */
@@ -71,7 +71,7 @@ void isr_impl(registers_t regs)
         case EXCEPTION_BOUND:
             puts("Interrupt occurred(5): bound\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
-				sys_halt(-1);
+				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
             halt(); /* just halt for now */
@@ -80,7 +80,7 @@ void isr_impl(registers_t regs)
         case EXCEPTION_INVALID_OPCODE:
             puts("Interrupt occurred(6): invalid_opcode\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
-				sys_halt(-1);
+				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
             halt(); /* just halt for now */
@@ -89,7 +89,7 @@ void isr_impl(registers_t regs)
         case EXCEPTION_DEV_NOT_AVAIL:
             puts("Interrupt occurred(7): device_not_available\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
-				sys_halt(-1);
+				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
             halt(); /* just halt for now */
@@ -98,7 +98,7 @@ void isr_impl(registers_t regs)
         case EXCEPTION_DOUBLE_FAULT:
             puts("Interrupt occurred(8): double_fault\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
-				sys_halt(-1);
+				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
             halt(); /* just halt for now */
@@ -107,7 +107,7 @@ void isr_impl(registers_t regs)
         case EXCEPTION_COPROC_SEG_OVERRUN:
             puts("Interrupt occurred(9): coprocessor_segment_overrun\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
-				sys_halt(-1);
+				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
             halt(); /* just halt for now */
@@ -116,7 +116,7 @@ void isr_impl(registers_t regs)
         case EXCEPTION_INVALID_TSS:
             puts("Interrupt occurred(10): invalid_tss\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
-				sys_halt(-1);
+				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
             halt(); /* just halt for now */
@@ -125,7 +125,7 @@ void isr_impl(registers_t regs)
         case EXCEPTION_SEG_NOT_PRES:
             puts("Interrupt occurred(11): segment_not_present\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
-				sys_halt(-1);
+				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
             halt(); /* just halt for now */
@@ -134,7 +134,7 @@ void isr_impl(registers_t regs)
         case EXCEPTION_STACK_FAULT:
             puts("Interrupt occurred(12): stack_fault\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
-				sys_halt(-1);
+				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
             halt(); /* just halt for now */
@@ -146,7 +146,7 @@ void isr_impl(registers_t regs)
 				printf("    Segment selector: %d\n", regs.errno);
 			}
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
-				sys_halt(-1);
+				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
             halt(); /* just halt for now */
@@ -167,7 +167,7 @@ void isr_impl(registers_t regs)
 			printf("    Accessed in %s mode\n", regs.errno & 0x04 ? "user" : "supervisor");
 			printf("    %saused by reserve bits set to 1 in page directory\n", regs.errno & 0x08 ? "C" : "Not c");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
-				sys_halt(-1);
+				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
             halt(); /* just halt for now */
@@ -176,7 +176,7 @@ void isr_impl(registers_t regs)
         case EXCEPTION_COPROC_ERROR:
             puts("Interrupt occurred(16): coprocessor_error\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
-				sys_halt(-1);
+				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
             halt(); /* just halt for now */
@@ -185,7 +185,7 @@ void isr_impl(registers_t regs)
         case EXCEPTION_ALIGNMENT_CHECK:
             puts("Interrupt occurred(17): alignment_check\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
-				sys_halt(-1);
+				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
             halt(); /* just halt for now */
@@ -194,7 +194,7 @@ void isr_impl(registers_t regs)
         case EXCEPTION_MACHINE_CHECK:
             puts("Interrupt occurred(18): machine_check\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
-				sys_halt(-1);
+				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
             halt(); /* just halt for now */
@@ -203,7 +203,7 @@ void isr_impl(registers_t regs)
         case EXCEPTION_SIMD_COPROC_ERR:
             puts("Interrupt occurred(19): simd_coprocessor_error\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + MB_4_OFFSET) {
-				sys_halt(-1);
+				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
             halt(); /* just halt for now */

@@ -170,7 +170,7 @@ void context_switch(registers_t* regs)
 			push_to_expired(pcb->pid);
 		}
 		else {
-			printf("DEAD! [%d]\n", pcb->pid);
+			//printf("DEAD! [%d]\n", pcb->pid);
 			pcb->state &= ~EXIT_DEAD;
 		}
 
@@ -178,11 +178,11 @@ void context_switch(registers_t* regs)
 		pcb->context_esp = regs;
 	}
 
+next_process:
 	if (CIRC_BUF_EMPTY(*active_queue)) {
 		swap_queues();
 	}
 
-next_process:
 	/*reload tss with new process stack info*/
 	CIRC_BUF_POP(*active_queue, pid, ok);
 
@@ -204,6 +204,10 @@ next_process:
 	if (!pcb) {
 		puts("PANIC: invalid process in sched queue\n");
 		goto leave;
+	}
+
+	if (pcb->state & EXIT_DEAD) {
+		goto next_process;
 	}
 
 	if (!pcb->context_esp) {

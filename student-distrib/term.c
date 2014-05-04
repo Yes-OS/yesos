@@ -346,7 +346,7 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 			if (nprocs > 0) {
 				/* XXX: AWFUL HACK */
 				send_eoi(KBD_IRQ_PORT);
-				sys_halt(-1);
+				sys_halt_internal(term_pids[terminal_num], 256);
 			}
 		}
 		if ((term->lalt_held || term->ralt_held) && (key >= KBD_KEY_F1 && key <= KBD_KEY_F4)) {

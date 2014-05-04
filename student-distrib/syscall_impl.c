@@ -132,57 +132,11 @@ int32_t sys_exec(const uint8_t *command)
 
 int32_t sys_halt(uint8_t status)
 {
-	int32_t term_id;
+	pcb_t *pcb;
 
-	cli();
+	pcb = get_proc_pcb();
 
-	nprocs--;
-	pcb_t *pcb = get_proc_pcb();
-	free_pid(pcb->pid);
-
-	/* Remove the process from the schedule queue */
-	if (pcb->parent) {
-		/* restore terminal pid */
-		term_id = get_term_ctx() - term_terms;
-		term_pids[term_id] = pcb->parent->pid;
-
-		/* Halting from child process */
-
-		/* Scheduling: halting child, set for removal */
-		pcb->state |= EXIT_DEAD;
-
-		pcb->parent_regs->eax = (int32_t)status;
-		set_pdbr(pcb->parent->page_directory);
-		tss.ss0 = KERNEL_DS;
-		tss.esp0 = pcb->parent->kern_stack;
-	}
-	else {
-		/* Halting from parent */
-
-		/* Scheduling: halting parent shell. Relaunch */
-		sched_flags.relaunch = 1;    //currently not designed action
-
-		/* returning to kernel mode */
-		set_pdbr(&page_directories[0]);
-		tss.ss0 = KERNEL_DS;
-		tss.esp0 = (KERNEL_MEM + MB_4_OFFSET -1) & 0xFFFFFFF0;
-		/* returns to kernel space */
-		asm volatile (
-				"movl %0, %%esp\n"
-				"addl $-4, %%esp\n"
-				"sti\n" /* needed or things break sometimes */
-				"ret"
-				: : "g"(pcb->parent_regs)
-				: "cc", "memory");
-		/* control doesn't pass here */
-	}
-	/* Restores registers and exits syscalls */
-	asm volatile (
-			"movl %0, %%esp\n"
-			"jmp exit_syscall"
-			: : "g"(pcb->parent_regs)
-			: "cc", "memory");
-	return 0;
+	return sys_halt_internal(pcb->pid, (int32_t)status);
 }
 
 int32_t sys_getargs(uint8_t *buf, int32_t nbytes)
@@ -390,4 +344,54 @@ fail:
 out:
 	restore_flags(flags);
 	return pcb->pid;
+}
+
+int32_t sys_halt_internal(int32_t pid, int32_t status)
+{
+	int32_t term_id;
+	pcb_t *parent;
+	int32_t i;
+
+	cli();
+
+	nprocs--;
+	pcb_t *pcb = get_pcb_from_pid(pid);
+	free_pid(pcb->pid);
+
+	/* close all open files */
+	for (i = 0; i < MAX_FILES; i++) {
+		pcb->file_array[i].file_op->close(i);
+	}
+
+	/* Remove the process from the schedule queue */
+	if (pcb->parent) {
+		/* wombo combo */
+
+		for (parent = pcb->parent; parent && parent->parent; parent = parent->parent);
+		parent = parent ? parent : pcb;
+
+		/* restore terminal pid */
+		term_id = parent->term_ctx - term_terms;
+		term_pids[term_id] = pcb->parent->pid;
+
+		/* Halting from child process */
+
+		/* Scheduling: halting child, set for removal */
+		pcb->state |= EXIT_DEAD;
+
+		pcb->parent_regs->eax = status;
+		set_pdbr(pcb->parent->page_directory);
+		tss.ss0 = KERNEL_DS;
+		tss.esp0 = pcb->parent->kern_stack;
+	}
+	else {
+		sys_exec_internal((uint8_t*)"shell", NULL);
+	}
+	/* Restores registers and exits syscalls */
+	asm volatile (
+			"movl %0, %%esp\n"
+			"jmp exit_syscall"
+			: : "g"(pcb->parent_regs)
+			: "cc", "memory");
+	return 0;
 }
