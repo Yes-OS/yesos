@@ -351,6 +351,7 @@ int32_t sys_halt_internal(int32_t pid, int32_t status)
 	int32_t term_id;
 	pcb_t *parent;
 	int32_t i;
+	file_t *file;
 
 	cli();
 
@@ -360,7 +361,10 @@ int32_t sys_halt_internal(int32_t pid, int32_t status)
 
 	/* close all open files */
 	for (i = 0; i < MAX_FILES; i++) {
-		pcb->file_array[i].file_op->close(i);
+		file = &pcb->file_array[i];
+		if (file->flags & (FILE_OPEN | FILE_PRESENT)) {
+			file->file_op->close(i);
+		}
 	}
 
 	/* Remove the process from the schedule queue */
