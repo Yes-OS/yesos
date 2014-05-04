@@ -241,8 +241,8 @@ int32_t switch_from_fake_video_memory(pcb_t *pcb)
 	for (; pcb; pcb = pcb->parent) {
 		proc_pd = pcb->page_directory;
 
-		/* unmap fake memory */
-		proc_pd->entry[PAGE_DIR_IDX((uint32_t)fake)].present = 0;
+		/* remap fake video memory to real video, things break otherwise */
+		map_video_mem((void *)VIDEO, fake, proc_pd, &video_memories[term_id]);
 
 		/* if we've mapped video memory for the user program, update that too */
 		if (pcb->has_video_mapped) {

@@ -132,6 +132,8 @@ int32_t sys_exec(const uint8_t *command)
 
 int32_t sys_halt(uint8_t status)
 {
+	int32_t term_id;
+
 	cli();
 
 	nprocs--;
@@ -140,6 +142,10 @@ int32_t sys_halt(uint8_t status)
 
 	/* Remove the process from the schedule queue */
 	if (pcb->parent) {
+		/* restore terminal pid */
+		term_id = get_term_ctx() - term_terms;
+		term_pids[term_id] = pcb->parent->pid;
+
 		/* Halting from child process */
 
 		/* Scheduling: halting child, set for removal */
@@ -228,7 +234,6 @@ int32_t sys_exec_internal(const uint8_t *command, registers_t *parent_ctx)
 	int32_t pid;
 	pcb_t *pcb;
 	dentry_t dentry;
-	uint8_t ok;
 
 	/* can't exec a null command */
 	if (!command) {

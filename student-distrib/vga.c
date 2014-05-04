@@ -44,21 +44,13 @@ void screen_clear(screen_t *screen)
 void screen_save(screen_t *screen)
 {
 	/* copy from video memory into our buffer */
-	memcpy(screen->video->data, (const void *)VIDEO, sizeof screen->video->data);
-
-	/* save cursor positions */
-	screen->x = screen_x;
-	screen->y = screen_y;
+	memcpy((void *)screen->video->data, (const void *)VIDEO, sizeof screen->video->data);
 }
 
 void screen_restore(screen_t *screen)
 {
 	/* copy from our buffer to video memory */
-	memcpy((void *)VIDEO, screen->video->data, sizeof screen->video->data);
-
-	/* restore cursor position */
-	screen_x = screen->x;
-	screen_y = screen->y;
+	memcpy((void *)VIDEO, (void *)screen->video->data, sizeof screen->video->data);
 
 	/* refresh cursor position */
 	screen_update_cursor(screen);
