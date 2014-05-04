@@ -181,8 +181,9 @@ int32_t term_open(const uint8_t *filename)
 		/* we're spawning a new terminal */
 		term = &term_terms[terminal_num];
 		pcb->term_ctx = term;
-		term_pids[terminal_num] = pcb->pid;
 	}
+
+	term_pids[terminal_num] = pcb->pid;
 
 	{
 		/* set up stdin/stdio fds */
@@ -470,7 +471,7 @@ static int32_t switch_terminals(int32_t new_terminal)
 	/* Tell the current terminal that it's video memory has been relocated */
 
 	/* Store the input information for that terminal. (Keyboard buffer) */
-	pcb = get_proc_pcb();
+	pcb = get_pcb_from_pid(term_pids[terminal_num]);
 	switch_to_fake_video_memory(pcb);
 
 
