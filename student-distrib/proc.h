@@ -84,6 +84,7 @@ typedef struct file {
     uint32_t inode_ptr;
     uint32_t file_pos;
     volatile uint32_t flags;
+	int32_t reserved;
 } __attribute__((packed)) file_t;
 
 /*

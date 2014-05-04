@@ -14,6 +14,8 @@ fops_t rtc_fops = {
   .close = rtc_close,
 };
 
+static file_t *open_rtcs = NULL;
+
 /* frequency stored in bytes 24-27 of the flags variable */
 #define rtc_virt_get_freq(_rtc) (((_rtc)->flags & 0x0F000000UL) >> 24)
 
@@ -123,6 +125,9 @@ void rtc_init(void)
 	enable = enable & ENABLE_NMI;
 	outb(enable, NMI_RTC_PORT);
 
+	/* clear chain */
+	open_rtcs = NULL;
+
 	/* set defualt frequency */
 	rtc_modify_freq(RTC_FREQ);
 }
@@ -153,14 +158,11 @@ void rtc_handle_interrupt()
 		if (!pcb) {
 			return;
 		}
-		for (i = 0; i < MAX_FILES; i++) {
-			if (pcb->file_array[i].flags & FILE_RTC) {
-				rtc = pcb->file_array + i;
-				if (rtc_virt_decr_ctr(rtc) == 0) {
-					rtc_virt_rst_ctr(rtc);
-					rtc_virt_incr_ticks(rtc);
-					rtc_virt_set_ticked(rtc);
-				}
+		for (rtc = open_rtcs; rtc; rtc = (file_t *)rtc->reserved) {
+			if (rtc_virt_decr_ctr(rtc) == 0) {
+				rtc_virt_rst_ctr(rtc);
+				rtc_virt_incr_ticks(rtc);
+				rtc_virt_set_ticked(rtc);
 			}
 		}
 		restore_flags(flags);
@@ -296,6 +298,10 @@ int32_t rtc_open(const uint8_t* filename)
 	rtc_virt_clr_ticked(file);
 	rtc_virt_clr_ticks(file);
 	rtc_virt_rst_ctr(file);
+
+	/* update rtc chain */
+	file->reserved = (int32_t)open_rtcs;
+	open_rtcs = file;
 	restore_flags(flags);
 
 	return fd;
@@ -304,6 +310,27 @@ int32_t rtc_open(const uint8_t* filename)
 /*RTC Close*/
 int32_t rtc_close(int32_t fd)
 {
+	file_t **last_rtc, *el;
+	file_t *rtc;
+
+	rtc = get_file_from_fd(fd);
+
+	/* remove rtc from chain */
+	last_rtc = &open_rtcs;
+	el = *last_rtc;
+
+	/* find the rtc we're removing, keep track of its parent */
+	while (el && el != rtc) {
+		last_rtc = (file_t **)&el->reserved;
+		el = *last_rtc;
+	}
+
+	/* if we found something */
+	if (el) {
+		/* remove it from list */
+		*last_rtc = (file_t *)&el->reserved;
+	}
+
 	release_fd(fd);
 	return 0;
 }

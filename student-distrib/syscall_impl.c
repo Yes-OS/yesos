@@ -389,7 +389,10 @@ int32_t sys_halt_internal(int32_t pid, int32_t status)
 		tss.esp0 = pcb->parent->kern_stack;
 	}
 	else {
-		sys_exec_internal((uint8_t*)"shell", NULL);
+		/* do whatcha want */
+		printf("EXITING LAST SHELL IN TERMINAL\n");
+		sti();
+		halt();
 	}
 	/* Restores registers and exits syscalls */
 	asm volatile (
