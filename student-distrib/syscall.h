@@ -11,6 +11,7 @@
  *            Global Defines            *
  ****************************************/
 
+/* syscall numbers */
 #define SYS_HALT    1
 #define SYS_EXECUTE 2
 #define SYS_READ    3
@@ -70,6 +71,13 @@ int32_t sys_halt_internal(int32_t pid, int32_t status);
 		"int $0x80"            \
 		: : "g"(SYS_SCHED)     \
 		: "eax", "cc", "memory")
+
+/* used to exit as syscall */
+#define exit_syscall(_context) asm volatile ( \
+				"movl %0, %%esp\n"            \
+				"jmp exit_syscall"            \
+				: : "g"(_context)             \
+				: "cc", "memory")
 
 #endif /* ASM */
 #endif /* _SYSCALL_H_ */

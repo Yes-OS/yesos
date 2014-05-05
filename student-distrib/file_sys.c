@@ -408,7 +408,7 @@ uint32_t file_loader(dentry_t* file, uint32_t* eip)
 
 	/* get EIP from bytes 24-27 of executable */
 	file_eip = *(uint32_t *)(dest + ELF_EIP_OFFSET);
-	if(file_eip < USER_MEM + EXEC_OFFSET || file_eip > USER_MEM + MB_4_OFFSET) {
+	if(file_eip < USER_MEM + EXEC_OFFSET || file_eip > USER_MEM + OFFSET_4MB) {
 		return -1;
 	}
 

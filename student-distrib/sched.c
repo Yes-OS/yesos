@@ -199,7 +199,7 @@ void context_switch(registers_t* regs)
 		}
 
 		/* Set ESP/EIP for exiting process*/
-		pcb->context_esp = regs;
+		pcb->sched_ctx = regs;
 	}
 
 	/* TODO: rewrite */
@@ -247,7 +247,7 @@ next_process:
 		goto next_process;
 	}
 
-	if (!pcb->context_esp) {
+	if (!pcb->sched_ctx) {
 		/* Push to be initialized later */
 		push_to_expired(pid);
 		DEBUG("WARN: No context, returning [%d][%x]\n", pcb->pid, (uint32_t)pcb);
@@ -257,8 +257,8 @@ next_process:
 	tss.esp0 = pcb->kern_stack;
 	tss.ss0 = KERNEL_DS;
 
-	regs = pcb->context_esp;
-	pcb->context_esp = NULL;
+	regs = pcb->sched_ctx;
+	pcb->sched_ctx = NULL;
 
 	/*reload CR3*/
 	set_pdbr(pcb->page_directory);
@@ -266,10 +266,8 @@ next_process:
 	/* TODO: move this? */
 	send_eoi(PIT_IRQ_PORT);
 
-	asm volatile (	"movl %0, %%esp\n"
-			"jmp exit_syscall"
-			: : "g"(regs)
-			: "cc", "memory");
+	/* return to previous context */
+	exit_syscall(regs);
 leave:
 	send_eoi(PIT_IRQ_PORT);
 }

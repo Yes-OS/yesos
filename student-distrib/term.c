@@ -480,6 +480,11 @@ static int32_t switch_terminals(int32_t new_terminal)
 	pcb_t *pcb;
 	int32_t new_pid;
 
+	/* sanity check */
+	if (new_terminal < 0 || new_terminal > NUM_TERMS) {
+		return -1;
+	}
+
 	/* If the new terminal is the same, do not switch. */
 	if (new_terminal == terminal_num) {
 		return -1;

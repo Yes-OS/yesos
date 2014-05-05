@@ -31,14 +31,6 @@
 		: : "g"((_ss)), "g"((_esp)), "g"((_flags)), "g"((_cs)), "g"((_eip))   \
 		: "memory", "cc", "eax")
 
-#define push_context() asm volatile ( \
-		"pushl    %%ss\n"             \
-		"pushl    %%esp\n"            \
-		"pushfl\n"                    \
-		"pushl    %%cs\n"             \
-		"pushl    %%eip\n"            \
-		"PUSH_ALL")
-
 uint8_t nprocs = 0;
 uint32_t proc_bitmap = 0;
 
@@ -215,7 +207,7 @@ int32_t sys_vidmap(uint8_t **screen_start)
 {
 	pcb_t *pcb;
 	if (screen_start < (uint8_t **)USER_MEM
-			|| screen_start >= (uint8_t **)(USER_MEM + MB_4_OFFSET)) {
+			|| screen_start >= (uint8_t **)(USER_MEM + OFFSET_4MB)) {
 		return -1;
 	}
 
@@ -315,21 +307,20 @@ int32_t sys_exec_internal(const uint8_t *command, registers_t *parent_ctx)
 		}
 
 		/* calculate location of bottom of process's stack */
-		/* 0xFFFFFFFC aligns to a 4-byte boundary */
-		kern_esp = (KERNEL_MEM + MB_4_OFFSET - USER_STACK_SIZE * pid - 1) & 0xFFFFFFFC;
-		user_esp = (USER_MEM + MB_4_OFFSET - 1) & 0xFFFFFFFC;
+		kern_esp = (KERNEL_MEM + OFFSET_4MB - USER_STACK_SIZE * pid - 1) & ALIGN_4B;
+		user_esp = (USER_MEM + OFFSET_4MB - 1) & ALIGN_4B;
 
-		/* obtain and initialize the PCB, 0xFFFFE000 */
-		pcb = (pcb_t *)(kern_esp & 0xFFFFE000);
+		/* obtain and initialize the PCB */
+		pcb = (pcb_t *)(kern_esp & ALIGN_8KB);
 		memset(pcb, 0, sizeof(*pcb));
 		pcb->pid = pid;
 		pcb->kern_stack = kern_esp;
 		pcb->user_stack = user_esp;
-		pcb->context_esp = NULL;
+		pcb->sched_ctx = NULL;
 		pcb->page_directory = &page_directories[pcb->pid];
 
 		/* Save old state */
-		pcb->parent_regs = parent_ctx;
+		pcb->parent_ctx = parent_ctx;
 
 		/* copy args into pcb, first eat leading spaces */
 		for (c = command; *c == (uint8_t)' '; i++, c++) {
@@ -381,29 +372,29 @@ int32_t sys_exec_internal(const uint8_t *command, registers_t *parent_ctx)
 		}
 
 		/* set the context in the PCB */
-		pcb->context_esp = (registers_t *)kern_esp - 1;
+		pcb->sched_ctx = (registers_t *)kern_esp - 1;
 		/* iret context */
-		pcb->context_esp->ss = USER_DS;
-		pcb->context_esp->user_esp = user_esp;
+		pcb->sched_ctx->ss = USER_DS;
+		pcb->sched_ctx->user_esp = user_esp;
 		/* ensure interrupt flag is set, as this may be called with the flag cleared */
-		pcb->context_esp->eflags = FLAG_INT;
-		pcb->context_esp->cs = USER_CS;
-		pcb->context_esp->eip = eip;
+		pcb->sched_ctx->eflags = FLAG_INT;
+		pcb->sched_ctx->cs = USER_CS;
+		pcb->sched_ctx->eip = eip;
 		/* unused filler */
-		pcb->context_esp->isrno = 0;
-		pcb->context_esp->errno = 0;
+		pcb->sched_ctx->isrno = 0;
+		pcb->sched_ctx->errno = 0;
 		/* segments */
-		pcb->context_esp->fs = USER_DS;
-		pcb->context_esp->es = USER_DS;
-		pcb->context_esp->ds = USER_DS;
+		pcb->sched_ctx->fs = USER_DS;
+		pcb->sched_ctx->es = USER_DS;
+		pcb->sched_ctx->ds = USER_DS;
 		/* general purpose registers */
-		pcb->context_esp->eax = 0;
-		pcb->context_esp->ebp = 0;
-		pcb->context_esp->edi = 0;
-		pcb->context_esp->esi = 0;
-		pcb->context_esp->edx = 0;
-		pcb->context_esp->ecx = 0;
-		pcb->context_esp->ebx = 0;
+		pcb->sched_ctx->eax = 0;
+		pcb->sched_ctx->ebp = 0;
+		pcb->sched_ctx->edi = 0;
+		pcb->sched_ctx->esi = 0;
+		pcb->sched_ctx->edx = 0;
+		pcb->sched_ctx->ecx = 0;
+		pcb->sched_ctx->ebx = 0;
 
 		/* needed so the process will get scheduled eventually */
 		push_to_active(pcb->pid);
@@ -463,7 +454,7 @@ int32_t sys_halt_internal(int32_t pid, int32_t status)
 		/* restore terminal pid */
 		term_id = get_term_ctx(pcb) - term_terms;
 		term_pids[term_id] = pcb->parent->pid;
-		pcb->parent_regs->eax = status;
+		pcb->parent_ctx->eax = status;
 	}
 	else {
 		/* do whatcha want */
@@ -490,11 +481,7 @@ int32_t sys_halt_internal(int32_t pid, int32_t status)
 		tss.esp0 = pcb->parent->kern_stack;
 
 		/* Restores registers and exits syscalls */
-		asm volatile (
-				"movl %0, %%esp\n"
-				"jmp exit_syscall"
-				: : "g"(pcb->parent_regs)
-				: "cc", "memory");
+		exit_syscall(pcb->parent_ctx);
 	}
 
 	/* otherwise we just want to give control back to the caller, but we want
@@ -503,8 +490,8 @@ int32_t sys_halt_internal(int32_t pid, int32_t status)
 
 	/* if the parent has a context, it's out of date, so give it the context from
 	 * when exec was called */
-	if (pcb->parent_regs) {
-		pcb->parent->context_esp = pcb->parent_regs;
+	if (pcb->parent_ctx) {
+		pcb->parent->sched_ctx = pcb->parent_ctx;
 	}
 
 	restore_flags(flags);

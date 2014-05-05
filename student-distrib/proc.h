@@ -50,9 +50,14 @@
 #define MAX_PROCESSES 10
 
 /* User Space virtual addressing values */
-#define MB_4_OFFSET         0x400000
+#define OFFSET_4MB          0x400000
 #define EXEC_OFFSET         0x48000
 #define USER_STACK_SIZE     0x2000
+
+/* used for alignment */
+#define ALIGN_8KB 0xFFFFE000
+#define ALIGN_4B  0xFFFFFFFC
+
 
 #ifndef ASM
 
@@ -109,10 +114,7 @@ struct pcb
 	uint32_t user_stack;
 
 	/*Context switch esp tracker*/
-	registers_t* context_esp;
-
-	/*context switch eip tracker*/
-	uint32_t context_eip;
+	registers_t *sched_ctx;
 
 	/*Process arguments*/
 	uint8_t cmd_args[MAX_ARGS_LEN + 1];
@@ -124,7 +126,7 @@ struct pcb
 	struct pcb *parent;
 
 	/*Parent State*/
-	registers_t *parent_regs;
+	registers_t *parent_ctx;
 
 	/* flag denotes whether process has mapped video memory */
 	int8_t has_video_mapped;
@@ -151,14 +153,14 @@ extern uint32_t proc_bitmap;
 static inline pcb_t *get_proc_pcb()
 {
 	uint32_t pcb;
-	asm (	"movl	$0xFFFFE000, %0\n"
-			"andl	%%esp, %0"
+	asm (	"movl   %1, %0\n"
+			"andl   %%esp, %0"
 			: "=r"(pcb)
-			:
+			: "g"(ALIGN_8KB)
 			: "memory");
 
 	/* check if we're running as the kernel pre-execute first shell */
-	if (pcb == KERNEL_MEM + MB_4_OFFSET - USER_STACK_SIZE) {
+	if (pcb == KERNEL_MEM + OFFSET_4MB - USER_STACK_SIZE) {
 		return NULL;
 	}
 
@@ -299,7 +301,7 @@ static inline pcb_t *get_pcb_from_pid(int32_t pid)
 		return NULL;
 	}
 
-	return (pcb_t *)((KERNEL_MEM + MB_4_OFFSET - USER_STACK_SIZE * pid - 1) & 0xFFFFE000);
+	return (pcb_t *)((KERNEL_MEM + OFFSET_4MB - USER_STACK_SIZE * pid - 1) & ALIGN_8KB);
 }
 
 #endif /* ASM */
