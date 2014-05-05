@@ -181,7 +181,6 @@ void rtc_handle_interrupt()
 {
 	file_t *rtc;
 	pcb_t *pcb;
-	int32_t i;
 	uint32_t flags;
 
 	/* read a byte from reg c to allow interrupts to continue */
