@@ -68,16 +68,16 @@ void rtc_handle_interrupt(void);
 void rtc_modify_freq(uint32_t freq);
 
 /*System calls for rtc type files*/
-int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes);
+int32_t rtc_read(pcb_t *pcb, int32_t fd, void* buf, int32_t nbytes);
 
 /* Write to the RTC */
-int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes);
+int32_t rtc_write(pcb_t *pcb, int32_t fd, const void* buf, int32_t nbytes);
 
 /* Open a new RTC for a file */
-int32_t rtc_open(const uint8_t* filename);
+int32_t rtc_open(pcb_t *pcb, const uint8_t* filename);
 
 /* Close a RTC */
-int32_t rtc_close(int32_t fd);
+int32_t rtc_close(pcb_t *pcb, int32_t fd);
 
 #endif /* ASM */
 #endif /* _RTC_H */

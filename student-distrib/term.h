@@ -28,6 +28,11 @@
  *              Data Types              *
  ****************************************/
 
+/* forward declare to break dependency loop */
+struct fops;
+struct screen;
+struct pcb;
+
 /* Terminal struct
  */
 typedef struct terminal {
@@ -50,10 +55,6 @@ typedef struct terminal {
  *           Global Variables           *
  ****************************************/
 
-/* forward declare to break dependency loop */
-struct fops;
-struct screen;
-
 extern struct fops term_fops;
 extern int32_t terminal_num;
 extern struct screen kern_screen;
@@ -66,19 +67,19 @@ extern term_t term_terms[];
 
 /* Opens a terminal 
  */
-int32_t term_open(const uint8_t *filename);
+int32_t term_open(struct pcb *pcb, const uint8_t *filename);
 
 /* Closes a terminal
  */
-int32_t term_close(int32_t fd);
+int32_t term_close(struct pcb *pcb, int32_t fd);
 
 /* Reads from the terminal
  */
-int32_t term_read(int32_t fd, void *buf, int32_t nbytes);
+int32_t term_read(struct pcb *pcb, int32_t fd, void *buf, int32_t nbytes);
 
 /* Writes to the terminal
  */
-int32_t term_write(int32_t fd, const void *buf, int32_t nbytes);
+int32_t term_write(struct pcb *pcb, int32_t fd, const void *buf, int32_t nbytes);
 
 /* Handles the keypress of a terminal
  */

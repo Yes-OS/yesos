@@ -167,18 +167,15 @@ int32_t term_init_global_ctx()
 	return 0;
 }
 
-/* open terminal fd 
- * Returns: STDIN 
+/* open terminal fd
+ * Returns: STDIN
  */
-int32_t term_open(const uint8_t *filename)
+int32_t term_open(pcb_t *pcb, const uint8_t *filename)
 {
 	(void)filename; /* we don't use the filename for terminal */
-	pcb_t *pcb;
 	screen_t *screen;
 	term_t *term;
 
-	/* XXX: no bueno, see relevant call in sys_exec */
-	pcb = (pcb_t *)filename;
 	if (!pcb) {
 		return -1;
 	}
@@ -210,7 +207,7 @@ int32_t term_open(const uint8_t *filename)
 		screen->y = screen_y;
 	}
 	else {
-		screen = get_screen_ctx();
+		screen = get_screen_ctx(pcb);
 	}
 
 	/* flush the cursor location just to be safe */
@@ -222,15 +219,15 @@ int32_t term_open(const uint8_t *filename)
 /* closes terminal fd
  * fails always!
  */
-int32_t term_close(int32_t fd)
+int32_t term_close(pcb_t *pcb, int32_t fd)
 {
-	(void)fd;
+	(void)pcb; (void)fd;
 	return -1;
 }
 
 /* if fd is STDIN, proceed as normal, otherwise fail 
  */
-int32_t term_read(int32_t fd, void *buf, int32_t nbytes)
+int32_t term_read(pcb_t *pcb, int32_t fd, void *buf, int32_t nbytes)
 {
 	term_t *term;
 	screen_t *screen;
@@ -243,12 +240,12 @@ int32_t term_read(int32_t fd, void *buf, int32_t nbytes)
 		return -1;
 	}
 
-	term = get_term_ctx();
+	term = get_term_ctx(pcb);
 	if (!term) {
 		return -1;
 	}
 
-	screen = get_screen_ctx();
+	screen = get_screen_ctx(pcb);
 	if (!screen) {
 		return -1;
 	}
@@ -283,7 +280,7 @@ int32_t term_read(int32_t fd, void *buf, int32_t nbytes)
 
 /* if fd is STDOUT, proceed as normal, otherwise fail 
  */
-int32_t term_write(int32_t fd, const void *buf, int32_t nbytes)
+int32_t term_write(pcb_t *pcb, int32_t fd, const void *buf, int32_t nbytes)
 {
 	int idx;
 	screen_t *screen;
@@ -292,7 +289,7 @@ int32_t term_write(int32_t fd, const void *buf, int32_t nbytes)
 		return -1;
 	}
 
-	screen = get_screen_ctx();
+	screen = get_screen_ctx(pcb);
 	if (!screen) {
 		return -1;
 	}
@@ -360,6 +357,10 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 				send_eoi(KBD_IRQ_PORT);
 				sys_halt_internal(term_pids[terminal_num], 256);
 			}
+
+			/* just return here or the last character of the chord gets added
+			 * to the buffer */
+			return;
 		}
 		if ((term->lalt_held || term->ralt_held) && (key >= KBD_KEY_F1 && key <= KBD_KEY_F4)) {
 			cli_and_save(flags);

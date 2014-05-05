@@ -64,11 +64,11 @@ int32_t sys_open(const uint8_t *filename)
 
 	switch (dentry.file_type) {
 		case FILE_TYPE_REG:
-			return file_fops.open(filename);
+			return file_fops.open(get_proc_pcb(), filename);
 		case FILE_TYPE_DIR:
-			return dir_fops.open(filename);
+			return dir_fops.open(get_proc_pcb(), filename);
 		case FILE_TYPE_RTC:
-			return rtc_fops.open(filename);
+			return rtc_fops.open(get_proc_pcb(), filename);
 		default:
 			/* unknown type */
 			return -1;
@@ -86,19 +86,22 @@ int32_t sys_open(const uint8_t *filename)
  */
 int32_t sys_read(int32_t fd, void *buf, int32_t nbytes)
 {
+	pcb_t *pcb;
+
 	/* don't try to fill null buffer */
 	if (!buf) {
 		return -1;
 	}
 
-	file_t *file = get_file_from_fd(fd);
+	pcb = get_proc_pcb();
+	file_t *file = get_file_from_fd(pcb, fd);
 
 	/* get_file_from_fd validates the fd for us */
 	if (!file || !(file->flags & FILE_PRESENT)) {
 		return -1;
 	}
 
-	return file->file_op->read(fd, buf, nbytes);
+	return file->file_op->read(pcb, fd, buf, nbytes);
 }
 
 /* Sys Write:
@@ -110,19 +113,22 @@ int32_t sys_read(int32_t fd, void *buf, int32_t nbytes)
  */
 int32_t sys_write(int32_t fd, const void *buf, int32_t nbytes)
 {
+	pcb_t *pcb;
+
 	/* no point writing if it's a null buffer */
 	if (!buf) {
 		return -1;
 	}
 
-	file_t *file = get_file_from_fd(fd);
+	pcb = get_proc_pcb();
+	file_t *file = get_file_from_fd(pcb, fd);
 
 	/* get_file_from_fd validates the fd for us */
 	if (!file || !(file->flags & FILE_PRESENT)) {
 		return -1;
 	}
 
-	return file->file_op->write(fd, buf, nbytes);
+	return file->file_op->write(pcb, fd, buf, nbytes);
 }
 
 /* Sys Close:
@@ -132,14 +138,17 @@ int32_t sys_write(int32_t fd, const void *buf, int32_t nbytes)
  */
 int32_t sys_close(int32_t fd)
 {
-	file_t *file = get_file_from_fd(fd);
+	pcb_t *pcb;
+
+	pcb = get_proc_pcb();
+	file_t *file = get_file_from_fd(pcb, fd);
 
 	/* get_file_from_fd validates the fd for us */
 	if (!file || !(file->flags & FILE_PRESENT)) {
 		return -1;
 	}
 
-	return file->file_op->close(fd);
+	return file->file_op->close(pcb, fd);
 }
 
 /* Sys Exec:
@@ -316,10 +325,8 @@ int32_t sys_exec_internal(const uint8_t *command, registers_t *parent_ctx)
 			pcb->parent = NULL;
 		}
 
-		/* set up the terminal driver. this has to come after we switch stacks,
-		 * else it doesn't operate correctly */
-		/* XXX: rewrite this so it's not abusing pointers */
-		term_fops.open((uint8_t *)pcb);
+		/* set up the terminal driver */
+		term_fops.open(pcb, NULL);
 
 		/* save old page directory */
 		get_pdbr(old_pdbr);
@@ -404,11 +411,11 @@ out:
 int32_t sys_halt_internal(int32_t pid, int32_t status)
 {
 	int32_t term_id;
-	pcb_t *parent;
 	int32_t i;
 	file_t *file;
+	uint32_t flags;
 
-	cli();
+	cli_and_save(flags);
 
 	nprocs--;
 	pcb_t *pcb = get_pcb_from_pid(pid);
@@ -418,7 +425,7 @@ int32_t sys_halt_internal(int32_t pid, int32_t status)
 	for (i = 0; i < MAX_FILES; i++) {
 		file = &pcb->file_array[i];
 		if (file->flags & (FILE_OPEN | FILE_PRESENT)) {
-			file->file_op->close(i);
+			file->file_op->close(pcb, i);
 		}
 	}
 
@@ -427,20 +434,10 @@ int32_t sys_halt_internal(int32_t pid, int32_t status)
 
 	/* Remove the process from the schedule queue */
 	if (pcb->parent) {
-		/* wombo combo */
-		for (parent = pcb->parent; parent && parent->parent; parent = parent->parent);
-		parent = parent ? parent : pcb;
-
 		/* restore terminal pid */
-		term_id = parent->term_ctx - term_terms;
+		term_id = get_term_ctx(pcb) - term_terms;
 		term_pids[term_id] = pcb->parent->pid;
-
-		/* Halting from child process */
-
 		pcb->parent_regs->eax = status;
-		set_pdbr(pcb->parent->page_directory);
-		tss.ss0 = KERNEL_DS;
-		tss.esp0 = pcb->parent->kern_stack;
 	}
 	else {
 		/* do whatcha want */
@@ -454,12 +451,33 @@ int32_t sys_halt_internal(int32_t pid, int32_t status)
 		sti();
 		halt();
 	}
-	/* Restores registers and exits syscalls */
-	asm volatile (
-			"movl %0, %%esp\n"
-			"jmp exit_syscall"
-			: : "g"(pcb->parent_regs)
-			: "cc", "memory");
+
+	if (pcb == get_proc_pcb()) {
+		/* if we're killing the process currently running, we return to the parent process */
+		set_pdbr(pcb->parent->page_directory);
+		tss.ss0 = KERNEL_DS;
+		tss.esp0 = pcb->parent->kern_stack;
+
+		/* Restores registers and exits syscalls */
+		asm volatile (
+				"movl %0, %%esp\n"
+				"jmp exit_syscall"
+				: : "g"(pcb->parent_regs)
+				: "cc", "memory");
+	}
+
+	/* otherwise we just want to give control back to the caller, but we want
+	 * to give control back to the parent process, so we should schedule it first */
+	push_to_expired(pcb->parent->pid);
+
+	/* if the parent has a context, it's out of date, so give it the context from
+	 * when exec was called */
+	if (pcb->parent_regs) {
+		pcb->parent->context_esp = pcb->parent_regs;
+	}
+
+	restore_flags(flags);
+
 	return 0;
 }
 

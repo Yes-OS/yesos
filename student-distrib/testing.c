@@ -7,6 +7,7 @@
 #include "testing.h"
 #include "file_sys.h"
 
+#ifdef MAKE_TESTS
 
 /* Read tests
  * Three functions
@@ -230,3 +231,5 @@ void rtc_rw_test(void)
 
 	return error_count;
 } */
+
+#endif

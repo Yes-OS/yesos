@@ -60,10 +60,12 @@
  *              Data Types              *
  ****************************************/
 
-typedef int32_t open_t(const uint8_t *filename);
-typedef int32_t read_t(int32_t fd, void *buf, int32_t nbytes);
-typedef int32_t write_t(int32_t fd, const void *buf, int32_t nbytes);
-typedef int32_t close_t(int32_t fd);
+typedef struct pcb pcb_t;
+
+typedef int32_t open_t(pcb_t *pcb, const uint8_t *filename);
+typedef int32_t read_t(pcb_t *pcb, int32_t fd, void *buf, int32_t nbytes);
+typedef int32_t write_t(pcb_t *pcb, int32_t fd, const void *buf, int32_t nbytes);
+typedef int32_t close_t(pcb_t *pcb, int32_t fd);
 
 /*
  * File Operations Table
@@ -91,7 +93,7 @@ typedef struct file {
  *  Contains various members pertaining to a process,
  *  its context, and storage pointers
  */
-typedef struct pcb
+struct pcb
 {
 	/*Process State*/
 	uint32_t state;
@@ -129,7 +131,7 @@ typedef struct pcb
 
 	/* holds a pointer to the terminal context the process uses */
 	term_t *term_ctx;
-} pcb_t;
+};
 
 
 /****************************************
@@ -167,9 +169,8 @@ static inline pcb_t *get_proc_pcb()
  * INPUTS: fd - file descriptor to search with
  * OUTPUTS: returns a file_t pointer
  */
-static inline file_t *get_file_from_fd(int32_t fd)
+static inline file_t *get_file_from_fd(pcb_t *pcb, int32_t fd)
 {
-	pcb_t *pcb = get_proc_pcb();
 	if (pcb && 0 <= fd && fd < MAX_FILES) {
 		return &pcb->file_array[fd];
 	}
@@ -179,12 +180,13 @@ static inline file_t *get_file_from_fd(int32_t fd)
 /* Gets the next unused file descriptor from a process's pcb
  * OUTPUT: a file descriptor
  */
-static inline int32_t get_unused_fd()
+static inline int32_t get_unused_fd(pcb_t *pcb)
 {
 	int32_t fd;
-	pcb_t *pcb;
 
-	pcb = get_proc_pcb();
+	if (!pcb) {
+		return -1;
+	}
 
 	/* skip FDs in use until we find an unused one */
 	for (fd = 0; pcb->file_array[fd].flags & FILE_PRESENT; ++fd);
@@ -202,15 +204,12 @@ static inline int32_t get_unused_fd()
 /* Clears a passed file descriptor to be used elsewhere
  * INPUTS: fd - file descriptor to clear
  */
-static inline void release_fd(int32_t fd)
+static inline void release_fd(pcb_t *pcb, int32_t fd)
 {
-	pcb_t *pcb;
-
 	if (fd < 0 || fd > MAX_FILES) {
 		return;
 	}
 
-	pcb = get_proc_pcb();
 	if (pcb) {
 		pcb->file_array[fd].flags = 0;
 	}
@@ -253,11 +252,8 @@ static inline vid_mem_t *get_term_fake_vid_mem(int32_t term_id)
 /* Gets the context for the correct terminal
  * OUTPUTS: term_t pointer from the applicable PCB
  */
-static inline term_t *get_term_ctx()
+static inline term_t *get_term_ctx(pcb_t *pcb)
 {
-	pcb_t *pcb;
-
-	pcb = get_proc_pcb();
 	if (!pcb) {
 		return NULL;
 	}
@@ -283,11 +279,11 @@ static inline term_t *get_current_term()
 /* Gets the context of the currently used screen
  *  Needed because we only want to get the screen for the topmost shell process 
  */
-static inline screen_t *get_screen_ctx()
+static inline screen_t *get_screen_ctx(pcb_t *pcb)
 {
 	term_t *term;
 
-	term = get_term_ctx();
+	term = get_term_ctx(pcb);
 	if (!term) {
 		return NULL;
 	}
@@ -297,9 +293,14 @@ static inline screen_t *get_screen_ctx()
 
 /* Return the pcb associated with a given PID
  */
-#define get_pcb_from_pid(_pid) ((_pid > 0) ? \
-	((pcb_t *)((KERNEL_MEM + MB_4_OFFSET - USER_STACK_SIZE * _pid - 1) & 0xFFFFE000)) : \
-		(NULL))
+static inline pcb_t *get_pcb_from_pid(int32_t pid)
+{
+	if (pid < 0 || pid > MAX_PROCESSES) {
+		return NULL;
+	}
+
+	return (pcb_t *)((KERNEL_MEM + MB_4_OFFSET - USER_STACK_SIZE * pid - 1) & 0xFFFFE000);
+}
 
 #endif /* ASM */
 #endif /* _PROC_H_ */

@@ -177,7 +177,6 @@ static void map_video_mem(const vid_mem_t *vidmem, const void *virt_addr, pd_t *
  */
 int32_t switch_to_fake_video_memory(pcb_t *pcb)
 {
-	pcb_t *parent;
 	pd_t *proc_pd;
 	screen_t *screen;
 	term_t *term;
@@ -192,12 +191,7 @@ int32_t switch_to_fake_video_memory(pcb_t *pcb)
 
 	cli_and_save(flags);
 
-	for (parent = pcb->parent; parent && parent->parent; parent = parent->parent);
-
-	/* did we actually find a parent? no? grab pcb */
-	parent = parent ? parent : pcb;
-
-	term = parent->term_ctx;
+	term = get_term_ctx(pcb);
 	screen = &term->screen;
 
 	term_id = term - term_terms;
@@ -245,7 +239,6 @@ int32_t switch_to_fake_video_memory(pcb_t *pcb)
  */
 int32_t switch_from_fake_video_memory(pcb_t *pcb)
 {
-	pcb_t *parent;
 	pd_t *proc_pd;
 	screen_t *screen;
 	term_t *term;
@@ -260,12 +253,7 @@ int32_t switch_from_fake_video_memory(pcb_t *pcb)
 
 	cli_and_save(flags);
 
-	for (parent = pcb->parent; parent && parent->parent; parent = parent->parent);
-
-	/* did we actually find a parent? no? grab pcb */
-	parent = parent ? parent : pcb;
-
-	term = parent->term_ctx;
+	term = get_term_ctx(pcb);
 	screen = &term->screen;
 
 	term_id = term - term_terms;

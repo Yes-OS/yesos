@@ -10,6 +10,7 @@
  */
 
 #include "lib.h"
+#include "proc.h"
 #include "file_sys.h"
 
 /* File operations jump table */
@@ -34,7 +35,7 @@ static data_block_t* data_head;
 static boot_block_t* boot_block;
 
 
-/* 
+/*
  * Sets up the head pointer for the file system
  * Sets up relevant structures and variables
  *
@@ -49,7 +50,7 @@ void fs_init(boot_block_t* boot_val)
 	data_head = (data_block_t*)node_head + boot_block->num_inodes;
 }
 
-/* 
+/*
  * Read system call for normal file types. Reads data from a file
  * and stores it in a buffer.
  *
@@ -58,12 +59,12 @@ void fs_init(boot_block_t* boot_val)
  *         nbytes - number of bytes to read
  * Outputs:Number of bytes read
  */
-int32_t file_read(int32_t fd, void* buf, int32_t nbytes)
+int32_t file_read(pcb_t *pcb, int32_t fd, void* buf, int32_t nbytes)
 {
 	file_t *file;
 	int32_t ret;
 
-	file = get_file_from_fd(fd);
+	file = get_file_from_fd(pcb, fd);
 
 	/* ensure file is open */
 	if (!file || !(file->flags & FILE_OPEN)) {
@@ -76,16 +77,16 @@ int32_t file_read(int32_t fd, void* buf, int32_t nbytes)
 	return ret;
 }
 
-/*  
+/*
  *  Write system call for regular file types. 
  *  Read-only file system - Not implemented;
  *
  *  Return -1
  */
-int32_t file_write(int32_t fd, const void* buf, int nbytes)
+int32_t file_write(pcb_t *pcb, int32_t fd, const void* buf, int nbytes)
 {
 	/* silence warnings about unused variables */
-	(void)fd; (void)buf; (void)nbytes;
+	(void) pcb; (void)fd; (void)buf; (void)nbytes;
 	return -1;
 }
 
@@ -96,7 +97,7 @@ int32_t file_write(int32_t fd, const void* buf, int nbytes)
  *  Inputs: filename - name of the file
  *  Outputs: file descriptor
  */
-int32_t file_open(const uint8_t *filename)
+int32_t file_open(pcb_t *pcb, const uint8_t *filename)
 {
 	dentry_t dentry;
 	int32_t fd;
@@ -109,13 +110,13 @@ int32_t file_open(const uint8_t *filename)
 	}
 
 	/* find unused descriptor */
-	fd = get_unused_fd();
+	fd = get_unused_fd(pcb);
 	if (fd < 0) {
 		return -1;
 	}
 
 	/* grab associated file, should never fail since we were just allocated a FD */
-	file = get_file_from_fd(fd);
+	file = get_file_from_fd(pcb, fd);
 
 	/* set up the file */
 	file->flags |= FILE_OPEN;
@@ -132,9 +133,9 @@ int32_t file_open(const uint8_t *filename)
  *  Input: fd -File descriptor
  *  Return 0
  */
-int32_t file_close(int32_t fd)
+int32_t file_close(pcb_t *pcb, int32_t fd)
 {
-	release_fd(fd);
+	release_fd(pcb, fd);
 	return 0;
 }
 
@@ -281,13 +282,13 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
  * Outputs: number of characters in file name
  *
  */
-int32_t dir_read(int32_t fd, void* buf, int32_t nbytes)
+int32_t dir_read(pcb_t *pcb, int32_t fd, void* buf, int32_t nbytes)
 {
 	file_t *file;
 	int32_t ret;
 	dentry_t dentry;
 
-	file = get_file_from_fd(fd);
+	file = get_file_from_fd(pcb, fd);
 
 	/* ensure file is open */
 	if (!file || !(file->flags & FILE_OPEN)) {
@@ -317,9 +318,10 @@ int32_t dir_read(int32_t fd, void* buf, int32_t nbytes)
  *
  *  Return -1
  */
-int32_t dir_write(int32_t fd, const void* buf, int32_t nbytes)
+int32_t dir_write(pcb_t *pcb, int32_t fd, const void* buf, int32_t nbytes)
 {
-	(void)fd; (void)buf; (void)nbytes;
+	/* unused params */
+	(void)pcb; (void)fd; (void)buf; (void)nbytes;
 	return -1;
 }
 
@@ -332,7 +334,7 @@ int32_t dir_write(int32_t fd, const void* buf, int32_t nbytes)
  * Outputs: fd- file descriptor
  *
  */
-int32_t dir_open(const uint8_t *filename)
+int32_t dir_open(pcb_t *pcb, const uint8_t *filename)
 {
 	dentry_t dentry;
 	int32_t fd;
@@ -345,13 +347,13 @@ int32_t dir_open(const uint8_t *filename)
 	}
 
 	/* find unused descriptor */
-	fd = get_unused_fd();
+	fd = get_unused_fd(pcb);
 	if (fd < 0) {
 		return -1;
 	}
 
 	/* grab associated file, should never fail since we were just allocated a FD */
-	file = get_file_from_fd(fd);
+	file = get_file_from_fd(pcb, fd);
 
 	/* set up the file */
 	file->flags |= FILE_OPEN;
@@ -369,9 +371,9 @@ int32_t dir_open(const uint8_t *filename)
  *  Inputs: fd - file descriptor to be released
  *  Outputs: 0
  */
-int32_t dir_close(int32_t fd)
+int32_t dir_close(pcb_t *pcb, int32_t fd)
 {
-	release_fd(fd);
+	release_fd(pcb, fd);
 	return 0;
 }
 

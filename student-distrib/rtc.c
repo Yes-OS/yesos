@@ -180,23 +180,16 @@ void rtc_init(void)
 void rtc_handle_interrupt()
 {
 	file_t *rtc;
-	pcb_t *pcb;
 	uint32_t flags;
 
 	/* read a byte from reg c to allow interrupts to continue */
 	outb(REG_C, NMI_RTC_PORT);
 	inb(RTC_RAM_PORT);
 
-	/* XXX: if we have a process running, manage any open virtual rtcs,
-	 * this currently only touches the currently running process,
-	 * and will need to be modified once scheduling is implemented */
-	if (nprocs > 0) {
+	/* if we have open virtual rtcs, iterate through the list and update all
+	 * their counters */
+	if (open_rtcs) {
 		cli_and_save(flags);
-
-		pcb = get_proc_pcb();
-		if (!pcb) {
-			return;
-		}
 		for (rtc = open_rtcs; rtc; rtc = (file_t *)rtc->reserved) {
 			if (rtc_virt_decr_ctr(rtc) == 0) {
 				rtc_virt_rst_ctr(rtc);
@@ -254,14 +247,14 @@ void rtc_modify_freq(uint32_t freq)
  * Outputs: 0 on success
  *
  */
-int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes)
+int32_t rtc_read(pcb_t *pcb, int32_t fd, void* buf, int32_t nbytes)
 {
 	file_t *rtc;
 	uint32_t ticks;
 	uint32_t flags;
 
   /*Check if rtc file is actually open*/
-	rtc = get_file_from_fd(fd);
+	rtc = get_file_from_fd(pcb, fd);
 	if (!rtc || !(rtc->flags & (FILE_OPEN | FILE_RTC))) {
 		return -1;
 	}
@@ -294,7 +287,7 @@ int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes)
  * Outputs: 0 on success
  *
  */
-int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes)
+int32_t rtc_write(pcb_t *pcb, int32_t fd, const void* buf, int32_t nbytes)
 {
 	/*shift counter variable*/
 	uint32_t sc = 0;
@@ -307,7 +300,7 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes)
 		return -1;
 	}
 
-	rtc = get_file_from_fd(fd);
+	rtc = get_file_from_fd(pcb, fd);
 	if (!rtc || !(rtc->flags & (FILE_OPEN | FILE_RTC))) {
 		return -1;
 	}
@@ -335,7 +328,7 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes)
 		rtc_virt_rst_ctr(rtc);
 		restore_flags(flags);
 
-		return 4;
+		return sizeof req_freq;
 	}
 
 	return -1;
@@ -349,18 +342,21 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes)
  * Outputs: 0 on success
  *
  */
-int32_t rtc_open(const uint8_t* filename)
+int32_t rtc_open(pcb_t *pcb, const uint8_t* filename)
 {
+	/* filename unused */
+	(void)filename;
+
 	int32_t fd;
 	file_t *file;
 	uint32_t flags;
 
-	fd = get_unused_fd();
+	fd = get_unused_fd(pcb);
 	if (fd < 0) {
 		return -1;
 	}
 
-	file = get_file_from_fd(fd);
+	file = get_file_from_fd(pcb, fd);
 	file->flags |= FILE_OPEN | FILE_RTC;
 	file->file_op = &rtc_fops;
 	/* clear */
@@ -390,12 +386,14 @@ int32_t rtc_open(const uint8_t* filename)
  * Outputs: 0 on success
  *
  */
-int32_t rtc_close(int32_t fd)
+int32_t rtc_close(pcb_t *pcb, int32_t fd)
 {
 	file_t **last_rtc, *el;
 	file_t *rtc;
+	uint32_t flags;
 
-	rtc = get_file_from_fd(fd);
+	cli_and_save(flags);
+	rtc = get_file_from_fd(pcb, fd);
 
 	/* remove rtc from chain */
 	last_rtc = &open_rtcs;
@@ -410,10 +408,11 @@ int32_t rtc_close(int32_t fd)
 	/* if we found something */
 	if (el) {
 		/* remove it from list */
-		*last_rtc = (file_t *)&el->reserved;
+		*last_rtc = (file_t *)el->reserved;
 	}
 
-	release_fd(fd);
+	release_fd(pcb, fd);
+	restore_flags(flags);
 	return 0;
 }
 
