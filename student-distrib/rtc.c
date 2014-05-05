@@ -4,6 +4,7 @@
 
 #include "lib.h"
 #include "proc.h"
+#include "syscall.h"
 #include "rtc.h"
 
 /* File operations jump table */
@@ -261,7 +262,7 @@ int32_t rtc_read(pcb_t *pcb, int32_t fd, void* buf, int32_t nbytes)
 
 	/* wait until there are ticks to return */
 	while (!rtc_virt_has_ticked(rtc)) {
-		asm("hlt");
+		sched();
 	}
 
 	/* don't get interrupted when messing with rtc counts */

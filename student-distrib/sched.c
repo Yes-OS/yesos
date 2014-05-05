@@ -121,6 +121,18 @@ uint8_t active_to_expired(void)
 	return 0;
 }
 
+/* Returns true if the active queue is empty */
+int32_t active_empty()
+{
+	return CIRC_BUF_EMPTY(*active_queue);
+}
+
+/* Returns true if the expired queue is empty */
+int32_t expired_empty()
+{
+	return CIRC_BUF_EMPTY(*expired_queue);
+}
+
 /* Swap the active queue with the expired queue
  *  Used when the active queue is empty
  */

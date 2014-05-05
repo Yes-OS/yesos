@@ -19,9 +19,10 @@
 #define SYS_CLOSE   6
 #define SYS_GETARGS 7
 #define SYS_VIDMAP  8
+#define SYS_SCHED   9
 
 #define MIN_SYSCALL 1
-#define MAX_SYSCALL 8
+#define MAX_SYSCALL 9
 
 #ifndef ASM
 
@@ -56,9 +57,19 @@ int32_t sys_getargs(uint8_t *buf, int32_t nbytes);
 /* Maps to video memory of a specified screen */
 int32_t sys_vidmap(uint8_t **screen_start);
 
+/* Relinquish remainder of scheduled time to another process */
+int32_t sys_sched(int32_t unused);
+
 /* for internal use to spawn parentless processes */
 int32_t sys_exec_internal(const uint8_t *command, registers_t *parent_ctx);
 int32_t sys_halt_internal(int32_t pid, int32_t status);
+
+/* used by the kernel to relinquish sheduling time */
+#define sched() asm volatile ( \
+		"movl    %0, %%eax\n"  \
+		"int $0x80"            \
+		: : "g"(SYS_SCHED)     \
+		: "eax", "cc", "memory")
 
 #endif /* ASM */
 #endif /* _SYSCALL_H_ */

@@ -271,7 +271,7 @@ int32_t term_read(pcb_t *pcb, int32_t fd, void *buf, int32_t nbytes)
 		}
 		else {
 			/* no data, sleep */
-			asm ("hlt");
+			sched();
 		}
 	} while (c != '\n' && idx < nbytes);
 

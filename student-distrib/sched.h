@@ -64,6 +64,10 @@ void swap_queues(void);
 /* Is the main function that runs the scheduler. Includes context switch helper */
 void scheduler(registers_t* regs);
 
+/* True if the respective queues are empty */
+int32_t active_empty();
+int32_t expired_empty();
+
 
 #endif /* ASM */
 #endif /* _SCHED_H */

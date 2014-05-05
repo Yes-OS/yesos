@@ -231,6 +231,32 @@ int32_t sys_vidmap(uint8_t **screen_start)
 	return 0;
 }
 
+/*
+ * sys_sched
+ *   Relinquishes the remaining scheduled time to another process
+ *
+ *   Inputs:
+ *     - unused: not used.
+ */
+int32_t sys_sched(int32_t unused)
+{
+	uint32_t flags;
+	cli_and_save(flags);
+
+	if (active_empty() && expired_empty()) {
+		/* sleep here since the only running process is yielding control */
+		sti();
+		asm("hlt");
+	}
+	else {
+		/* unused is actually used internally to get the top of the argument stack */
+		scheduler((registers_t *)&unused);
+	}
+
+	restore_flags(flags);
+	return 0;
+}
+
 /* Sys Exec Internal:
  *  Used for executing out of context
  *
@@ -448,8 +474,7 @@ int32_t sys_halt_internal(int32_t pid, int32_t status)
 		term_pids[term_id] = -1;
 
 		/* let the scheduler kill us off for good */
-		sti();
-		halt();
+		sched();
 	}
 
 	if (pcb == get_proc_pcb()) {

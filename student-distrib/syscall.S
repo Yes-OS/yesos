@@ -44,3 +44,4 @@ syscall_table:
 	.long	sys_close
 	.long	sys_getargs
 	.long	sys_vidmap
+	.long	sys_sched
