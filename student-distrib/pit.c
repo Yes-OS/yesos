@@ -13,10 +13,11 @@
 
 #define reboot 0
 
-/* Static helper functions */
+/* Static helper function */
 static void pit_set_count(void);
 
-/* Initialization of the PIT */
+/* Initialization of the PIT to sent interrupts as desired
+ */
 void pit_init(void)
 {
 	/* Set Initialization Command Number */
@@ -26,7 +27,10 @@ void pit_init(void)
 	pit_set_count();
 }
 
-/* Interrupt handler for the PIT*/
+/* Interrupt handler for the PIT
+ *  Resets the PIT for the specified time slot
+ *  Calls the scheduler to handle processes
+ */
 void pit_handle_interrupt(registers_t* regs)
 {
 	/* reset PIT counter */
@@ -36,7 +40,9 @@ void pit_handle_interrupt(registers_t* regs)
 	scheduler(regs);
 }
 
-/* set the count value for the PIT */
+/* Set the count value for the PIT
+ * This is where we decide how long to make the scheduler time slots
+ */
 void pit_set_count(void)
 {
 	/* Set the frequency to the desired time-slice for scheduling

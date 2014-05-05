@@ -87,8 +87,9 @@ typedef struct file {
 	int32_t reserved;
 } __attribute__((packed)) file_t;
 
-/*
- * Process Control Block
+/* Process Control Block:
+ *  Contains various members pertaining to a process,
+ *  its context, and storage pointers
  */
 typedef struct pcb
 {
@@ -105,11 +106,11 @@ typedef struct pcb
 	uint32_t kern_stack;
 	uint32_t user_stack;
 
-  /*Context switch esp tracker*/
-  registers_t* context_esp;
+	/*Context switch esp tracker*/
+	registers_t* context_esp;
 
-  /*context switch eip tracker*/
-  uint32_t context_eip;
+	/*context switch eip tracker*/
+	uint32_t context_eip;
 
 	/*Process arguments*/
 	uint8_t cmd_args[MAX_ARGS_LEN + 1];
@@ -143,7 +144,8 @@ extern uint32_t proc_bitmap;
  *         Function Declarations        *
  ****************************************/
 
-/* Gets the process's PCB */
+/* Gets the process's PCB 
+ */
 static inline pcb_t *get_proc_pcb()
 {
 	uint32_t pcb;
@@ -161,6 +163,10 @@ static inline pcb_t *get_proc_pcb()
 	return (pcb_t *)pcb;
 }
 
+/* Gets the file based on a given file descriptor
+ * INPUTS: fd - file descriptor to search with
+ * OUTPUTS: returns a file_t pointer
+ */
 static inline file_t *get_file_from_fd(int32_t fd)
 {
 	pcb_t *pcb = get_proc_pcb();
@@ -170,6 +176,9 @@ static inline file_t *get_file_from_fd(int32_t fd)
 	return NULL;
 }
 
+/* Gets the next unused file descriptor from a process's pcb
+ * OUTPUT: a file descriptor
+ */
 static inline int32_t get_unused_fd()
 {
 	int32_t fd;
@@ -190,6 +199,9 @@ static inline int32_t get_unused_fd()
 	return -1;
 }
 
+/* Clears a passed file descriptor to be used elsewhere
+ * INPUTS: fd - file descriptor to clear
+ */
 static inline void release_fd(int32_t fd)
 {
 	pcb_t *pcb;
@@ -204,6 +216,9 @@ static inline void release_fd(int32_t fd)
 	}
 }
 
+/* Returns the first process ID possible
+ * OUTPUT: an integery PID
+ */
 static inline int32_t get_first_free_pid()
 {
 	int32_t index;
@@ -219,16 +234,25 @@ static inline int32_t get_first_free_pid()
 	return index;
 }
 
+/* Frees a process ID for use elsewhere
+ * INPUT: PID - process ID to release
+ */
 static inline void free_pid(int32_t pid)
 {
 	proc_bitmap &= ~(1<<pid);
 }
 
+/* Returns a pointer to the video memory of a passed terminal
+ * INPUT: term_id - terminal of which to return its ID
+ */
 static inline vid_mem_t *get_term_fake_vid_mem(int32_t term_id)
 {
 	return fake_video_mem + term_id;
 }
 
+/* Gets the context for the correct terminal
+ * OUTPUTS: term_t pointer from the applicable PCB
+ */
 static inline term_t *get_term_ctx()
 {
 	pcb_t *pcb;
@@ -245,6 +269,8 @@ static inline term_t *get_term_ctx()
 	return pcb->term_ctx;
 }
 
+/* Gets the current terminal address
+ */
 static inline term_t *get_current_term()
 {
 	if (term_pids[terminal_num] < 0) {
@@ -254,7 +280,9 @@ static inline term_t *get_current_term()
 	return &term_terms[terminal_num];
 }
 
-/* needed because we only want to get the screen for the topmost shell process */
+/* Gets the context of the currently used screen
+ *  Needed because we only want to get the screen for the topmost shell process 
+ */
 static inline screen_t *get_screen_ctx()
 {
 	term_t *term;
@@ -267,8 +295,10 @@ static inline screen_t *get_screen_ctx()
 	return &term->screen;
 }
 
+/* Return the pcb associated with a given PID
+ */
 #define get_pcb_from_pid(_pid) ((pcb_t *)((KERNEL_MEM + MB_4_OFFSET - USER_STACK_SIZE * _pid - 1) & 0xFFFFE000))
 
-#endif
+#endif /* ASM */
+#endif /* _PROC_H_ */
 
-#endif

@@ -1,4 +1,4 @@
-/* file_sys.h - Tests all functions of the file system
+/* testing.h - Tests all functions of various systems
  *              Main function to be called in kernel.c
  * vim:ts=4 sw=4 noexpandtab
  */
@@ -15,34 +15,45 @@
 
 #ifndef ASM
 
-/* ________Defines and Vars________ */
+/****************************************
+ *            Global Defines            *
+ ****************************************/
+
 #define TEST_SIZE 10
 
-/* ARRAYSIZE(arr) is like an overloaded version of sizeof() that accounts for pointers being passed in */
-#define IS_INDEXABLE(arg) (sizeof(arg[0]))
-#define IS_ARRAY(arg) (IS_INDEXABLE(arg) && (((void *) &arg) == ((void *) arg)))
-#define ARRAYSIZE(arr) (sizeof(arr) / (IS_ARRAY(arr) ? sizeof(arr[0]) : 0))
-
-/* ________Testing Data Structures________ */
+/****************************************
+ *              Data Types              *
+ ****************************************/
 
 /* typedef struct test {
 	int8_t element[TEST_SIZE];
 } test_t; */
 
-/* ________Function prototypes________ */
+/****************************************
+ *         Function Declarations        *
+ ****************************************/
 
+/* File system test functions
+ */
 int8_t _test_read(void);
 int8_t _test_file_sys(void);
 int8_t _test_directory(void);
-
 int8_t test_fs_all (void);
 int8_t test_EIP(void);
 
-/*RTC Test Functions*/
+/* RTC Test Functions
+ */
 void rtc_rw_test(void);
 void rtc_open_test(void);
 
 /* void _test_array_typedef(void); */
+
+/* ARRAYSIZE(arr) is like an overloaded version of sizeof()
+ * that accounts for pointers being passed in 
+ */
+#define IS_INDEXABLE(arg) (sizeof(arg[0]))
+#define IS_ARRAY(arg)     (IS_INDEXABLE(arg) && (((void *) &arg) == ((void *) arg)))
+#define ARRAYSIZE(arr)    (sizeof(arr) / (IS_ARRAY(arr) ? sizeof(arr[0]) : 0))
 
 #endif /* ASM          */
 #endif /* _TESTING_H   */

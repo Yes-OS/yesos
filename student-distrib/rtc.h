@@ -58,21 +58,27 @@ extern fops_t rtc_fops;
  *         Function Declarations        *
  ****************************************/
 
-/*Initializes the RTC to IRQ 8*/
+/* Initializes the RTC to IRQ 8 */
 void rtc_init(void);
 
-/*RTC interrupt handler*/
+/* RTC interrupt handler */
 void rtc_handle_interrupt(void);
 
-/*RTC Frequency Modifier*/
+/* RTC Frequency Modifier */
 void rtc_modify_freq(uint32_t freq);
 
-/*RTC system calls*/
+/* RTC system calls */
 int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes);
+
+/* Write to the RTC */
 int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes);
+
+/* Open a new RTC for a file */
 int32_t rtc_open(const uint8_t* filename);
+
+/* Close a RTC */
 int32_t rtc_close(int32_t fd);
 
-#endif
-
+#endif /* ASM */
 #endif /* _RTC_H */
+

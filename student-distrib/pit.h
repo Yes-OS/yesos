@@ -38,11 +38,15 @@
  *         Function Declarations        *
  ****************************************/
 
+/* Initializes the PIT for sending regular interrupts */
 void pit_init(void);
+
+/* Handles the interrupt and calls the scheduler */
 void pit_handle_interrupt(registers_t* regs);
+
+/* The scheduler function that is called by the interrupt handler */
 extern void scheduler(registers_t* regs);
 
-#endif
-
+#endif /* ASM */
 #endif /* _PIT_H */
 

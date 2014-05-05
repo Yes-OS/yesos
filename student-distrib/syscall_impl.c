@@ -42,6 +42,11 @@
 uint8_t nprocs = 0;
 uint32_t proc_bitmap = 0;
 
+/* Sys Open:
+ *
+ * INPUT: filename - file that is being opened
+ * Returns 0 on success, -1 on fail
+ */
 int32_t sys_open(const uint8_t *filename)
 {
 	dentry_t dentry;
@@ -72,6 +77,13 @@ int32_t sys_open(const uint8_t *filename)
 	return -1;
 }
 
+/* Sys Read:
+ *
+ * INPUT: filename - file that is being read
+ *        buf - buffer read into
+ *        nbytes - number of bytes to read
+ * Returns 0 on success, -1 on fail
+ */
 int32_t sys_read(int32_t fd, void *buf, int32_t nbytes)
 {
 	/* don't try to fill null buffer */
@@ -89,6 +101,13 @@ int32_t sys_read(int32_t fd, void *buf, int32_t nbytes)
 	return file->file_op->read(fd, buf, nbytes);
 }
 
+/* Sys Write:
+ *
+ * INPUT: fd - file descriptor of file that is being written to
+ *        buf - buffer written from
+ *        nbytes - number of bytes to write
+ * Returns 0 on success, -1 on fail
+ */
 int32_t sys_write(int32_t fd, const void *buf, int32_t nbytes)
 {
 	/* no point writing if it's a null buffer */
@@ -106,6 +125,11 @@ int32_t sys_write(int32_t fd, const void *buf, int32_t nbytes)
 	return file->file_op->write(fd, buf, nbytes);
 }
 
+/* Sys Close:
+ *
+ * INPUT: fd - file descriptor of file that is being Closed
+ * Returns 0 on success, -1 on fail
+ */
 int32_t sys_close(int32_t fd)
 {
 	file_t *file = get_file_from_fd(fd);
@@ -118,6 +142,11 @@ int32_t sys_close(int32_t fd)
 	return file->file_op->close(fd);
 }
 
+/* Sys Exec:
+ *
+ * INPUT: Command - Command to be executed
+ * Returns 0 on success, -1 on fail
+ */
 int32_t sys_exec(const uint8_t *command)
 {
 	int32_t ret;
@@ -130,6 +159,14 @@ int32_t sys_exec(const uint8_t *command)
 	return (ret > 0) ? 0 : -1;
 }
 
+/* Sys Halt:
+ *  Closes all relevant files
+ *  Sets scheduling flags for a terminating process
+ *  Situationally switches our of a program to user/kernel land
+ *
+ * INPUT: status - Status to put in parent eax
+ * Returns 0 on success, -1 on fail
+ */
 int32_t sys_halt(uint8_t status)
 {
 	pcb_t *pcb;
@@ -139,6 +176,12 @@ int32_t sys_halt(uint8_t status)
 	return sys_halt_internal(pcb->pid, (int32_t)status);
 }
 
+/* Sys GetArgs:
+ *
+ * INPUT: buf - buffer to put args into
+ *        nbytes - number of bytes to copy to the buffer
+ * Returns 0 on success, -1 on fail
+ */
 int32_t sys_getargs(uint8_t *buf, int32_t nbytes)
 {
 	/* can't copy to null buffer */
@@ -154,6 +197,11 @@ int32_t sys_getargs(uint8_t *buf, int32_t nbytes)
 	return 0;
 }
 
+/* Sys VidMap:
+ *
+ * INPUT: screen_start - Pointer to the screen's pointer to map to
+ * Returns 0 on success, -1 on fail
+ */
 int32_t sys_vidmap(uint8_t **screen_start)
 {
 	pcb_t *pcb;
@@ -174,6 +222,13 @@ int32_t sys_vidmap(uint8_t **screen_start)
 	return 0;
 }
 
+/* Sys Exec Internal:
+ *  Used for executing out of context
+ *
+ * INPUT: Command - Command to be executed
+ *        parent_ctx - context data of the parent process of the to-be spawned process
+ * Returns 0 on success, -1 on fail
+ */
 int32_t sys_exec_internal(const uint8_t *command, registers_t *parent_ctx)
 {
 	uint8_t file_name[MAX_CMD_LEN];
@@ -402,3 +457,5 @@ int32_t sys_halt_internal(int32_t pid, int32_t status)
 			: "cc", "memory");
 	return 0;
 }
+
+

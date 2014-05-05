@@ -5,6 +5,7 @@
 #include "x86_desc.h"
 #include "syscall.h"
 
+# Follow standard syscall table implementation
 .globl enter_syscall
 enter_syscall:
 	pushl	$0

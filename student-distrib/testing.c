@@ -1,6 +1,6 @@
 /* testing.c -  Functions to initialize and test
- *              the file system.
- *
+ *              the various systems.
+ *              Generally considered a sandbox of tests
  * vim:ts=4 sw=4 noexpandtab
  */
 

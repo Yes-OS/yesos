@@ -158,7 +158,6 @@ void install_user_vid_mem(pd_t *page_directory, pt_t *user_vid_mem_table);
 int32_t switch_to_fake_video_memory();
 int32_t switch_from_fake_video_memory();
 
-#endif
-
+#endif /* ASM */
 #endif /* _PAGING_H */
 

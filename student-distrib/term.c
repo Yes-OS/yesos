@@ -10,7 +10,7 @@
 #include "syscall.h"
 #include "term.h"
 
-/* XXX: ENABLING AWFUL HACK BELOW */
+/* XXX: ENABLING AWFUL (wonderful*) HACK BELOW */
 #include "i8259.h"
 
 /* File operations jump table */
@@ -125,6 +125,8 @@ static void term_putc(screen_t *screen, uint8_t c)
 	}
 }
 
+/* Initialize the keyboard for the given contextual terminal
+ */
 static void init_ctx(term_t *term)
 {
 	/* initialize the keyboard buffer */
@@ -140,6 +142,8 @@ static void init_ctx(term_t *term)
 	term->caps_lock = 0;
 }
 
+/* Initialize context-relevant information for all terminals
+ */
 int32_t term_init_global_ctx()
 {
 	int32_t i;
@@ -163,7 +167,9 @@ int32_t term_init_global_ctx()
 	return 0;
 }
 
-/* open terminal fd, returns STDIN */
+/* open terminal fd 
+ * Returns: STDIN 
+ */
 int32_t term_open(const uint8_t *filename)
 {
 	(void)filename; /* we don't use the filename for terminal */
@@ -213,14 +219,17 @@ int32_t term_open(const uint8_t *filename)
 	return STDIN;
 }
 
-/* closes terminal fd, fails always */
+/* closes terminal fd
+ * fails always!
+ */
 int32_t term_close(int32_t fd)
 {
 	(void)fd;
 	return -1;
 }
 
-/* if fd is STDIN, proceed as normal, otherwise fail */
+/* if fd is STDIN, proceed as normal, otherwise fail 
+ */
 int32_t term_read(int32_t fd, void *buf, int32_t nbytes)
 {
 	term_t *term;
@@ -272,7 +281,8 @@ int32_t term_read(int32_t fd, void *buf, int32_t nbytes)
 	return idx;
 }
 
-/* if fd is STDOUT, proceed as normal, otherwise fail */
+/* if fd is STDOUT, proceed as normal, otherwise fail 
+ */
 int32_t term_write(int32_t fd, const void *buf, int32_t nbytes)
 {
 	int idx;
@@ -299,6 +309,8 @@ int32_t term_write(int32_t fd, const void *buf, int32_t nbytes)
 	return idx;
 }
 
+/* Handles the keypress of a terminal
+ */
 void term_handle_keypress(uint16_t key, uint8_t status)
 {
 	screen_t *screen;
@@ -456,6 +468,9 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 	}
 }
 
+/* Switches to a specified terminal
+ * Includes all vid copying and terminal handling
+ */
 static int32_t switch_terminals(int32_t new_terminal)
 {
 	pcb_t *pcb;
@@ -504,3 +519,4 @@ static int32_t switch_terminals(int32_t new_terminal)
 
 	return 0;
 }
+

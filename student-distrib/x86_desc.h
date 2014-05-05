@@ -8,6 +8,10 @@
 
 #include "types.h"
 
+/****************************************
+ *            Global Defines            *
+ ****************************************/
+
 /* Segment selector values */
 #define KERNEL_CS 0x0010
 #define KERNEL_DS 0x0018
@@ -23,6 +27,10 @@
 #define NUM_VEC 256
 
 #ifndef ASM
+
+/****************************************
+ *              Data Types              *
+ ****************************************/
 
 /* This structure is used to load descriptor base registers
  * like the GDTR and IDTR */
@@ -54,7 +62,10 @@ typedef struct seg_desc {
 	};
 } seg_desc_t;
 
-/* TSS structure */
+/* TSS structure:
+ *  Contains context stack pointers and information for switches
+ *  Contains general purpose registers for a task
+ */
 typedef struct __attribute__((packed)) tss_t {
 	uint16_t prev_task_link;
 	uint16_t prev_task_link_pad;
@@ -107,24 +118,58 @@ typedef struct __attribute__((packed)) tss_t {
 	uint16_t ldt_pad;
 
 	uint16_t debug_trap : 1;
-	uint16_t io_pad : 15;
+	uint16_t io_pad     : 15;
 	uint16_t io_base_addr;
 } tss_t;
+
+/* An interrupt descriptor entry (goes into the IDT) */
+typedef union idt_desc_t {
+	uint32_t val;
+	struct {
+		uint16_t offset_15_00;
+		uint16_t seg_selector;
+		uint8_t  reserved4;
+		uint32_t reserved3 : 1;
+		uint32_t reserved2 : 1;
+		uint32_t reserved1 : 1;
+		uint32_t size      : 1;
+		uint32_t reserved0 : 1;
+		uint32_t dpl       : 2;
+		uint32_t present   : 1;
+		uint16_t offset_31_16;
+	} __attribute__((packed));
+} idt_desc_t;
+
+/****************************************
+ *           Global Variables           *
+ ****************************************/
 
 /* Some external descriptors declared in .S files */
 extern x86_desc_t gdt_desc;
 
-extern uint16_t ldt_desc;
-extern uint32_t ldt_size;
-extern seg_desc_t ldt_desc_ptr;
-extern seg_desc_t gdt_ptr;
-extern uint32_t ldt;
+extern uint16_t    ldt_desc;
+extern uint32_t    ldt_size;
+extern seg_desc_t  ldt_desc_ptr;
+extern seg_desc_t  gdt_ptr;
+extern uint32_t    ldt;
 
-extern uint32_t tss_size;
-extern seg_desc_t tss_desc_ptr;
+extern uint32_t    tss_size;
+extern seg_desc_t  tss_desc_ptr;
 extern tss_t tss;
 
-/* Sets runtime-settable parameters in the GDT entry for the LDT */
+/* The IDT itself */
+extern idt_desc_t  idt[NUM_VEC];
+/* The descriptor used to load the IDTR */
+extern x86_desc_t  idt_desc_ptr;
+
+
+/****************************************
+ *         Function Declarations        *
+ ****************************************/
+
+/* Sets runtime-settable parameters in the GDT entry for the LDT
+ * Inline function to save time from function calls
+ */
 #define SET_LDT_PARAMS(str, addr, lim) \
 do { \
 	str.base_31_24 = ((uint32_t)(addr) & 0xFF000000) >> 24; \
@@ -134,7 +179,9 @@ do { \
 		str.seg_lim_15_00 = (lim) & 0x0000FFFF; \
 } while(0)
 
-/* Sets runtime parameters for the TSS */
+/* Sets runtime parameters for the TSS 
+ * Inline function to save time from function calls
+ */
 #define SET_TSS_PARAMS(str, addr, lim) \
 do { \
 	str.base_31_24 = ((uint32_t)(addr) & 0xFF000000) >> 24; \
@@ -144,30 +191,9 @@ do { \
 		str.seg_lim_15_00 = (lim) & 0x0000FFFF; \
 } while(0)
 
-/* An interrupt descriptor entry (goes into the IDT) */
-typedef union idt_desc_t {
-	uint32_t val;
-	struct {
-		uint16_t offset_15_00;
-		uint16_t seg_selector;
-		uint8_t reserved4;
-		uint32_t reserved3 : 1;
-		uint32_t reserved2 : 1;
-		uint32_t reserved1 : 1;
-		uint32_t size : 1;
-		uint32_t reserved0 : 1;
-		uint32_t dpl : 2;
-		uint32_t present : 1;
-		uint16_t offset_31_16;
-	} __attribute__((packed));
-} idt_desc_t;
-
-/* The IDT itself (declared in x86_desc.S */
-extern idt_desc_t idt[NUM_VEC];
-/* The descriptor used to load the IDTR */
-extern x86_desc_t idt_desc_ptr;
-
-/* Sets runtime parameters for an IDT entry */
+/* Sets runtime parameters for an IDT entry
+ * Inline function to save time from function calls
+ */
 #define SET_IDT_ENTRY(str, handler) \
 do { \
 	str.offset_31_16 = ((uint32_t)(handler) & 0xFFFF0000) >> 16; \
@@ -177,7 +203,8 @@ do { \
 /* Load task register.  This macro takes a 16-bit index into the GDT,
  * which points to the TSS entry.  x86 then reads the GDT's TSS
  * descriptor and loads the base address specified in that descriptor
- * into the task register */
+ * into the task register 
+ */
 #define ltr(desc)                       \
 do {                                    \
 	asm volatile("ltr %w0"              \
@@ -212,5 +239,4 @@ do {                                    \
 } while(0)
 
 #endif /* ASM */
-
 #endif /* _x86_DESC_H */

@@ -29,19 +29,36 @@
  *         Function Declarations        *
  ****************************************/
 
+/* */
 void enter_syscall();
+
+/* */
 int32_t sys_open(const uint8_t *filename);
+
+/* */
 int32_t sys_read(int32_t fd, void *buf, int32_t nbytes);
+
+/* */
 int32_t sys_write(int32_t fd, const void *buf, int32_t nbytes);
+
+/* */
 int32_t sys_close(int32_t fd);
+
+/* */
 int32_t sys_exec(const uint8_t *command);
+
+/* */
 int32_t sys_halt(uint8_t status);
+
+/* */
 int32_t sys_getargs(uint8_t *buf, int32_t nbytes);
+
+/* */
 int32_t sys_vidmap(uint8_t **screen_start);
 
 /* for internal use to spawn parentless processes */
 int32_t sys_exec_internal(const uint8_t *command, registers_t *parent_ctx);
 int32_t sys_halt_internal(int32_t pid, int32_t status);
 
-#endif
-#endif
+#endif /* ASM */
+#endif /* _SYSCALL_H_ */

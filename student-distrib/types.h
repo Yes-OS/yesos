@@ -7,6 +7,10 @@
 #ifndef _TYPES_H
 #define _TYPES_H
 
+/****************************************
+ *            Global Defines            *
+ ****************************************/
+
 #define NULL 0
 
 #ifndef ASM
@@ -22,5 +26,4 @@ typedef char int8_t;
 typedef unsigned char uint8_t;
 
 #endif /* ASM */
-
 #endif /* _TYPES_H */

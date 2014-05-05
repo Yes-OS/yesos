@@ -7,7 +7,11 @@
 #include "types.h"
 #include "queue.h"
 
-/* define constant file descriptors */
+/****************************************
+ *            Global Defines            *
+ ****************************************/
+
+/* constant file descriptors */
 #define STDIN   0
 #define STDOUT  1
 
@@ -20,11 +24,12 @@
 /* definitions only available to c code */
 #ifndef ASM
 
-/* forward declare to break dependency loop */
-struct fops;
-struct screen;
+/****************************************
+ *              Data Types              *
+ ****************************************/
 
-
+/* Terminal struct
+ */
 typedef struct terminal {
 	/* Defines a circular buffer for keypresses */
 	DECLARE_CIRC_BUF(int8_t, key_buf, KBD_BUF_SIZE);
@@ -41,12 +46,13 @@ typedef struct terminal {
 	struct screen screen;
 } term_t;
 
-int32_t term_open(const uint8_t *filename);
-int32_t term_close(int32_t fd);
-int32_t term_read(int32_t fd, void *buf, int32_t nbytes);
-int32_t term_write(int32_t fd, const void *buf, int32_t nbytes);
-void term_handle_keypress(uint16_t key, uint8_t status);
-int32_t term_init_global_ctx();
+/****************************************
+ *           Global Variables           *
+ ****************************************/
+
+/* forward declare to break dependency loop */
+struct fops;
+struct screen;
 
 extern struct fops term_fops;
 extern int32_t terminal_num;
@@ -54,6 +60,34 @@ extern struct screen kern_screen;
 extern int32_t term_pids[];
 extern term_t term_terms[];
 
-#endif
+/****************************************
+ *         Function Declarations        *
+ ****************************************/
 
-#endif
+/* Opens a terminal 
+ */
+int32_t term_open(const uint8_t *filename);
+
+/* Closes a terminal
+ */
+int32_t term_close(int32_t fd);
+
+/* Reads from the terminal
+ */
+int32_t term_read(int32_t fd, void *buf, int32_t nbytes);
+
+/* Writes to the terminal
+ */
+int32_t term_write(int32_t fd, const void *buf, int32_t nbytes);
+
+/* Handles the keypress of a terminal
+ */
+void term_handle_keypress(uint16_t key, uint8_t status);
+
+/* Initializes the global terminal context data
+ */
+int32_t term_init_global_ctx();
+
+
+#endif /* ASM */
+#endif /* _TERM_H_ */

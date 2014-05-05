@@ -42,6 +42,7 @@ static file_t *open_rtcs = NULL;
 } while (0)
 #define rtc_virt_clr_ticks(_rtc) rtc_virt_set_ticks(_rtc,0)
 
+
 static inline uint16_t rtc_virt_incr_ticks(file_t *rtc)
 {
 	uint16_t ticks;
