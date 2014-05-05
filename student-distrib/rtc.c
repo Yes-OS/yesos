@@ -20,7 +20,7 @@ static file_t *open_rtcs = NULL;
 #define rtc_virt_get_freq(_rtc) (((_rtc)->flags & 0x0F000000UL) >> 24)
 
 /* frequency stored in bytes 24-27 of the flags variable */
-#define rtc_virt_set_freq(_rtc, freq) do {    \
+#define rtc_virt_set_freq(_rtc, freq) do {  \
 	(_rtc)->flags &= 0xF0FFFFFFUL;            \
 	(_rtc)->flags |= ((freq) & 0x0FUL) << 24; \
 } while (0)
@@ -28,21 +28,27 @@ static file_t *open_rtcs = NULL;
 /* true if virtual rtc has ticked */
 #define rtc_virt_has_ticked(_rtc) ((_rtc)->flags & (1 << 31))
 #define rtc_virt_clr_ticked(_rtc) do { \
-	(_rtc)->flags &= ~(1 << 31);       \
+	(_rtc)->flags &= ~(1 << 31);         \
 } while (0)
 #define rtc_virt_set_ticked(_rtc) do { \
-	(_rtc)->flags |= (1 << 31);        \
+	(_rtc)->flags |= (1 << 31);          \
 } while (0)
 
 /* operations on number of virtual ticks */
 #define rtc_virt_ticks(_rtc) (((_rtc)->file_pos & 0xFFFF0000UL) >> 16)
-#define rtc_virt_set_ticks(_rtc, ticks) do {        \
+#define rtc_virt_set_ticks(_rtc, ticks) do {      \
 	(_rtc)->file_pos &= 0x0000FFFFUL;               \
 	(_rtc)->file_pos |= ((ticks) & 0xFFFFUL) << 16; \
 } while (0)
 #define rtc_virt_clr_ticks(_rtc) rtc_virt_set_ticks(_rtc,0)
 
-
+/*
+ * Increments the tick counter on an rtc file.
+ *
+ * Inputs: rtc - rtc file pointer
+ * Outputs: ticks - total ticks after incrementing
+ *
+ */
 static inline uint16_t rtc_virt_incr_ticks(file_t *rtc)
 {
 	uint16_t ticks;
@@ -53,6 +59,13 @@ static inline uint16_t rtc_virt_incr_ticks(file_t *rtc)
 	return ticks;
 }
 
+/*
+ * Decrements the tick counter on an rtc file.
+ *
+ * Inputs: rtc - rtc file pointer
+ * Outputs: ticks - total ticks after decrementing
+ *
+ */
 static inline uint16_t rtc_virt_decr_ticks(file_t *rtc)
 {
 	uint16_t ticks;
@@ -65,7 +78,7 @@ static inline uint16_t rtc_virt_decr_ticks(file_t *rtc)
 	return ticks;
 }
 
-/* operations on number of remaining real ticks counter */
+/* Operations on number of remaining real ticks counter */
 #define rtc_virt_get_ctr(_rtc) ((_rtc)->file_pos & 0xFFFFUL)
 #define rtc_virt_set_ctr(_rtc, ctr) do { \
 	(_rtc)->file_pos &= 0xFFFF0000UL;    \
@@ -77,7 +90,13 @@ static inline uint16_t rtc_virt_decr_ticks(file_t *rtc)
 			MAX_FREQ_HZ >> rtc_virt_get_freq(_rtc)); \
 } while (0)
 
-
+/*
+ * Increments the counter for an rtc type file.
+ *
+ * Inputs: rtc - rtc file pointer
+ * Outputs: ctr - counter value after incrementing
+ *
+ */
 static inline uint16_t rtc_virt_incr_ctr(file_t *rtc)
 {
 	uint16_t ctr;
@@ -88,6 +107,13 @@ static inline uint16_t rtc_virt_incr_ctr(file_t *rtc)
 	return ctr;
 }
 
+/*
+ * Decrements the counter for an rtc type file.
+ *
+ * Inputs: rtc - rtc file pointer
+ * Outputs: ctr - counter value after Decrementing
+ *
+ */
 static inline uint16_t rtc_virt_decr_ctr(file_t *rtc)
 {
 	uint16_t ctr;
@@ -101,7 +127,15 @@ static inline uint16_t rtc_virt_decr_ctr(file_t *rtc)
 }
 
 
-/* initialize the RTC */
+/* 
+ * Initialization of the RTC.
+ * Removes non-maskable interrupts temporarilly to initialize the RTC.
+ * Sets the RTC to periodically interrupt and sets to default frequency value.
+ *
+ * Inputs: none
+ * Outputs: none
+ *
+ */
 void rtc_init(void)
 {
     uint8_t regB;
@@ -112,7 +146,7 @@ void rtc_init(void)
 	/*Extract current value from register B*/
 	regB = inb(RTC_RAM_PORT);
 
-	/*Enable bit 6 of register B to enable Periodic Interrupts (PIE)*/
+	/*Enable bit 6 (0x40) of register B to enable Periodic Interrupts (PIE)*/
 	regB = regB | 0x40;
 
 	/*Set the same index, because reading from the port sets the index to register D*/
@@ -134,7 +168,15 @@ void rtc_init(void)
 }
 
 
-/* handle the rtc interrupt */
+/* 
+ * RTC interrupt handler.
+ * Reads from register C of the RTC to re-enable RTC interrupts.
+ * Modified for virtual RTC implementation.
+ *
+ * Inputs: none
+ * Outputs: none
+ *
+ */
 void rtc_handle_interrupt()
 {
 	file_t *rtc;
@@ -145,9 +187,6 @@ void rtc_handle_interrupt()
 	/* read a byte from reg c to allow interrupts to continue */
 	outb(REG_C, NMI_RTC_PORT);
 	inb(RTC_RAM_PORT);
-
-	/*Call the test interrupts function to be sure of interrupts occurring */
-	//test_interrupts();
 
 	/* XXX: if we have a process running, manage any open virtual rtcs,
 	 * this currently only touches the currently running process,
@@ -171,7 +210,14 @@ void rtc_handle_interrupt()
 }
 
 
-/*modify the frequency of the RTC (Min 2Hz - Max 1024 Hz)*/
+/*
+ * Modify the frequency of the RTC (Min 2Hz - Max 1024 Hz)
+ * Frequency set to powers of 2
+ *
+ * Inputs: freq - the power of the frequency that will be set (2^freq)
+ * Outputs: none
+ *
+ */
 void rtc_modify_freq(uint32_t freq)
 {
 	uint32_t flags;
@@ -197,13 +243,25 @@ void rtc_modify_freq(uint32_t freq)
 	restore_flags(flags);
 }
 
-/*Loops through until an RTC interrupt is generated*/
+/*
+ * Read system call for RTC type files.
+ * Loops through until an RTC interrupt is generated.
+ * Modify's virtual rtc ticks/count upon rtc interrupt.
+ * Writes address of counter to buffer
+ *
+ * Inputs: fd - virtual rtc file descriptor
+ *         buf - buffer to be written to
+ *         nbytes - number of bytes to be written to buffer
+ * Outputs: 0 on success
+ *
+ */
 int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes)
 {
 	file_t *rtc;
 	uint32_t ticks;
 	uint32_t flags;
 
+  /*Check if rtc file is actually open*/
 	rtc = get_file_from_fd(fd);
 	if (!rtc || !(rtc->flags & (FILE_OPEN | FILE_RTC))) {
 		return -1;
@@ -226,7 +284,17 @@ int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes)
 	return 0;
 }
 
-/*Write a new interrupt frequency to the RTC*/
+/*
+ * Write system call for rtc type file
+ * Write a new interrupt frequency to the virtual RTC file
+ * Not to be mistaken with modifying the actual RTC hardware
+ *
+ * Inputs: fd - file descriptor for virtual rtc file
+ *         buf - buffer to be copied
+ *         nbytes - number of bytes to copy from the buffer
+ * Outputs: 0 on success
+ *
+ */
 int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes)
 {
 	/*shift counter variable*/
@@ -274,7 +342,14 @@ int32_t rtc_write(int32_t fd, const void* buf, int32_t nbytes)
 	return -1;
 }
 
-/*Modify rtc to default freq of 2Hz*/
+/* 
+ * Open system call for an rtc type file.
+ * Modify rtc to a default freq of 2Hz.
+ *
+ * Inputs: filename - name of the rtc file
+ * Outputs: 0 on success
+ *
+ */
 int32_t rtc_open(const uint8_t* filename)
 {
 	int32_t fd;
@@ -308,7 +383,14 @@ int32_t rtc_open(const uint8_t* filename)
 	return fd;
 }
 
-/*RTC Close*/
+/*
+ * Close system call for rtc type file.
+ * Releases the file descriptor associated with the rtc being close
+ *
+ * Inputs: fd - rtc file descriptor
+ * Outputs: 0 on success
+ *
+ */
 int32_t rtc_close(int32_t fd)
 {
 	file_t **last_rtc, *el;

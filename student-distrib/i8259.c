@@ -5,15 +5,25 @@
 #include "i8259.h"
 #include "lib.h"
 
-/* Interrupt masks to determine which interrupts
- * are enabled and disabled */
+/* 
+ * Interrupt masks to determine which interrupts
+ * are enabled and disabled 
+ */
  
- /* IRQs 0-7 */
+/* IRQs 0-7 MASK */
 uint8_t master_mask; 
-/* IRQs 8-15 */
+/* IRQs 8-15 MASK */
 uint8_t slave_mask; 
 
-/* Initialize the 8259 PIC */
+/* 
+ * Initialize the i8259 Programmable Interrupt Controller. 
+ * initialzies both Master and Slave PIC using the correct Control-Words.
+ * Writes mask for both PICs, leaving IRQ2 open for the Slaves input to the Master.
+ *
+ * Inputs: none
+ * Outputs: none.
+ *
+ */
 void i8259_init(void)
 {
 	/*Mask out all interrupts on the pic minus slave pic*/
@@ -49,9 +59,15 @@ void i8259_init(void)
 	outb(slave_mask, SLAVE_8259_PORT + 1);
 }
 
-/* Enable (unmask) the specified IRQ */
-void
-enable_irq(uint32_t irq_num)
+/*
+ * Enable (unmask) the specified IRQ port number.
+ * Called during initialization of specific hardware devices.
+ *
+ * Inputs: irq_num - number of the IRQ to enable
+ * Outputs: none
+ *
+ */
+void enable_irq(uint32_t irq_num)
 {
 	if(irq_num < 0) {
 		return;
@@ -68,7 +84,16 @@ enable_irq(uint32_t irq_num)
 	}
 }
 
-/* Disable (mask) the specified IRQ */
+/*
+ * Disable (mask) the specified IRQ port number.
+ * Not necessarily called for our functionality, as we never remove
+ * a device during the system's runtime.
+ * Used potentially for debugging purposes
+ * 
+ * Inputs: irq_num - number of the IRQ to disable
+ * Outputs: none
+ *
+ */
 void
 disable_irq(uint32_t irq_num)
 {
@@ -87,9 +112,15 @@ disable_irq(uint32_t irq_num)
 	}
 }
 
-/* Send end-of-interrupt signal for the specified IRQ */
-void
-send_eoi(uint32_t irq_num)
+/*
+ * Send end-of-interrupt signal for the specified IRQ 
+ * Called inside each devices interrupt handler.
+ *
+ * Inputs: irq_num - IRQ number of the device that sent the interrupt
+ * Outputs: none
+ *
+ */
+void send_eoi(uint32_t irq_num)
 {
 	if (irq_num < 8) {
 		outb(EOI | irq_num, MASTER_8259_PORT);

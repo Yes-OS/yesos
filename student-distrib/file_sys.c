@@ -34,10 +34,11 @@ static data_block_t* data_head;
 static boot_block_t* boot_block;
 
 
-/* Sets up the head pointer for the file system
+/* 
+ * Sets up the head pointer for the file system
  * Sets up relevant structures and variables
  *
- * Inputs:	pointer to fs head
+ * Inputs: boot_val -	pointer to fs head
  * Outputs:	none
  */
 void fs_init(boot_block_t* boot_val)
@@ -48,8 +49,14 @@ void fs_init(boot_block_t* boot_val)
 	data_head = (data_block_t*)node_head + boot_block->num_inodes;
 }
 
-/*  Read data from specified file into specified buffer
- *  Return amount read.
+/* 
+ * Read system call for normal file types. Reads data from a file
+ * and stores it in a buffer.
+ *
+ * Inputs: fd - file descriptor,
+ *         buf - buffer 
+ *         nbytes - number of bytes to read
+ * Outputs:Number of bytes read
  */
 int32_t file_read(int32_t fd, void* buf, int32_t nbytes)
 {
@@ -69,8 +76,10 @@ int32_t file_read(int32_t fd, void* buf, int32_t nbytes)
 	return ret;
 }
 
-/*  Read-only file system.
- *  Not implemented (yet ;] ).
+/*  
+ *  Write system call for regular file types. 
+ *  Read-only file system - Not implemented;
+ *
  *  Return -1
  */
 int32_t file_write(int32_t fd, const void* buf, int nbytes)
@@ -80,8 +89,12 @@ int32_t file_write(int32_t fd, const void* buf, int nbytes)
 	return -1;
 }
 
-/*  Filler function. File system already open
- *  Return 0;
+/*  
+ *  Open system call for regular file types. Sets up a file descriptor
+ *  for a specific file for a specific process.
+ *
+ *  Inputs: filename - name of the file
+ *  Outputs: file descriptor
  */
 int32_t file_open(const uint8_t *filename)
 {
@@ -113,8 +126,11 @@ int32_t file_open(const uint8_t *filename)
 	return fd;
 }
 
-/*  Filler function. File system does not close
- *  Return 0;
+/*  Close system call for regular file types. Releases a file
+ *  descriptor from the process that calls it.
+ *
+ *  Input: fd -File descriptor
+ *  Return 0
  */
 int32_t file_close(int32_t fd)
 {
@@ -123,7 +139,8 @@ int32_t file_close(int32_t fd)
 }
 
 
-/*	Read Directory Entry by Name
+/*	
+ *	Read Directory Entry by Name
  *	Parameters:	fname 	- the name of the file.
  *				dentry	- pointer to directory entry of file to set name.
  *
@@ -167,7 +184,8 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry)
 	return -1;
 }
 
-/*	Read Directory Entry by Name
+/*	
+ *	Read Directory Entry by Name
  *	Parameters:	fname 	- the name of the file.
  *				dentry	- pointer to directory entry of file to set name.
  *
@@ -191,7 +209,8 @@ int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry)
 	return -1;
 }
 
-/*	Read Data
+/*	
+ *	Read Data
  *	Parameters:	inode	- the index node of the data.
  *				offset	- how many bytes to begin reading at?
  *				buf		- data array to read.
@@ -252,7 +271,14 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
 	return b_read;
 }
 
-/*  Dir_read for the dir fops_table
+/* 
+ * Read system call for directory file types. Reads off a file
+ * name based off the file_pos of the directory.
+ *
+ * Inputs:fd - file descriptor
+ *        buf - buffer to write file name to
+ *        nbytes - number of bytes to be read
+ * Outputs: number of characters in file name
  *
  */
 int32_t dir_read(int32_t fd, void* buf, int32_t nbytes)
@@ -285,7 +311,9 @@ int32_t dir_read(int32_t fd, void* buf, int32_t nbytes)
 	return strlen((int8_t*)dentry.file_name);
 }
 
-/*  Read-only file system.
+/*  
+ *  Write system call for directory file types.
+ *  Read-only file system.
  *
  *  Return -1
  */
@@ -295,7 +323,13 @@ int32_t dir_write(int32_t fd, const void* buf, int32_t nbytes)
 	return -1;
 }
 
-/* Dir_open for fops table
+/* 
+ * Open system call for directory file types.
+ * Similar to open system call for regular file types.
+ * Creates a file descriptor for a directory file type.
+ *
+ * Inputs: filename - name of the file to be opened
+ * Outputs: fd- file descriptor
  *
  */
 int32_t dir_open(const uint8_t *filename)
@@ -328,8 +362,12 @@ int32_t dir_open(const uint8_t *filename)
 	return fd;
 }
 
-/*  Filler function. Directory does not close
- *  Return 0;
+/* 
+ *  Close system call for directory file types.
+ *  Releases a file descriptor of a directory file type.
+ *
+ *  Inputs: fd - file descriptor to be released
+ *  Outputs: 0
  */
 int32_t dir_close(int32_t fd)
 {
@@ -338,12 +376,13 @@ int32_t dir_close(int32_t fd)
 }
 
 /*
- * read a passed file
- * get EIP
- * copy file to physical memory using its own virtual space
+ * Loads a file to a specific location in memory based on the location
+ * specified by the file being executed.
  *
- * returns 0 on success (for now)
- *		  -1 on failure
+ * Inputs:file - executable file
+ *        eip - location in memory to copy the file to
+ * Outputs: 0 on success.
+ *          returns the eip, as eip should be passed by reference	  
  */
 uint32_t file_loader(dentry_t* file, uint32_t* eip)
 {

@@ -28,41 +28,41 @@ pt_t temp_table __attribute__((aligned(PAGE_SIZE)));
 
 /* sets the 31 bit of CR0 */
 /* enables memory paging */
-#define set_pg_flag()                               \
-	do {                                            \
-		asm volatile (                              \
+#define set_pg_flag()                       \
+	do {                                      \
+		asm volatile (                          \
 				"movl    %%cr0, %%eax\n             \
 				 orl     $0x80000000, %%eax\n       \
 				 movl    %%eax, %%cr0"              \
 				: : : "eax", "cc", "memory"         \
-			);                                      \
+			);                                    \
 	} while (0)
 
 /* sets the 4 bit of CR4 */
 /* enables page size extensions, allowing 4 MB pages */
-#define set_pse_flag()                         \
-	do {                                       \
-		asm (                                  \
-				"movl    %%cr4, %%eax\n        \
-				 orl     $0x00000010, %%eax\n  \
-				 movl    %%eax, %%cr4"         \
-				: : : "eax", "cc"              \
-			);                                 \
+#define set_pse_flag()                \
+	do {                                \
+		asm (                             \
+				"movl    %%cr4, %%eax\n       \
+				 orl     $0x00000010, %%eax\n \
+				 movl    %%eax, %%cr4"        \
+				: : : "eax", "cc"             \
+			);                              \
 	} while (0)
 
 /* clears the 5 bit of CR4 */
 /* disables physical address extension */
-#define clr_pae_flag()                         \
-	do {                                       \
-		asm (                                  \
+#define clr_pae_flag()                 \
+	do {                                 \
+		asm (                              \
 				"movl    %%cr4, %%eax\n        \
 				 andl    $0xFFFFFFDF, %%eax\n  \
 				 movl    %%eax, %%cr4"         \
 				: : : "eax", "cc"              \
-			);                                 \
+			);                               \
 	} while (0)
 
-/* helper functions */
+/* Helper Functions */
 static void clear_page_dir(pd_t* directory);
 static void clear_page_table(pt_t* table);
 static void install_pages();
@@ -70,11 +70,17 @@ static void install_kernel_page(pd_t *page_directory);
 static void install_user_page(uint32_t index, pd_t *page_directory);
 static void map_video_mem(const vid_mem_t *vidmem, const void *virt_addr, pd_t *proc_pd, pt_t *page_table);
 
-/* define some empty values, useful for initialization */
+/* Definition of some empty values, useful for initialization */
 static const pte_t empty_page_entry = {{.val = 0UL}};
 static const pde_t empty_dir_entry = {{.val = 0UL}};
 
-/* setup kernel page */
+/*
+ * Installation of kernel page directory (0)
+ * Different from user Page Directories as Kernel is supervisor only.
+ * 
+ * Input: pd_t - address of page directory 0 passed in by reference
+ * Output: none
+ */ 
 static void install_kernel_page(pd_t *page_directory)
 {
 		pde_t kernel_mem = empty_dir_entry;
@@ -88,6 +94,13 @@ static void install_kernel_page(pd_t *page_directory)
 		page_directory->entry[PAGE_DIR_IDX(KERNEL_MEM)] = kernel_mem;
 }
 
+/*
+ * Install user page directories (>= 1)
+ * Different from Kernel Page Directory as User is not a supervisor.
+ *
+ * Inputs: page_directory - address of page directory passed in by reference
+ * Outputs: none
+ */ 
 static void install_user_page(uint32_t index, pd_t *page_directory)
 {
 	pde_t user_mem = empty_dir_entry;
@@ -101,11 +114,31 @@ static void install_user_page(uint32_t index, pd_t *page_directory)
 	page_directory->entry[PAGE_DIR_IDX(USER_MEM)] = user_mem;
 }
 
+/*
+ * Wrapper function for mapping executable program to video memory in Page directory 0.
+ *
+ * Inputs:page_directory - address of page directory passed in by reference
+ *        user_vid_mem_table - address of user video memory table passed in by reference
+ * Ouputs:none
+ *
+ */
 void install_user_vid_mem(pd_t *page_directory, pt_t *user_vid_mem_table)
 {
 	map_video_mem((void *)VIDEO, (void *)USER_VID, page_directory, user_vid_mem_table);
 }
 
+
+/*
+ * Maps the video memory page table in a page directory.
+ * Called during paging initialization to map video mem in all page directories
+ *
+ * Inputs: vidmem - video memory structure
+ *         virt_addr - virtual address for video memory to be written to
+ *         proc_pd - currently active page directory
+ *         page_table - currently active page table (video memory)
+ * Outputs: none
+ *
+ */
 static void map_video_mem(const vid_mem_t *vidmem, const void *virt_addr, pd_t *proc_pd, pt_t *page_table)
 {
 	int32_t i;
@@ -135,8 +168,12 @@ static void map_video_mem(const vid_mem_t *vidmem, const void *virt_addr, pd_t *
 }
 
 /*
- * called from the scheduler to swap the running process's video memory
- * into fake video memory
+ * Called from the scheduler to swap the running process's video memory
+ * into fake video memory.
+ *
+ * Inputs: pcb - address of pcb passed in by reference
+ * Outputs: 0 on success
+ *
  */
 int32_t switch_to_fake_video_memory(pcb_t *pcb)
 {
@@ -199,8 +236,12 @@ int32_t switch_to_fake_video_memory(pcb_t *pcb)
 }
 
 /*
- * called from the scheduler to swap the running process's video memory
+ * Called from the scheduler to swap the running process's video memory
  * from fake video memory into real video memory
+ *
+ * Inputs: pcb - address of PCB passed in by reference
+ * Outputs: 0 on success
+ *
  */
 int32_t switch_from_fake_video_memory(pcb_t *pcb)
 {
@@ -260,13 +301,27 @@ int32_t switch_from_fake_video_memory(pcb_t *pcb)
 	return 0;
 }
 
-/* initializes paging */
+/* Initializes paging. Wrapper function
+ * Installs all of the page tables and page directories needed 
+ * for correct system functionality.
+ *
+ * Inputs: none
+ * Outputs: none
+ *
+ */
 void paging_init(void)
 {
 	install_pages();
 }
 
-/* clears the page directory for the kernel */
+
+/*
+ * Clears a page directory to make sure no garbage is in any of the entries to start with.
+ *
+ * Inputs: directory - Address of page directory to be cleared passed in by reference
+ * Outputs: none
+ *
+ */
 static void clear_page_dir(pd_t* directory)
 {
 	int i;
@@ -278,7 +333,13 @@ static void clear_page_dir(pd_t* directory)
 	}
 }
 
-/* clears the first page table */
+/*
+ * Clears a page table to make sure no garbage is in any of the entries to start with.
+ *
+ * Inputs: table - Address of page table to be cleared passed in by reference
+ * Outputs: none
+ *
+ */
 static void clear_page_table(pt_t* table)
 {
 	int i;
@@ -290,7 +351,15 @@ static void clear_page_table(pt_t* table)
 	}
 }
 
-/* installs the 4MB page for the kernel, and maps 64k of video memory */
+/* 
+ * Initializes every Page table and Page Directory used in this system (statically).
+ * Clears all page directories/tables prior to installation.
+ * Sets all flags pertaining to Paging initialization.
+ *
+ * Inputs: none
+ * Outputs: none
+ *
+ */
 static void install_pages()
 {
 	int i;

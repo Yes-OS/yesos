@@ -10,6 +10,8 @@
  *            Global Defines            *
  ****************************************/
 
+
+/* Exception Values */
 #define EXCEPTION_DIVIDE             0
 #define EXCEPTION_DEBUG              1
 #define EXCEPTION_NMI                2
@@ -33,6 +35,10 @@
 /* should not occur */
 #define EXCEPTION_NULL               -1
 
+/* 
+ * IRQ port Values
+ * Specific Ports defined in i8259.h
+ */
 #define IRQ_PIT (IRQ_START + PIT_IRQ_PORT)
 #define IRQ_KBD (IRQ_START + KBD_IRQ_PORT)
 #define IRQ2    (IRQ_START + 2)
@@ -86,7 +92,11 @@
  *         Function Declarations        *
  ****************************************/
 
-/* Exceptions */
+/* 
+ * Exceptions
+ * Called according to the specific interrupt that occured
+ * Used in finding the offset during interrupt gate setting
+ */
 void divide_error();
 void debug();
 void nmi();
@@ -108,7 +118,11 @@ void machine_check();
 void simd_coprocessor_error();
 void null_int();
 
-/* Interrupt Requests */
+/* 
+ * Interrupt Requests 
+ * Each irq number represents a port on the PIC which sends hardware 
+ * interrupts asynchronously.
+ */
 void irq0();
 void irq1();
 void irq2();

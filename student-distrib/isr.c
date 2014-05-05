@@ -15,7 +15,17 @@
 #include "proc.h"
 #include "isr.h"
 
-/* implements the interrupt service request */
+/* 
+ * Implements the interrupt service request. 
+ * Large switch statement based on the isr number, specifying what
+ * type of interrupt or exception happened, and is handled accordingly
+ * depending ont he type.
+ *
+ * Inputs: regs - registers that are pushed onto the stack prior to 
+ *                interrupt handling
+ * Outputs: none
+ *
+ */
 void isr_impl(registers_t regs)
 {
 	uint32_t cr2;
@@ -259,6 +269,16 @@ void isr_impl(registers_t regs)
 	}
 }
 
+
+/*
+ * Sets an interrupt gate, the most commonly used gate type.
+ * Only accesssible at the kernel level.
+ *
+ * Inputs: n - gate number
+ *         addr - offset of the IDT entry
+ * Outputs: none
+ *
+ */
 void set_intr_gate(uint8_t n, uint32_t addr)
 {
 	idt_desc_t new_idt_entry;
@@ -285,6 +305,16 @@ void set_intr_gate(uint8_t n, uint32_t addr)
 	idt[n] = new_idt_entry;
 }
 
+
+/*
+ * Sets system gate. Only used for three exceptions.
+ * Allowed to be called by user level code.
+ *
+ * Inputs: n - Interrupt/exception number
+ *         addr - offset of the IDT entry
+ * Outputs:
+ *
+ */
 void set_system_gate(uint8_t n, uint32_t addr)
 {
 	idt_desc_t new_idt_entry;
@@ -311,6 +341,15 @@ void set_system_gate(uint8_t n, uint32_t addr)
 	idt[n] = new_idt_entry;
 }
 
+/*
+ * Sets system interrupt gate. Only used for one exception.
+ * Allowed to be called by user level code.
+ *
+ * Inputs: n - Interrupt/exception number
+ *         addr - offset of the IDT entry
+ * Outputs:
+ *
+ */
 void set_system_intr_gate(uint8_t n, uint32_t addr)
 {
 	idt_desc_t new_idt_entry;
@@ -337,6 +376,16 @@ void set_system_intr_gate(uint8_t n, uint32_t addr)
 	idt[n] = new_idt_entry;
 }
 
+
+/*
+ * Sets trap gate. Not actually used for any of our exceptions/interrupts
+ * Allowed to be called by user level code.
+ *
+ * Inputs: n - Interrupt/exception number
+ *         addr - offset of the IDT entry
+ * Outputs:
+ *
+ */
 void set_trap_gate(uint8_t n, uint32_t addr)
 {
 	idt_desc_t new_idt_entry;
@@ -363,11 +412,29 @@ void set_trap_gate(uint8_t n, uint32_t addr)
 	idt[n] = new_idt_entry;
 }
 
+/*
+ * Sets a task gate. Not actually used at all.
+ * Used when referencing TSS descriptor in the GDT.
+ *
+ * Inputs: n - interrupt/exception number
+ *         gdt - offset into the gdt
+ * Outputs: none
+ *
+ */
 void set_task_gate(uint8_t n, uint16_t gdt)
 {
 	/* not yet implemented, we may not even use this */
 }
 
+/*
+ * Sets all the gates corresponding to all exceptions/interrupts.
+ * Initialze the sys_call vector to 0x80
+ * Loads the Interrupt Descriptor Table.
+ *
+ * Inputs: none
+ * Outputs: none
+ *
+ */
 void install_interrupts()
 {
 	int i;

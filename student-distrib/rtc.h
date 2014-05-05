@@ -67,7 +67,7 @@ void rtc_handle_interrupt(void);
 /* RTC Frequency Modifier */
 void rtc_modify_freq(uint32_t freq);
 
-/* RTC system calls */
+/*System calls for rtc type files*/
 int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes);
 
 /* Write to the RTC */

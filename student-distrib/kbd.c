@@ -81,7 +81,14 @@
 		outb((data), PS2_PORT_DATA);                   \
 	} while (0)
 
-/* block while reading a byte from the data port */
+/* 
+ * Helper Function
+ * Waits for data to become available and then reads it.
+ * Block while reading a byte from the data port. 
+ *
+ * Input: none
+ * Ouput: none
+ */
 static inline uint32_t ps2_read_data()
 {
 	uint32_t data;
@@ -96,14 +103,14 @@ static inline uint32_t ps2_read_data()
 	return data;
 }
 
-/* the scancode to ascii table */
+/* The Scancode to ascii table */
 #define SCAN_ENTRIES 512
 const static uint16_t scancodes[SCAN_ENTRIES] = {
 	#include "scancodes.h"
 };
 
 /* sent when a key is sent */
-#define KBD_KEY_RELEASED			0xf0
+#define KBD_KEY_RELEASED		0xf0
 #define KBD_KEY_EMUL0				0xe0
 #define KBD_KEY_EMUL1				0xe1
 
@@ -118,6 +125,16 @@ volatile int32_t kbd_initialized = 0;
 static int16_t kbd_combine_key(int16_t value);
 
 
+/*
+ * Keyboard intialization function.
+ * Initializes queues that are used to store data that is read in from the PS/2 port.
+ * Initialized keyboard device to system.
+ * Once keyboard is fully initialized to port1, reset the device.
+ *
+ * Input: none
+ * Ouput: none
+ * 
+ */ 
 void kbd_init()
 {
 	uint32_t read;
@@ -177,7 +194,14 @@ void kbd_init()
 	kbd_reset();
 }
 
-/* Sends the reset command to the keyboard */
+/* 
+ * Sends the reset command to the keyboard 
+ * Used internally during initialzation.
+ *
+ * Input: none
+ * Output: none
+ *
+ */
 void kbd_reset()
 {
 	int ok;
@@ -189,7 +213,15 @@ void kbd_reset()
 }
 
 
-/* handle interrupt */
+/*
+ * Keyboard interrupt Handler.
+ * Interrupt occurs on a keystroke. Handler reads from PS/2 data port
+ * and handles the key press accordingly.
+ *
+ * Inputs: none
+ * Outputs: none
+ *
+ */
 void kbd_handle_interrupt()
 {
 	uint32_t value;
@@ -266,7 +298,14 @@ void kbd_handle_interrupt()
 	}
 }
 
-/* combines multibyte keys into a single byte */
+/*
+ * Used to implement keybindings for multiple key presses.
+ * Combines multibyte keys into a single byte.
+ *
+ * Inputs: value - input value of key
+ * outputs: value - output value defined elsewhere for a unique 
+ *                  keybinding
+ */
 int16_t kbd_combine_key(int16_t value)
 {
 	/* combine multibyte */

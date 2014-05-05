@@ -103,22 +103,44 @@ extern fops_t dir_fops;
  *         Function Declarations        *
  ****************************************/
 
+/* Sets up the head pointer for the file system */
 void fs_init(boot_block_t* boot_val);
 
+/* Reads a data entry based on the file name */
 int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry);
+
+/* Reads a data entry based on the file index */
 int32_t read_dentry_by_index(uint32_t index, dentry_t* dentry);
+
+/* Reads up to 'length' bytes from position 'offset'
+ * in the file with 'inode' number into the given 'buf' buffer */
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length);
 
+/* Reads off a file name based off the file_pos of the directory */
 int32_t dir_read(int32_t fd, void* buf, int32_t nbytes);
+
+/* Write system call for directory file types */
 int32_t dir_write(int32_t fd, const void* buf, int32_t nbytes);
+
+/* Creates file descriptor for a directory file type */
 int32_t dir_open(const uint8_t *filename);
+
+/* Releases file descriptor of a directory file type */
 int32_t dir_close(int32_t fd);
 
+/* Reads n bytes of data from a file and stores it in a buffer*/
 int32_t file_read(int32_t fd, void* buf, int32_t nbytes);
+
+/* Write system call for directory file type */
 int32_t file_write(int32_t fd, const void* buf, int32_t nbytes);
+
+/* Creates a file descriptor of a regular file type*/
 int32_t file_open(const uint8_t* filename);
+
+/* Releases file descriptor for a regular file type*/
 int32_t file_close(int32_t fd);
 
+/* Loads data for an executable file into a specific location in memory*/
 uint32_t file_loader(dentry_t* file, uint32_t* eip);
 
 #endif /* ASM           */

@@ -25,8 +25,7 @@
 
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
-void
-entry (unsigned long magic, unsigned long addr)
+void entry (unsigned long magic, unsigned long addr)
 {
 	multiboot_info_t *mbi;
 
@@ -184,31 +183,35 @@ entry (unsigned long magic, unsigned long addr)
 
 	puts("Initializing subsystems\n");
 
-	/* Init the PIC */
+	/* Initialize the PIC */
 	puts("    Initializing PIC... ");
 	i8259_init();
 	puts("done\n");
 
+  /* Initialize Interrupts */
 	puts("    Installing Interrupts... ");
 	install_interrupts();
 	puts("done\n");
 
+  /* Initialize the PIT */
   puts("    Initializing PIT... ");
 	pit_init();
 	enable_irq(PIT_IRQ_PORT);
 	puts("done\n");
 
-
+  /* Intitialize the RTC*/
 	puts("    Initializing RTC... ");
 	rtc_init();
 	enable_irq(RTC_IRQ_PORT);
 	puts("done\n");
 
+  /* Initialize the Keyboard */
 	puts("    Initializing Keyboard... ");
 	kbd_init();
 	enable_irq(KBD_IRQ_PORT);
 	puts("done\n");
 
+  /* Initialize File System */
 	puts("    Initializing File System... ");
 	if (!fs_pres){
 		puts("    File System Unavailable!\n");
@@ -217,21 +220,24 @@ entry (unsigned long magic, unsigned long addr)
 		puts("done\n");
 	}
 
+  /* Initialize Paging */
 	puts("    Initializing Paging... ");
 	paging_init();
 	puts("done\n");
 
+  /* Initialize Terminal Drivers */
 	puts("    Initializing Terminal...");
 	(void)term_init_global_ctx();
 	puts("done\n");
 
+  /* Initialize Scheduling */
 	puts("    Initializing Scheduling...");
 	init_sched();
 	puts("done\n");
 
 	/* Enable interrupts */
 	/* Do not enable the following until after you have set up your
-	 * IDT correctly otherwise QEMU will triple fault and simple close
+	 * IDT correctly otherwise QEMU will triple fault and simply close
 	 * without showing you any output */
 	puts("    Enabling Interrupts (STI)... ");
 	sti();
@@ -251,6 +257,7 @@ entry (unsigned long magic, unsigned long addr)
 		halt();
 	}
 
+  /* Reboot */
 	puts("Rebooting");
 	sleep(3000);    /* Wait for 3 seconds then reboot */
 	triple_fault();

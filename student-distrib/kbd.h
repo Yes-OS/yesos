@@ -103,6 +103,7 @@
  *           Global Variables           *
  ****************************************/
 
+/* Global used for real-hardware System booting */
 extern volatile int32_t kbd_initialized;
 
 
@@ -110,8 +111,13 @@ extern volatile int32_t kbd_initialized;
  *         Function Declarations        *
  ****************************************/
 
+/* Keyboard Initialization Function */
 void kbd_init();
+
+/* Keyboard Resetting function. Used internally mostly */
 void kbd_reset();
+
+/* Keyboard Interrupt handler  */
 void kbd_handle_interrupt();
 
 #endif

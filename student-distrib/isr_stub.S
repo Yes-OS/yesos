@@ -82,6 +82,7 @@ isr_stub:
 	# restore segments
 	POP_ALL
 
-	addl	$8, %esp	# clean up error code and ISR number
+  # clean up error code and ISR number
+	addl	$8, %esp
 	iret
 

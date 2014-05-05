@@ -106,10 +106,12 @@ typedef struct pte {
 	};
 } pte_t;
 
+/* Page directory */
 typedef struct pd {
 	pde_t entry[NUM_ENTRIES];
 } pd_t;
 
+/* Page table */
 typedef struct pt {
 	pte_t entry[NUM_ENTRIES];
 } pt_t;
@@ -119,7 +121,10 @@ typedef struct pt {
  *           Global Variables           *
  ****************************************/
 
+/* Global page Directories */
 extern pd_t page_directories[];
+
+/* Global video memory loc array*/
 extern pt_t user_video_mems[];
 
 
@@ -128,23 +133,23 @@ extern pt_t user_video_mems[];
  ****************************************/
 
 /* sets page directory base register (cr3) */
-#define set_pdbr(base)               \
-	do {                             \
-		asm volatile (               \
-				"movl    %0, %%cr3"  \
-				: : "r" ((base))     \
-				: "memory"           \
-			);                       \
+#define set_pdbr(base)      \
+	do {                      \
+		asm volatile (          \
+				"movl    %0, %%cr3" \
+				: : "r" ((base))    \
+				: "memory"          \
+			);                    \
 	} while (0)
 
 /* sets page directory base register (cr3) */
-#define get_pdbr(addr)               \
-	do {                             \
-		asm volatile (               \
+#define get_pdbr(addr)       \
+	do {                       \
+		asm volatile (           \
 				"movl    %%cr3, %0"  \
 				: "=r" ((addr))      \
 				: : "memory"         \
-			);                       \
+			);                     \
 	} while (0)
 
 
@@ -152,12 +157,16 @@ extern pt_t user_video_mems[];
  *         Function Declarations        *
  ****************************************/
 
-/*Initialize paging*/
+/* Initialize paging */
 void paging_init(void);
+
+/* Installation of user vid mem for executables */
 void install_user_vid_mem(pd_t *page_directory, pt_t *user_vid_mem_table);
+
+/* Used for switching (fake)video-memory for tasks running in the background */
 int32_t switch_to_fake_video_memory();
 int32_t switch_from_fake_video_memory();
 
-#endif /* ASM */
+#endif /* _ASM_ */
 #endif /* _PAGING_H */
 
