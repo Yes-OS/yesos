@@ -8,7 +8,14 @@
 #include "x86_desc.h"
 #include "i8259.h"
 #include "lib.h"
+#include "syscall.h"
 #include "sched.h"
+
+#ifdef MODE_DEBUG
+#define DEBUG(...) printf(__VA_ARGS__)
+#else
+#define DEBUG(...)
+#endif
 
 /* Helper functions */
 static void context_switch(registers_t* regs);
@@ -172,13 +179,14 @@ void context_switch(registers_t* regs)
 	pcb_t* pcb;
 	uint32_t pid, ok;
 
+	/* Get the PCB of current process */
+	pcb = get_proc_pcb();
+
 	/* If no processes are running, we have nothing to switch to */
-	if (!nprocs) {
+	if (!pcb && !nprocs) {
 		goto leave;
 	}
 
-	/* Get the PCB of current process */
-	pcb = get_proc_pcb();
 	if (pcb) {
 		/* We're switching from another process */
 		if (!(pcb->state & EXIT_DEAD)) {
@@ -194,8 +202,9 @@ void context_switch(registers_t* regs)
 		pcb->context_esp = regs;
 	}
 
+	/* TODO: rewrite */
 next_process:
-	if (CIRC_BUF_EMPTY(*active_queue)) {
+	if (active_empty()) {
 		swap_queues();
 	}
 
@@ -204,17 +213,25 @@ next_process:
 
 	/* Error checking when queues empty */
 	if (!ok) {
-		puts("PANIC: nothing to resume to...\n");
-		if (CIRC_BUF_EMPTY(*expired_queue)) {
-			puts("PANIC: nothing in the expired queue either...\n");
+		DEBUG("PANIC: nothing to resume to...\n");
+		if (expired_empty()) {
+			DEBUG("PANIC: nothing in the expired queue either...\n");
 		}
 		else {
 			/* Expired empty, swap with active...why... */
 			swap_queues();
 			goto next_process;
 		}
-		halt();
-		goto leave;
+
+		/* spawn a new shell to rescue us */
+		puts("Spawning a new shell...\n");
+		pid = sys_exec_internal((uint8_t*)"shell", NULL);
+		if (pid > 0) {
+			goto next_process;
+		}
+		else {
+			DEBUG("PANIC: Failed to spawn a new shell\n");
+		}
 	}
 
 	/* Get PCB of next Process */
@@ -222,7 +239,7 @@ next_process:
 
 	/* Error checking when PID not [fully] initialized */
 	if (!pcb) {
-		puts("PANIC: invalid process in sched queue\n");
+		DEBUG("PANIC: invalid process in sched queue\n");
 		goto leave;
 	}
 
@@ -233,7 +250,7 @@ next_process:
 	if (!pcb->context_esp) {
 		/* Push to be initialized later */
 		push_to_expired(pid);
-		printf("WARN: No context, returning [%d][%x]\n", pcb->pid, (uint32_t)pcb);
+		DEBUG("WARN: No context, returning [%d][%x]\n", pcb->pid, (uint32_t)pcb);
 		goto leave;
 	}
 

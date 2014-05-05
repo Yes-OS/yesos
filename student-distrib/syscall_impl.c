@@ -243,7 +243,7 @@ int32_t sys_sched(int32_t unused)
 	uint32_t flags;
 	cli_and_save(flags);
 
-	if (active_empty() && expired_empty()) {
+	if (nprocs > 0 && active_empty() && expired_empty()) {
 		/* sleep here since the only running process is yielding control */
 		sti();
 		asm("hlt");

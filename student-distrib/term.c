@@ -184,6 +184,9 @@ int32_t term_open(pcb_t *pcb, const uint8_t *filename)
 		/* we're spawning a new terminal */
 		term = &term_terms[terminal_num];
 		pcb->term_ctx = term;
+
+		/* clear the buffer */
+		init_ctx(term);
 	}
 
 	term_pids[terminal_num] = pcb->pid;
