@@ -297,7 +297,9 @@ static inline screen_t *get_screen_ctx()
 
 /* Return the pcb associated with a given PID
  */
-#define get_pcb_from_pid(_pid) ((pcb_t *)((KERNEL_MEM + MB_4_OFFSET - USER_STACK_SIZE * _pid - 1) & 0xFFFFE000))
+#define get_pcb_from_pid(_pid) ((_pid > 0) ? \
+	((pcb_t *)((KERNEL_MEM + MB_4_OFFSET - USER_STACK_SIZE * _pid - 1) & 0xFFFFE000)) : \
+		(NULL))
 
 #endif /* ASM */
 #endif /* _PROC_H_ */

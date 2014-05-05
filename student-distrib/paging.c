@@ -364,14 +364,19 @@ static void install_pages()
 {
 	int i;
 
+	/* Initialize per-process things */
 	for(i = 0; i < MAX_PROCESSES + 1; i++) {
 		clear_page_dir(&page_directories[i]);
-		clear_page_table(&video_memories[i]);
 		install_kernel_page(&page_directories[i]);
 		map_video_mem((void *)VIDEO, (void *)VIDEO, &page_directories[i], &first_table);
 		if (i > 0) {
 			install_user_page(i, &page_directories[i]);
 		}
+	}
+
+	/* Initialize per-terminal things */
+	for (i = 0; i < NUM_TERMS; i++) {
+		clear_page_table(&video_memories[i]);
 	}
 
 	fake_video_mem = (vid_mem_t *)(KERNEL_MEM + MB_4_OFFSET * (MAX_PROCESSES + 1));

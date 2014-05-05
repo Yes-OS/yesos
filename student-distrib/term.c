@@ -481,25 +481,17 @@ static int32_t switch_terminals(int32_t new_terminal)
 		return -1;
 	}
 
-	/* Copy current terminal's video memory into its fake video memory. */
-
-	/* Tell the current terminal that it's video memory has been relocated */
-
-	/* Store the input information for that terminal. (Keyboard buffer) */
+	/* Switch a process group's video memory out for some fake video memory */
 	pcb = get_pcb_from_pid(term_pids[terminal_num]);
-	switch_to_fake_video_memory(pcb);
-
-
-	/* Check to see if new terminal has video memory to copy. */
-
-	/* If not, create a blank screen for the new terminal. */
-
-	/* Check to see if new terminal has any input information to load. (Keyboard buffer) */
-
+	/* we don't have to switch video memory if a process isn't running */
+	if (pcb) {
+		switch_to_fake_video_memory(pcb);
+	}
 
 	/* Set the terminal number to the new terminal. */
 	terminal_num = new_terminal;
 
+	/* Check for an existing process on the terminal we're switching to */
 	if (term_pids[terminal_num] < 0) {
 		/* spawn a new terminal */
 		new_pid = sys_exec_internal((uint8_t*)"shell", NULL);
@@ -513,6 +505,7 @@ static int32_t switch_terminals(int32_t new_terminal)
 		screen_clear(&pcb->term_ctx->screen);
 	}
 	else {
+		/* grab the pcb of the terminal we're switching to and give it some real video memory */
 		pcb = get_pcb_from_pid(term_pids[terminal_num]);
 		switch_from_fake_video_memory(pcb);
 	}

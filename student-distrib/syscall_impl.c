@@ -422,10 +422,12 @@ int32_t sys_halt_internal(int32_t pid, int32_t status)
 		}
 	}
 
+	/* Scheduling: halting child, set for removal */
+	pcb->state |= EXIT_DEAD;
+
 	/* Remove the process from the schedule queue */
 	if (pcb->parent) {
 		/* wombo combo */
-
 		for (parent = pcb->parent; parent && parent->parent; parent = parent->parent);
 		parent = parent ? parent : pcb;
 
@@ -435,9 +437,6 @@ int32_t sys_halt_internal(int32_t pid, int32_t status)
 
 		/* Halting from child process */
 
-		/* Scheduling: halting child, set for removal */
-		pcb->state |= EXIT_DEAD;
-
 		pcb->parent_regs->eax = status;
 		set_pdbr(pcb->parent->page_directory);
 		tss.ss0 = KERNEL_DS;
@@ -446,6 +445,12 @@ int32_t sys_halt_internal(int32_t pid, int32_t status)
 	else {
 		/* do whatcha want */
 		printf("EXITING LAST SHELL IN TERMINAL\n");
+
+		/* clear terminal pid so a new thing can spawn */
+		term_id = pcb->term_ctx - term_terms;
+		term_pids[term_id] = -1;
+
+		/* let the scheduler kill us off for good */
 		sti();
 		halt();
 	}
