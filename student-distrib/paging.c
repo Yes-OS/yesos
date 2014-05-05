@@ -28,39 +28,30 @@ pt_t temp_table __attribute__((aligned(PAGE_SIZE)));
 
 /* sets the 31 bit of CR0 */
 /* enables memory paging */
-#define set_pg_flag()                       \
-	do {                                      \
-		asm volatile (                          \
-				"movl    %%cr0, %%eax\n             \
-				 orl     $0x80000000, %%eax\n       \
-				 movl    %%eax, %%cr0"              \
-				: : : "eax", "cc", "memory"         \
-			);                                    \
-	} while (0)
+#define set_pg_flag() asm volatile (  \
+		"movl    %%cr0, %%eax\n       \
+		 orl     $0x80000000, %%eax\n \
+		 movl    %%eax, %%cr0"        \
+		: : : "eax", "cc", "memory"   \
+		)
 
 /* sets the 4 bit of CR4 */
 /* enables page size extensions, allowing 4 MB pages */
-#define set_pse_flag()                \
-	do {                                \
-		asm (                             \
-				"movl    %%cr4, %%eax\n       \
-				 orl     $0x00000010, %%eax\n \
-				 movl    %%eax, %%cr4"        \
-				: : : "eax", "cc"             \
-			);                              \
-	} while (0)
+#define set_pse_flag() asm (          \
+		"movl    %%cr4, %%eax\n       \
+		 orl     $0x00000010, %%eax\n \
+		 movl    %%eax, %%cr4"        \
+		: : : "eax", "cc"             \
+		)
 
 /* clears the 5 bit of CR4 */
 /* disables physical address extension */
-#define clr_pae_flag()                 \
-	do {                                 \
-		asm (                              \
-				"movl    %%cr4, %%eax\n        \
-				 andl    $0xFFFFFFDF, %%eax\n  \
-				 movl    %%eax, %%cr4"         \
-				: : : "eax", "cc"              \
-			);                               \
-	} while (0)
+#define clr_pae_flag() asm (          \
+		"movl    %%cr4, %%eax\n       \
+		 andl    $0xFFFFFFDF, %%eax\n \
+		 movl    %%eax, %%cr4"        \
+		: : : "eax", "cc"             \
+		)
 
 /* Helper Functions */
 static void clear_page_dir(pd_t* directory);
