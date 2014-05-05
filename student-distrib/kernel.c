@@ -188,30 +188,30 @@ void entry (unsigned long magic, unsigned long addr)
 	i8259_init();
 	puts("done\n");
 
-  /* Initialize Interrupts */
+	/* Initialize Interrupts */
 	puts("    Installing Interrupts... ");
 	install_interrupts();
 	puts("done\n");
 
-  /* Initialize the PIT */
-  puts("    Initializing PIT... ");
+	/* Initialize the PIT */
+	puts("    Initializing PIT... ");
 	pit_init();
 	enable_irq(PIT_IRQ_PORT);
 	puts("done\n");
 
-  /* Intitialize the RTC*/
+	/* Intitialize the RTC*/
 	puts("    Initializing RTC... ");
 	rtc_init();
 	enable_irq(RTC_IRQ_PORT);
 	puts("done\n");
 
-  /* Initialize the Keyboard */
+	/* Initialize the Keyboard */
 	puts("    Initializing Keyboard... ");
 	kbd_init();
 	enable_irq(KBD_IRQ_PORT);
 	puts("done\n");
 
-  /* Initialize File System */
+	/* Initialize File System */
 	puts("    Initializing File System... ");
 	if (!fs_pres){
 		puts("    File System Unavailable!\n");
@@ -220,17 +220,17 @@ void entry (unsigned long magic, unsigned long addr)
 		puts("done\n");
 	}
 
-  /* Initialize Paging */
+	/* Initialize Paging */
 	puts("    Initializing Paging... ");
 	paging_init();
 	puts("done\n");
 
-  /* Initialize Terminal Drivers */
+	/* Initialize Terminal Drivers */
 	puts("    Initializing Terminal...");
 	(void)term_init_global_ctx();
 	puts("done\n");
 
-  /* Initialize Scheduling */
+	/* Initialize Scheduling */
 	puts("    Initializing Scheduling...");
 	init_sched();
 	puts("done\n");
@@ -257,7 +257,7 @@ void entry (unsigned long magic, unsigned long addr)
 		halt();
 	}
 
-  /* Reboot */
+	/* Reboot */
 	puts("Rebooting");
 	sleep(3000);    /* Wait for 3 seconds then reboot */
 	triple_fault();

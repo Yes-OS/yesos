@@ -15,8 +15,8 @@
 #define STDIN   0
 #define STDOUT  1
 
-/* buffer size of keyboard + 1 */
-#define KBD_BUF_SIZE 129
+/* buffer size of keyboard */
+#define KBD_BUF_SIZE 128
 
 /* number of terminals */
 #define NUM_TERMS 4

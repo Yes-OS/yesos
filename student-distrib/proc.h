@@ -65,8 +65,10 @@
  *              Data Types              *
  ****************************************/
 
+/* forward declaration for typedefs */
 typedef struct pcb pcb_t;
 
+/* Types used in the file-ops table */
 typedef int32_t open_t(pcb_t *pcb, const uint8_t *filename);
 typedef int32_t read_t(pcb_t *pcb, int32_t fd, void *buf, int32_t nbytes);
 typedef int32_t write_t(pcb_t *pcb, int32_t fd, const void *buf, int32_t nbytes);

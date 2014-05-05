@@ -21,8 +21,8 @@
 static void context_switch(registers_t* regs);
 
 /* Local variables */
-DECLARE_CIRC_BUF(uint32_t, SCHED_QUEUE_1, MAX_PROCESSES + 1);
-DECLARE_CIRC_BUF(uint32_t, SCHED_QUEUE_2, MAX_PROCESSES + 1);
+sched_queue_t SCHED_QUEUE_1;
+sched_queue_t SCHED_QUEUE_2;
 sched_queue_t* active_queue;
 sched_queue_t* expired_queue;
 sched_flags_t sched_flags;
@@ -87,19 +87,7 @@ uint8_t push_to_expired(uint32_t pid)
  */
 uint8_t remove_active_from_sched(void)
 {
-#if 0
-	uint32_t ok, temp;
-
-	CIRC_BUF_POP(*active_queue, temp, ok);
-	/* we don't actually use the popped value */
-	(void)temp;
-
-	if(!ok) {
-		return -1;
-	}
-#else
 	get_proc_pcb()->state |= EXIT_DEAD;
-#endif
 
 	return 0;
 }
@@ -156,19 +144,6 @@ void scheduler(registers_t* regs)
 {
 	/* context switching */
 	context_switch(regs);
-
-#if reboot
-	if (sched_flags.relaunch) {
-		/* When top shell is exited, must reboot */
-		sched_flags.relaunch = 0;
-		sys_exec((uint8_t*)"shell"); /* XXX: CAN'T DO DIS! */
-	}
-#else
-
-	/* Reset flag, since not relaunching base shell */
-	sched_flags.relaunch = 0;
-#endif
-
 }
 
 /* Context switching helper function:

@@ -1,12 +1,6 @@
 /* file_sys.c - Functions to initialize and interact
  *              with the file system.
- *
  * vim:ts=4 sw=4 noexpandtab
- *
- * TO DO:
- *		-Add functionality:
- *			copy a program image from the disk blocks into continuous physical memory
- *			set up the stack properly and return to user-level
  */
 
 #include "lib.h"
@@ -54,7 +48,8 @@ void fs_init(boot_block_t* boot_val)
  * Read system call for normal file types. Reads data from a file
  * and stores it in a buffer.
  *
- * Inputs: fd - file descriptor,
+ * Inputs: pcb - the pcb of the calling process,
+ *         fd - file descriptor,
  *         buf - buffer 
  *         nbytes - number of bytes to read
  * Outputs:Number of bytes read
@@ -94,7 +89,8 @@ int32_t file_write(pcb_t *pcb, int32_t fd, const void* buf, int nbytes)
  *  Open system call for regular file types. Sets up a file descriptor
  *  for a specific file for a specific process.
  *
- *  Inputs: filename - name of the file
+ *  Inputs: pcb - the pcb of the calling process,
+ *          filename - name of the file
  *  Outputs: file descriptor
  */
 int32_t file_open(pcb_t *pcb, const uint8_t *filename)
@@ -276,7 +272,8 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length
  * Read system call for directory file types. Reads off a file
  * name based off the file_pos of the directory.
  *
- * Inputs:fd - file descriptor
+ * Inputs:pcb - the pcb of the calling process,
+ *        fd - file descriptor
  *        buf - buffer to write file name to
  *        nbytes - number of bytes to be read
  * Outputs: number of characters in file name
@@ -330,7 +327,8 @@ int32_t dir_write(pcb_t *pcb, int32_t fd, const void* buf, int32_t nbytes)
  * Similar to open system call for regular file types.
  * Creates a file descriptor for a directory file type.
  *
- * Inputs: filename - name of the file to be opened
+ * Inputs: pcb - the pcb of the calling process,
+ *         filename - name of the file to be opened
  * Outputs: fd- file descriptor
  *
  */
@@ -368,7 +366,8 @@ int32_t dir_open(pcb_t *pcb, const uint8_t *filename)
  *  Close system call for directory file types.
  *  Releases a file descriptor of a directory file type.
  *
- *  Inputs: fd - file descriptor to be released
+ *  Inputs: pcb - the pcb of the calling process,
+ *          fd - file descriptor to be released
  *  Outputs: 0
  */
 int32_t dir_close(pcb_t *pcb, int32_t fd)

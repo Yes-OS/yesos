@@ -32,126 +32,126 @@ void isr_impl(registers_t regs)
 	uint32_t cr3;
 	switch (regs.isrno) {
 
-        case EXCEPTION_DIVIDE:
-            puts("Interrupt occurred(0): divide_error\n");
+		case EXCEPTION_DIVIDE:
+			puts("Interrupt occurred(0): divide_error\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + OFFSET_4MB) {
 				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
 			/* just halt for now */
 			halt();
-            break;
+			break;
 
-        case EXCEPTION_DEBUG:
-            puts("Interrupt occurred(1): debug\n");
+		case EXCEPTION_DEBUG:
+			puts("Interrupt occurred(1): debug\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + OFFSET_4MB) {
 				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
-            halt(); /* just halt for now */
-            break;
+			halt(); /* just halt for now */
+			break;
 
-        case EXCEPTION_NMI:
-            puts("Interrupt occurred(2): nmi\n");
+		case EXCEPTION_NMI:
+			puts("Interrupt occurred(2): nmi\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + OFFSET_4MB) {
 				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
-            halt(); /* just halt for now */
-            break;
+			halt(); /* just halt for now */
+			break;
 
-        case EXCEPTION_BREAKPOINT:
-            puts("Interrupt occurred(3): breakpoint\n");
+		case EXCEPTION_BREAKPOINT:
+			puts("Interrupt occurred(3): breakpoint\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + OFFSET_4MB) {
 				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
-            halt(); /* just halt for now */
-            break;
+			halt(); /* just halt for now */
+			break;
 
-        case EXCEPTION_OVERFLOW:
-            puts("Interrupt occurred(4): overflow\n");
+		case EXCEPTION_OVERFLOW:
+			puts("Interrupt occurred(4): overflow\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + OFFSET_4MB) {
 				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
-            halt(); /* just halt for now */
-            break;
+			halt(); /* just halt for now */
+			break;
 
-        case EXCEPTION_BOUND:
-            puts("Interrupt occurred(5): bound\n");
+		case EXCEPTION_BOUND:
+			puts("Interrupt occurred(5): bound\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + OFFSET_4MB) {
 				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
-            halt(); /* just halt for now */
-            break;
+			halt(); /* just halt for now */
+			break;
 
-        case EXCEPTION_INVALID_OPCODE:
-            puts("Interrupt occurred(6): invalid_opcode\n");
+		case EXCEPTION_INVALID_OPCODE:
+			puts("Interrupt occurred(6): invalid_opcode\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + OFFSET_4MB) {
 				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
-            halt(); /* just halt for now */
-            break;
+			halt(); /* just halt for now */
+			break;
 
-        case EXCEPTION_DEV_NOT_AVAIL:
-            puts("Interrupt occurred(7): device_not_available\n");
+		case EXCEPTION_DEV_NOT_AVAIL:
+			puts("Interrupt occurred(7): device_not_available\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + OFFSET_4MB) {
 				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
-            halt(); /* just halt for now */
-            break;
+			halt(); /* just halt for now */
+			break;
 
-        case EXCEPTION_DOUBLE_FAULT:
-            puts("Interrupt occurred(8): double_fault\n");
+		case EXCEPTION_DOUBLE_FAULT:
+			puts("Interrupt occurred(8): double_fault\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + OFFSET_4MB) {
 				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
-            halt(); /* just halt for now */
-            break;
+			halt(); /* just halt for now */
+			break;
 
-        case EXCEPTION_COPROC_SEG_OVERRUN:
-            puts("Interrupt occurred(9): coprocessor_segment_overrun\n");
+		case EXCEPTION_COPROC_SEG_OVERRUN:
+			puts("Interrupt occurred(9): coprocessor_segment_overrun\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + OFFSET_4MB) {
 				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
-            halt(); /* just halt for now */
-            break;
+			halt(); /* just halt for now */
+			break;
 
-        case EXCEPTION_INVALID_TSS:
-            puts("Interrupt occurred(10): invalid_tss\n");
+		case EXCEPTION_INVALID_TSS:
+			puts("Interrupt occurred(10): invalid_tss\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + OFFSET_4MB) {
 				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
-            halt(); /* just halt for now */
-            break;
+			halt(); /* just halt for now */
+			break;
 
-        case EXCEPTION_SEG_NOT_PRES:
-            puts("Interrupt occurred(11): segment_not_present\n");
+		case EXCEPTION_SEG_NOT_PRES:
+			puts("Interrupt occurred(11): segment_not_present\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + OFFSET_4MB) {
 				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
-            halt(); /* just halt for now */
-            break;
+			halt(); /* just halt for now */
+			break;
 
-        case EXCEPTION_STACK_FAULT:
-            puts("Interrupt occurred(12): stack_fault\n");
+		case EXCEPTION_STACK_FAULT:
+			puts("Interrupt occurred(12): stack_fault\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + OFFSET_4MB) {
 				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
-            halt(); /* just halt for now */
-            break;
+			halt(); /* just halt for now */
+			break;
 
-        case EXCEPTION_GENERAL_PROTECTION:
-            puts("Interrupt occurred(13): general_protection\n");
+		case EXCEPTION_GENERAL_PROTECTION:
+			puts("Interrupt occurred(13): general_protection\n");
 			if (regs.errno > 0) {
 				printf("    Segment selector: %d\n", regs.errno);
 			}
@@ -159,17 +159,19 @@ void isr_impl(registers_t regs)
 				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
-            halt(); /* just halt for now */
-            break;
+			halt(); /* just halt for now */
+			break;
 
-        case EXCEPTION_PAGE_FAULT:
+		case EXCEPTION_PAGE_FAULT:
+			/* get CR2 */
 			asm("movl    %%cr2, %0"
 					: "=r"(cr2)
 					: :"memory");
+			/* get CR3 */
 			asm("movl    %%cr3, %0"
 					: "=r"(cr3)
 					: :"memory");
-            puts("Interrupt occurred(14): page_fault\n");
+			puts("Interrupt occurred(14): page_fault\n");
 			puts("Details:\n");
 			printf("    Address: 0x%x\n", cr2);
 			printf("    Page was %spresent\n", regs.errno & 0x01 ? "" : "NOT ");
@@ -180,50 +182,50 @@ void isr_impl(registers_t regs)
 				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
-            halt(); /* just halt for now */
-            break;
+			halt(); /* just halt for now */
+			break;
 
-        case EXCEPTION_COPROC_ERROR:
-            puts("Interrupt occurred(16): coprocessor_error\n");
+		case EXCEPTION_COPROC_ERROR:
+			puts("Interrupt occurred(16): coprocessor_error\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + OFFSET_4MB) {
 				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
-            halt(); /* just halt for now */
-            break;
+			halt(); /* just halt for now */
+			break;
 
-        case EXCEPTION_ALIGNMENT_CHECK:
-            puts("Interrupt occurred(17): alignment_check\n");
+		case EXCEPTION_ALIGNMENT_CHECK:
+			puts("Interrupt occurred(17): alignment_check\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + OFFSET_4MB) {
 				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
-            halt(); /* just halt for now */
-            break;
+			halt(); /* just halt for now */
+			break;
 
-        case EXCEPTION_MACHINE_CHECK:
-            puts("Interrupt occurred(18): machine_check\n");
+		case EXCEPTION_MACHINE_CHECK:
+			puts("Interrupt occurred(18): machine_check\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + OFFSET_4MB) {
 				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
-            halt(); /* just halt for now */
-            break;
+			halt(); /* just halt for now */
+			break;
 
-        case EXCEPTION_SIMD_COPROC_ERR:
-            puts("Interrupt occurred(19): simd_coprocessor_error\n");
+		case EXCEPTION_SIMD_COPROC_ERR:
+			puts("Interrupt occurred(19): simd_coprocessor_error\n");
 			if (USER_MEM < regs.eip && regs.eip < USER_MEM + OFFSET_4MB) {
 				sys_halt_internal(get_proc_pcb()->pid, 256);
 				break;
 			}
-            halt(); /* just halt for now */
-            break;
+			halt(); /* just halt for now */
+			break;
 
-		/*
-		 * These are IRQs for which we have no specific handling code, here for debugging purposes.
-		 * NOTE: These generally shouldn't be reached, since their respective lines will be masked
-		 *       the PIC.
-		 */
+			/*
+			 * These are IRQs for which we have no specific handling code, here for debugging purposes.
+			 * NOTE: These generally shouldn't be reached, since their respective lines will be masked
+			 *       the PIC.
+			 */
 		case IRQ2:
 		case IRQ3:
 		case IRQ4:
@@ -241,20 +243,20 @@ void isr_impl(registers_t regs)
 			send_eoi(regs.isrno - IRQ_START);
 			break;
 
-    /*handle PIT interrupt*/
+			/*handle PIT interrupt*/
 		case IRQ_PIT:
 			/* mask the interrupt and immediately send EOI so we can service other interrupts */
 			pit_handle_interrupt(&regs);
 			break;
 
-		/* handle the keyboard interrupt */
+			/* handle the keyboard interrupt */
 		case IRQ_KBD:
 			/* mask the interrupt and immediately send EOI so we can service other interrupts */
 			kbd_handle_interrupt();
 			send_eoi(KBD_IRQ_PORT);
 			break;
 
-		/* handle the RTC interrupt */
+			/* handle the RTC interrupt */
 		case IRQ_RTC:
 			/* mask the interrupt and immediately send EOI so we can service other interrupts */
 			rtc_handle_interrupt();
@@ -424,6 +426,7 @@ void set_trap_gate(uint8_t n, uint32_t addr)
 void set_task_gate(uint8_t n, uint16_t gdt)
 {
 	/* not yet implemented, we may not even use this */
+	(void)n; (void)gdt;
 }
 
 /*

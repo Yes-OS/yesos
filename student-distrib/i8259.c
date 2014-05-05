@@ -69,10 +69,7 @@ void i8259_init(void)
  */
 void enable_irq(uint32_t irq_num)
 {
-	if(irq_num < 0) {
-		return;
-	}
-	else if(irq_num < 8) {
+	if(irq_num < 8) {
 		master_mask = master_mask & ~(1 << irq_num);
 		/*PORT incremented by 1 because OCW1 is to be accepted in the next port*/
 		outb(master_mask, MASTER_8259_PORT + 1);
@@ -97,10 +94,7 @@ void enable_irq(uint32_t irq_num)
 void
 disable_irq(uint32_t irq_num)
 {
-	if(irq_num < 0) {
-		return;
-	}
-	else if(irq_num < 8) {
+	if(irq_num < 8) {
 		master_mask = master_mask | (1 << irq_num);
 		/*PORT incremented by 1 because OCW1 is to be accepted in the next port*/
 		outb(master_mask, MASTER_8259_PORT + 1);

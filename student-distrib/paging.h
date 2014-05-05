@@ -139,7 +139,7 @@ extern pt_t user_video_mems[];
 				: "memory"            \
 			)
 
-/* sets page directory base register (cr3) */
+/* gets page directory base register (cr3) */
 #define get_pdbr(addr) asm volatile ( \
 				"movl    %%cr3, %0"   \
 				: "=r" ((addr))       \

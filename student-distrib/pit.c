@@ -30,6 +30,8 @@ void pit_init(void)
 /* Interrupt handler for the PIT
  *  Resets the PIT for the specified time slot
  *  Calls the scheduler to handle processes
+ *
+ *  Inputs: regs - context of the process that was interrupted
  */
 void pit_handle_interrupt(registers_t* regs)
 {

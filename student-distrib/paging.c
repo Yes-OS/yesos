@@ -127,6 +127,7 @@ void install_user_vid_mem(pd_t *page_directory, pt_t *user_vid_mem_table)
  *         virt_addr - virtual address for video memory to be written to
  *         proc_pd - currently active page directory
  *         page_table - currently active page table (video memory)
+ *         flags - extra flags to set in the table/page beyond the present bit
  * Outputs: none
  *
  */

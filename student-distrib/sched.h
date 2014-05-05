@@ -17,7 +17,7 @@
 /* Create the schedule queue buffers of a set size depending
  *  on the number of process we have designed for
  */
-typedef CIRC_BUF_TYPE(uint32_t, MAX_PROCESSES + 1) sched_queue_t;
+typedef CIRC_BUF_TYPE(uint32_t, MAX_PROCESSES) sched_queue_t;
 
 /* Contains information the scheduler uses
  *  that is accessed or changed globally
