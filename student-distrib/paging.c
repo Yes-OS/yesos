@@ -208,7 +208,7 @@ int32_t switch_to_fake_video_memory(pcb_t *pcb)
 
 		/* if we've mapped video memory for the user program, update that too */
 		if (pcb->has_video_mapped) {
-			map_video_mem(fake, (void *)USER_VID, proc_pd, &user_video_mems[pcb->pid]);
+			map_video_mem(fake, (void *)USER_VID, proc_pd, &user_video_mems[term_id]);
 		}
 	}
 
@@ -275,7 +275,7 @@ int32_t switch_from_fake_video_memory(pcb_t *pcb)
 
 		/* if we've mapped video memory for the user program, update that too */
 		if (pcb->has_video_mapped) {
-			map_video_mem((void *)VIDEO, (void *)USER_VID, proc_pd, &user_video_mems[pcb->pid]);
+			map_video_mem((void *)VIDEO, (void *)USER_VID, proc_pd, &user_video_mems[term_id]);
 		}
 	}
 
