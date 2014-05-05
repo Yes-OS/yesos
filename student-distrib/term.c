@@ -352,7 +352,7 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 				((term->lctrl_held || term->rctrl_held) &&
 				(term->lalt_held || term->ralt_held) && key == KBD_KEY_DEL) ) {
 			/* kill a process, should be replaced later by signals */
-			if (nprocs > 0) {
+			if (term_pids[terminal_num] > 0) {
 				/* XXX: AWFUL HACK */
 				send_eoi(KBD_IRQ_PORT);
 				sys_halt_internal(term_pids[terminal_num], 256);

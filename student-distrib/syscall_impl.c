@@ -474,7 +474,13 @@ int32_t sys_halt_internal(int32_t pid, int32_t status)
 		term_pids[term_id] = -1;
 
 		/* let the scheduler kill us off for good */
-		sched();
+		if (pcb == get_proc_pcb()) {
+			/* yield if we're calling for ourself */
+			sched();
+		}
+
+		/* otherwise control should go back to the caller */
+		return 0;
 	}
 
 	if (pcb == get_proc_pcb()) {
