@@ -37,16 +37,16 @@
 #define PAGE_BASE_ADDR_4MB(addr)    (((addr) & PAGE_BASE_MASK) >> 22)
 
 /* bitfield defines for paging flags */
-#define PG_PRESENT     (1 << 1)
-#define PG_WRITE       (1 << 2)
-#define PG_SUPER       (1 << 3)
-#define PG_WRITETHRU   (1 << 4)
-#define PG_NOCACHE     (1 << 5)
-#define PG_ACCESSED    (1 << 6)
-#define PG_DIRTY       (1 << 7)
-#define PG_SIZE_4MB    (1 << 8)
-#define PG_GLOBAL      (1 << 9)
-#define PG_PT_ATTR_IDX (1 << 10)
+#define PG_PRESENT     (1 << 0)
+#define PG_WRITE       (1 << 1)
+#define PG_USER        (1 << 2)
+#define PG_WRITETHRU   (1 << 3)
+#define PG_NOCACHE     (1 << 4)
+#define PG_ACCESSED    (1 << 5)
+#define PG_DIRTY       (1 << 6)
+#define PG_SIZE_4MB    (1 << 7)
+#define PG_GLOBAL      (1 << 8)
+#define PG_PT_ATTR_IDX (1 << 12)
 
 
 #ifndef ASM
@@ -133,24 +133,18 @@ extern pt_t user_video_mems[];
  ****************************************/
 
 /* sets page directory base register (cr3) */
-#define set_pdbr(base)      \
-	do {                      \
-		asm volatile (          \
-				"movl    %0, %%cr3" \
-				: : "r" ((base))    \
-				: "memory"          \
-			);                    \
-	} while (0)
+#define set_pdbr(base) asm volatile ( \
+				"movl    %0, %%cr3"   \
+				: : "r" ((base))      \
+				: "memory"            \
+			)
 
 /* sets page directory base register (cr3) */
-#define get_pdbr(addr)       \
-	do {                       \
-		asm volatile (           \
-				"movl    %%cr3, %0"  \
-				: "=r" ((addr))      \
-				: : "memory"         \
-			);                     \
-	} while (0)
+#define get_pdbr(addr) asm volatile ( \
+				"movl    %%cr3, %0"   \
+				: "=r" ((addr))       \
+				: : "memory"          \
+			)
 
 
 /****************************************
