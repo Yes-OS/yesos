@@ -361,7 +361,7 @@ int32_t sys_exec_internal(const uint8_t *command, registers_t *parent_ctx)
 		set_pdbr(pcb->page_directory);
 
 		/* load the executable */
-		/* XXX: do this earlier somehow? It's hard, since it needs to be done
+		/* TODO: do this earlier somehow? It's hard, since it needs to be done
 		 *      after swapping page tables, but swapping page tables screws up
 		 *      the current process's stack. Otherwise we do all this work and
 		 *      may end up failing to a non-executable. */
