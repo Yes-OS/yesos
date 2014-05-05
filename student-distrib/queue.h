@@ -60,15 +60,23 @@
 #define DECLARE_CIRC_BUF(type, name, size)  \
 	CIRC_BUF_TYPE(type, size) (name)
 
-/* Check if a given queue is full
+/*
+ * Check if a given queue is full
+ * Inputs: queue - the buffer to check fullness of
+ * Returns: true if the buffer is full, false otherwise
  */
 #define CIRC_BUF_FULL(queue) (BUF_PTR_DIFF(queue, tail, head) == (SIZEOF_BUF(queue) - 2))
 
-/* Check if a given queue is empty
+/*
+ * Check if a given queue is empty
+ * Inputs: queue - the buffer to check emptiness of
+ * Returns: true if the buffer is empty, false otherwise
  */
 #define CIRC_BUF_EMPTY(queue) (BUF_PTR_DIFF(queue, tail, head) == 0)
 
-/* Initialize and set pointers for a given buffer
+/*
+ * Initialize and set pointers for a given buffer
+ * Inputs: queue - the queue to initialize
  */
 #define CIRC_BUF_INIT(queue)            \
 	do {                                \
@@ -76,7 +84,11 @@
 		    (queue).buf;                \
 	} while (0)
 
-/* Push to the tail of the buffer
+/*
+ * Push to the tail of the buffer
+ * Inputs: buf - the buffer to push to
+ *         val - the value to push
+ * Outputs: ok - 1 if the operation succeeed, 0 otherwise
  */
 #define CIRC_BUF_PUSH(buf, val, ok)           \
 	do {                                      \
@@ -89,7 +101,11 @@
 		(ok) = 1;                             \
 	} while (0)
 
-/* Pop from the head of the buffer
+/*
+ * Pop from the head of the buffer
+ * Inputs: buf - the buffer to pop from
+ * Outputs: ok - 1 if the operation succeeed, 0 otherwise
+ *          val - the value popped
  */
 #define CIRC_BUF_POP(buf, val, ok)            \
 	do {                                      \
@@ -102,7 +118,11 @@
 		(ok) = 1;                             \
 	} while (0)
 
-/* Pop from the tail of the buffer 
+/*
+ * Pop from the tail of the buffer
+ * Inputs: buf - the buffer to pop from
+ *         val - the value to push
+ * Outputs: ok - 1 if the operation succeeed, 0 otherwise
  */
 #define CIRC_BUF_POP_TAIL(buf, val, ok)       \
 	do {                                      \
@@ -115,7 +135,11 @@
 		(ok) = 1;                             \
 	} while (0)
 
-/* Give the value at the head of the buffer
+/*
+ * Give the value at the head of the buffer
+ * Inputs: buf - the buffer to read from
+ * Outputs: ok - 1 if the operation succeeed, 0 otherwise
+ *          val - the value read
  */
 #define CIRC_BUF_PEEK(buf, val, ok)           \
 	do {                                      \
@@ -127,7 +151,11 @@
 		(ok) = 1;                             \
 	} while (0)
 
-/* Give the value of the tail of the buffer
+/*
+ * Give the value of the tail of the buffer
+ * Inputs: buf - the buffer to read from
+ * Outputs: ok - 1 if the operation succeeed, 0 otherwise
+ *          val - the value read
  */
 #define CIRC_BUF_PEEK_TAIL(buf, val, ok)      \
 	do {                                      \
@@ -139,7 +167,11 @@
 		(ok) = 1;                             \
 	} while (0)
 
-/* Give the buffer head a new value
+/*
+ * Give the buffer head a new value
+ * Inputs: buf - the buffer to write to
+ *         val - the value to write
+ * Outputs: ok - 1 if the operation succeeed, 0 otherwise
  */
 #define CIRC_BUF_POKE(buf, val, ok)           \
 	do {                                      \
@@ -151,7 +183,11 @@
 		(ok) = 1;                             \
 	} while (0)
 
-/* Give the buffer tail a new value
+/*
+ * Give the buffer tail a new value
+ * Inputs: buf - the buffer to write to
+ *         val - the value to write
+ * Outputs: ok - 1 if the operation succeeed, 0 otherwise
  */
 #define CIRC_BUF_POKE_TAIL(buf, val, ok)      \
 	do {                                      \
@@ -163,7 +199,11 @@
 		(ok) = 1;                             \
 	} while (0)
 
-/* Return the value at a passed index
+/*
+ * Return the value at a passed index
+ * Inputs: _buf - the buffer to read from
+ *         idx - the index to read
+ * Returns: the value in _buf at index idx
  */
 #define CIRC_BUF_IDX(_buf, idx) ((((idx >= 0) ? (_buf).head : (_buf).tail) - (_buf).buf + (idx)) % SIZEOF_BUF(_buf) + (_buf).buf)
 
