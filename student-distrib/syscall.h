@@ -29,31 +29,31 @@
  *         Function Declarations        *
  ****************************************/
 
-/* */
+/* Enters a system call */
 void enter_syscall();
 
-/* */
+/* Opens a new system call */
 int32_t sys_open(const uint8_t *filename);
 
-/* */
+/* Does a syscall read */
 int32_t sys_read(int32_t fd, void *buf, int32_t nbytes);
 
-/* */
+/* Does a syscall write */
 int32_t sys_write(int32_t fd, const void *buf, int32_t nbytes);
 
-/* */
+/* Closes a syscall */
 int32_t sys_close(int32_t fd);
 
-/* */
+/* Executes a syscall; adds to scheduler */
 int32_t sys_exec(const uint8_t *command);
 
-/* */
+/* Halts the syscall; removes from scheduler */
 int32_t sys_halt(uint8_t status);
 
-/* */
+/* Gets the arguments of a syscall */
 int32_t sys_getargs(uint8_t *buf, int32_t nbytes);
 
-/* */
+/* Maps to video memory of a specified screen */
 int32_t sys_vidmap(uint8_t **screen_start);
 
 /* for internal use to spawn parentless processes */
