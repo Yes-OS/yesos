@@ -234,7 +234,6 @@ void kbd_handle_interrupt()
 	/* decide what to do with it */
 	switch (value) {
 		case PS2_RET_ATTACH:
-			puts("PS/2 Keyboard Attached...");
 			kbd_initialized = 1;
 
 			/* if this was the result of a reset, clear it from the buffer */

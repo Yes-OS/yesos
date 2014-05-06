@@ -9,6 +9,7 @@
 #include "proc.h"
 #include "syscall.h"
 #include "term.h"
+#include "graphics.h"
 
 /* XXX: ENABLING AWFUL (wonderful*) HACK BELOW */
 #include "i8259.h"
@@ -29,6 +30,7 @@ screen_t kern_screen;
 int32_t terminal_num = 0;
 int32_t term_pids[NUM_TERMS];
 term_t term_terms[NUM_TERMS];
+int term_colors[NUM_TERMS];
 
 /* local functions */
 static int32_t switch_terminals(int32_t new_terminal);
@@ -97,13 +99,13 @@ static void term_putc(screen_t *screen, uint8_t c)
 		}
 		/* clear the character */
 		*(uint8_t *)(screen->video->data + ((NUM_COLS*screen->y + screen->x) << 1)) = ' ';
-		*(uint8_t *)(screen->video->data + ((NUM_COLS*screen->y + screen->x) << 1) + 1) = ATTRIB;
+		*(uint8_t *)(screen->video->data + ((NUM_COLS*screen->y + screen->x) << 1) + 1) = ((term_colors[terminal_num] << 4) + foreground_color);
 	} else {
 		if (c == '\0') {
 			return;
 		}
 		*(uint8_t *)(screen->video->data + ((NUM_COLS*screen->y + screen->x) << 1)) = c;
-		*(uint8_t *)(screen->video->data + ((NUM_COLS*screen->y + screen->x) << 1) + 1) = ATTRIB;
+		*(uint8_t *)(screen->video->data + ((NUM_COLS*screen->y + screen->x) << 1) + 1) = ((term_colors[terminal_num] << 4) + foreground_color);
 		screen->x++;
 		screen->y = screen->y + (screen->x / NUM_COLS);
 		screen->x %= NUM_COLS;
@@ -119,7 +121,7 @@ static void term_putc(screen_t *screen, uint8_t c)
 		/* clear last row */
 		for (i = (NUM_ROWS - 1) * NUM_COLS; i < NUM_ROWS * NUM_COLS; i++) {
 			*(uint8_t *)(screen->video->data + ((NUM_COLS*(i / NUM_COLS) + (i % NUM_COLS)) << 1)) = ' ';
-			*(uint8_t *)(screen->video->data + ((NUM_COLS*(i / NUM_COLS) + (i % NUM_COLS)) << 1) + 1) = ATTRIB;
+			*(uint8_t *)(screen->video->data + ((NUM_COLS*(i / NUM_COLS) + (i % NUM_COLS)) << 1) + 1) = ((term_colors[terminal_num] << 4) + foreground_color);
 		}
 		screen->y = NUM_ROWS - 1;
 	}
@@ -163,6 +165,11 @@ int32_t term_init_global_ctx()
 		/* initialize individual terminal */
 		init_ctx(&term_terms[i]);
 	}
+
+	term_colors[0] = COLOR_BLACK;
+	term_colors[1] = COLOR_DK_GRAY;
+	term_colors[2] = COLOR_PURPLE;
+	term_colors[3] = COLOR_ORANGE;
 
 	return 0;
 }
@@ -359,6 +366,7 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 				/* XXX: AWFUL HACK */
 				send_eoi(KBD_IRQ_PORT);
 				sys_halt_internal(term_pids[terminal_num], 256);
+
 			}
 
 			/* just return here or the last character of the chord gets added
@@ -490,12 +498,15 @@ static int32_t switch_terminals(int32_t new_terminal)
 		return -1;
 	}
 
+	background_color = term_colors[new_terminal];
+
 	/* Switch a process group's video memory out for some fake video memory */
 	pcb = get_pcb_from_pid(term_pids[terminal_num]);
 	/* we don't have to switch video memory if a process isn't running */
 	if (pcb) {
 		switch_to_fake_video_memory(pcb);
 	}
+
 
 	/* Set the terminal number to the new terminal. */
 	terminal_num = new_terminal;
@@ -522,3 +533,24 @@ static int32_t switch_terminals(int32_t new_terminal)
 	return 0;
 }
 
+
+void switch_to_open_terminal()
+{
+	//clear();
+	int i, terminal;
+
+	/*  Go through all terminals to the left, wrapping around to see if there are any terminals open */
+	for(i = 1, terminal = terminal_num; i < 4; i++)
+	{
+		terminal = (terminal_num-i+NUM_TERMS)%NUM_TERMS;
+
+		if(term_pids[terminal] >= 0)
+		{
+			switch_terminals(terminal);
+			return;
+		}
+	}
+
+	triple_fault();
+
+}

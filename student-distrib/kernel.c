@@ -18,6 +18,7 @@
 #include "testing.h"
 #include "syscall.h"
 #include "sched.h"
+#include "graphics.h"
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -166,89 +167,52 @@ void entry (unsigned long magic, unsigned long addr)
 	/* Initialize devices, memory, filesystem, enable device interrupts on the
 	 * PIC, any other initialization stuff... */
 
-	clear();
-
-
-	puts("--------------------------------Welcome to----------------------------------\n");
-	puts("YYY    YYY      EEEEEEEEEE       SSSSSSSSS                                  \n");
-	puts(" YY    YY       EE              SS                                          \n");
-	puts("  YY  YY        EE              SS                                          \n");
-	puts("    YY          EE              SS                                          \n");
-	puts("    YY          EEEEEE           SSSSSSSS          OOOOOOOO        SSSSSSSS \n");
-	puts("    YY          EE                      SS        OO      OO      SS        \n");
-	puts("    YY          EE                      SS        OO      OO       SSSSSSSS \n");
-	puts("    YY          EE                      SS        OO      OO              SS\n");
-	puts("    YY          EEEEEEEEEE      SSSSSSSSS     oo   OOOOOOOO       SSSSSSSSS \n");
-	puts("----------------------------------------------------------------------------\n");
-
-	puts("Initializing subsystems\n");
+	yes_os_splash();
 
 	/* Initialize the PIC */
-	puts("    Initializing PIC... ");
 	i8259_init();
-	puts("done\n");
 
 	/* Initialize Interrupts */
-	puts("    Installing Interrupts... ");
 	install_interrupts();
-	puts("done\n");
 
 	/* Initialize the PIT */
-	puts("    Initializing PIT... ");
 	pit_init();
 	enable_irq(PIT_IRQ_PORT);
-	puts("done\n");
 
 	/* Intitialize the RTC*/
-	puts("    Initializing RTC... ");
 	rtc_init();
 	enable_irq(RTC_IRQ_PORT);
-	puts("done\n");
 
 	/* Initialize the Keyboard */
-	puts("    Initializing Keyboard... ");
 	kbd_init();
 	enable_irq(KBD_IRQ_PORT);
-	puts("done\n");
 
 	/* Initialize File System */
-	puts("    Initializing File System... ");
 	if (!fs_pres){
-		puts("    File System Unavailable!\n");
 	} else {
 		fs_init(boot_val);
-		puts("done\n");
 	}
 
 	/* Initialize Paging */
-	puts("    Initializing Paging... ");
 	paging_init();
-	puts("done\n");
 
 	/* Initialize Terminal Drivers */
-	puts("    Initializing Terminal...");
 	(void)term_init_global_ctx();
-	puts("done\n");
 
 	/* Initialize Scheduling */
-	puts("    Initializing Scheduling...");
 	init_sched();
-	puts("done\n");
 
 	/* Enable interrupts */
-	/* Do not enable the following until after you have set up your
-	 * IDT correctly otherwise QEMU will triple fault and simply close
-	 * without showing you any output */
-	puts("    Enabling Interrupts (STI)... ");
 	sti();
-	puts("done\n");
-
-	puts("\nWelcome!\n");
-	update_cursor();
 
 	/* Wait for keyboard to initialize, or we could get some funky results */
 	while (!kbd_initialized);
-	puts("\n");
+
+
+	sleep(3000);
+	set_cursor(0,0);
+	set_default_colors();
+	clear();
 
 	/* Ensure the filesystem actually is in memory before attempting to use it */
 	if(fs_pres){
@@ -257,8 +221,8 @@ void entry (unsigned long magic, unsigned long addr)
 		halt();
 	}
 
-	/* Reboot */
-	puts("Rebooting");
-	sleep(3000);    /* Wait for 3 seconds then reboot */
+
+	make_the_man(200);
 	triple_fault();
+
 }

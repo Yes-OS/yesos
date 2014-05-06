@@ -89,6 +89,10 @@ void term_handle_keypress(uint16_t key, uint8_t status);
  */
 int32_t term_init_global_ctx();
 
+/* Switches to the previous terminal (called on close)
+*/
+void switch_to_open_terminal();
+
 
 #endif /* ASM */
 #endif /* _TERM_H_ */
