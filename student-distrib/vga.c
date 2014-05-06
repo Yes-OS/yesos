@@ -79,29 +79,44 @@ void screen_update_cursor(screen_t *screen)
 	vga_cursor_set_location(screen->y, screen->x);
 }
 
-
+/* Set foreground color to desired color.
+ * INPUTS: color - the color you want to use.
+ */
 void set_foreground_color(uint8_t color)
 {
 	foreground_color = color;
 }
 
+/* Set background color to desired color.
+ * INPUTS: color - the color you want to use.
+ */
 void set_background_color(uint8_t color)
 {
 	background_color = color;
 }
 
+/* Sets foreground and background colors to desired colors.
+ * INPUTS: fg - the color you want to use for foreground.
+ 		   bg - the color you want to use for background.
+ */
 void set_colors(uint8_t fg, uint8_t bg)
 {
 	foreground_color = fg;
 	background_color = bg;
 }
 
+/* Set colors to their defaults.
+ */
 void set_default_colors()
 {
 	foreground_color = FG_DEFAULT;
 	background_color = BG_DEFAULT;
 }
 
+/* Set location of the cursor.
+ * INPUTS: x - the x position.
+ *		   y - the y position.
+ */
 void set_cursor(uint8_t x, uint8_t y)
 {
 	screen_x = x;
@@ -109,6 +124,8 @@ void set_cursor(uint8_t x, uint8_t y)
 	update_cursor();
 }
 
+/* Set location of the cursor to a hidden region.
+ */
 void hide_cursor()
 {
 	screen_x = -1;

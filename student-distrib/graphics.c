@@ -6,7 +6,9 @@
 #include "lib.h"
 #include "graphics.h"
 
-
+/* Makes a rectangle based on the size and position given.
+ * Shows our ability to make dynamic objects on screen.
+ */
  void draw_rectangle(int x, int y, int width, int height, int color)
  {
 	int i,j;
@@ -25,6 +27,10 @@
  	background_color = bg;
  }
 
+
+/* Makes a frame based on the size and position given.
+ * Shows our ability to make dynamic objects on screen.
+ */
  void draw_frame(int x, int y, int width, int height, int color)
  {
 	int i;
@@ -58,46 +64,63 @@
  	foreground_color = fg;
  }
 
+/* Makes an animated singing man.
+ * One of the most essential functions in the OS.
+ */
  void make_the_man(int frame_duration)
  {
 	int i,j;
+	int MESSAGE_X = 5, MESSAGE_Y = 3;
 	set_colors(COLOR_WHITE,COLOR_RED);
 
-	for (i = 0; i < NUM_COLS/2-1; i++)
-	{
 
+
+
+	/* Animate the man. */
+	for (i = 4; i < NUM_COLS-1; i++)
+	{
 		clear();
-		set_cursor(NUM_COLS/2+i%NUM_COLS,NUM_ROWS*3/4);
+
+		/* Display Message */
+		set_cursor(MESSAGE_X, MESSAGE_Y);
+		puts("Rebooting...");
+		set_cursor(MESSAGE_X, MESSAGE_Y+1);
+		puts("YesOS - \"You're a Winner.\"");
+
+
+		/* Draw the man. */
+
+		set_cursor(i%NUM_COLS,NUM_ROWS*3/4);
 
 		if(i%2)
 			putc(153);
 		else putc(148);
 
-		set_cursor(NUM_COLS/2+i%NUM_COLS,NUM_ROWS*3/4+1);
+		set_cursor(i%NUM_COLS,NUM_ROWS*3/4+1);
 		putc(219);
-		set_cursor(NUM_COLS/2+i%NUM_COLS,NUM_ROWS*3/4+2);
+		set_cursor(i%NUM_COLS,NUM_ROWS*3/4+2);
 		putc(202);
-		set_cursor(NUM_COLS/2-1+i%NUM_COLS,NUM_ROWS*3/4+1);
+		set_cursor(i%NUM_COLS-1,NUM_ROWS*3/4+1);
 		if(i%4 == 0) putc(200);
 		else if (i%4 == 2) putc(201);
 		else putc(205);
-		set_cursor(NUM_COLS/2+1+i%NUM_COLS,NUM_ROWS*3/4+1);
+		set_cursor(1+i%NUM_COLS,NUM_ROWS*3/4+1);
 		if(i%4 == 0) putc(187);
 		else if (i%4 == 2) putc(188);
 		else putc(205);
 		
 		for(j = 0; j < 3; j++)
 		{
-			if(i < 10)
+			if(i < NUM_COLS/2)
 			{
-			set_cursor(NUM_COLS/2-2-j+i%NUM_COLS,NUM_ROWS*3/4-j%2);
+				set_cursor(i%NUM_COLS-2-j,NUM_ROWS*3/4-j%2);
 
 				if(j == i%3) putc(14);
 				else putc(' ');
 			}
 			else
 			{
-				set_cursor(NUM_COLS/2-4+i%NUM_COLS,NUM_ROWS*3/4-1);
+				set_cursor(i%NUM_COLS-4,NUM_ROWS*3/4-1);
 
 				puts("YES");
 				break;
@@ -111,14 +134,24 @@
 
 	}
 
+	set_cursor(i%NUM_COLS-4,NUM_ROWS*3/4);
+	puts("OS");
+	hide_cursor();
 	sleep(500);
-	set_cursor(NUM_COLS/2-6+NUM_COLS/2,NUM_ROWS*3/4-1);
+
+	set_cursor(i%NUM_COLS-4,NUM_ROWS*3/4);
+	puts("  ");
+	hide_cursor();
+	set_cursor(NUM_COLS-6,NUM_ROWS*3/4-1);
 	puts("BYE");
 	hide_cursor();
 	sleep(1000);
 
  }
 
+ /*	 Draws YesOS splash screen
+  *		Called on bootup.
+  */
  void yes_os_splash(void)
  {
 	clear();
@@ -126,11 +159,13 @@
 	int i;
 	uint8_t logo_height = 13;
 
+	/* Center align the YesOS logo. */
 	for (i = 0; i < (NUM_ROWS-logo_height)/2; ++i)
 	{
 		puts("\n");
 	}
 
+	/* Draw the logo and hide the cursor. */
 	puts(" _________                                                            _________ ");	
 	puts("[_________]__________________________________________________________[_________]");
 	puts(" \\_______/____________________________________________________________\\_______/ ");

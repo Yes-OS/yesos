@@ -99,13 +99,13 @@ static void term_putc(screen_t *screen, uint8_t c)
 		}
 		/* clear the character */
 		*(uint8_t *)(screen->video->data + ((NUM_COLS*screen->y + screen->x) << 1)) = ' ';
-		*(uint8_t *)(screen->video->data + ((NUM_COLS*screen->y + screen->x) << 1) + 1) = ((term_colors[terminal_num] << 4) + foreground_color);
+		*(uint8_t *)(screen->video->data + ((NUM_COLS*screen->y + screen->x) << 1) + 1) = ((screen->color << 4) + foreground_color);
 	} else {
 		if (c == '\0') {
 			return;
 		}
 		*(uint8_t *)(screen->video->data + ((NUM_COLS*screen->y + screen->x) << 1)) = c;
-		*(uint8_t *)(screen->video->data + ((NUM_COLS*screen->y + screen->x) << 1) + 1) = ((term_colors[terminal_num] << 4) + foreground_color);
+		*(uint8_t *)(screen->video->data + ((NUM_COLS*screen->y + screen->x) << 1) + 1) = ((screen->color << 4) + foreground_color);
 		screen->x++;
 		screen->y = screen->y + (screen->x / NUM_COLS);
 		screen->x %= NUM_COLS;
@@ -121,7 +121,7 @@ static void term_putc(screen_t *screen, uint8_t c)
 		/* clear last row */
 		for (i = (NUM_ROWS - 1) * NUM_COLS; i < NUM_ROWS * NUM_COLS; i++) {
 			*(uint8_t *)(screen->video->data + ((NUM_COLS*(i / NUM_COLS) + (i % NUM_COLS)) << 1)) = ' ';
-			*(uint8_t *)(screen->video->data + ((NUM_COLS*(i / NUM_COLS) + (i % NUM_COLS)) << 1) + 1) = ((term_colors[terminal_num] << 4) + foreground_color);
+			*(uint8_t *)(screen->video->data + ((NUM_COLS*(i / NUM_COLS) + (i % NUM_COLS)) << 1) + 1) = ((screen->color << 4) + foreground_color);
 		}
 		screen->y = NUM_ROWS - 1;
 	}
@@ -153,11 +153,17 @@ int32_t term_init_global_ctx()
 	init_ctx(&term_global_ctx);
 	terminal_num = 0;
 
+	term_colors[0] = COLOR_BLACK;
+	term_colors[1] = COLOR_DK_GRAY;
+	term_colors[2] = COLOR_PURPLE;
+	term_colors[3] = COLOR_ORANGE;
+
 	for (i = 0; i < NUM_TERMS; i++) {
 		/* clear screen */
 		term_terms[i].screen.video = (vid_mem_t *)VIDEO;
 		term_terms[i].screen.x = screen_x;
 		term_terms[i].screen.y = screen_y;
+		term_terms[i].screen.color = term_colors[i];
 
 		/* clear pid */
 		term_pids[i] = -1;
@@ -166,10 +172,7 @@ int32_t term_init_global_ctx()
 		init_ctx(&term_terms[i]);
 	}
 
-	term_colors[0] = COLOR_BLACK;
-	term_colors[1] = COLOR_DK_GRAY;
-	term_colors[2] = COLOR_PURPLE;
-	term_colors[3] = COLOR_ORANGE;
+
 
 	return 0;
 }
@@ -346,6 +349,7 @@ void term_handle_keypress(uint16_t key, uint8_t status)
 		kern_screen.video = (vid_mem_t *)VIDEO;
 		kern_screen.x = screen_x;
 		kern_screen.y = screen_y;
+		kern_screen.color = COLOR_BLACK;
 	}
 
 	/* just echo the key value for now, we'll handle things specifically later */
@@ -533,10 +537,12 @@ static int32_t switch_terminals(int32_t new_terminal)
 	return 0;
 }
 
-
+/* Switches to the next available terminal, going left, wrapping around.
+ * If all terminals are closed, the OS reboots.
+ */
 void switch_to_open_terminal()
 {
-	//clear();
+
 	int i, terminal;
 
 	/*  Go through all terminals to the left, wrapping around to see if there are any terminals open */
@@ -550,6 +556,13 @@ void switch_to_open_terminal()
 			return;
 		}
 	}
+
+	/* Exit OS with animation. */
+	disable_irq(PIT_IRQ_PORT);
+	sti();
+
+	int man_frame_ms = 100;
+	make_the_man(man_frame_ms);
 
 	triple_fault();
 

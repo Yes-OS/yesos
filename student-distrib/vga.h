@@ -14,7 +14,6 @@
 #define NUM_COLS 80
 #define NUM_ROWS 25
 
-
 #define VIDEO 0xB8000
 
 /* Values related to VGA CRTC registers */
@@ -41,6 +40,7 @@ typedef struct screen {
 	vid_mem_t *video;
 	int32_t x;
 	int32_t y;
+	uint8_t color;
 } screen_t;
 
 
@@ -80,9 +80,11 @@ void screen_update_cursor(screen_t *screen);
 
 /* Color Support */
 
+/* The colors */
 extern uint8_t foreground_color;
 extern uint8_t background_color;
 
+/* Some defined color constants */
 #define COLOR_BLACK 	0x0
 #define COLOR_BLUE 		0x1
 #define COLOR_GREEN 	0x2
@@ -100,17 +102,20 @@ extern uint8_t background_color;
 #define COLOR_YELLOW	0xE
 #define COLOR_WHITE		0xF
 
+/* The default colors */
 #define FG_DEFAULT		COLOR_WHITE
 #define BG_DEFAULT		COLOR_BLACK
 
-
+/* Sets the colors */
 void set_colors(uint8_t fg, uint8_t bg);
-void set_color_palette(uint8_t palette);
+/* Sets the default colors */
 void set_default_colors(void);
 
 /*******************************/
 
+/* Sets the cursor to a given x and y */
 void set_cursor(uint8_t x, uint8_t y);
+/* Hides the cursor */
 void hide_cursor();
 
 

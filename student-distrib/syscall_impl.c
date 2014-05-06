@@ -458,14 +458,20 @@ int32_t sys_halt_internal(int32_t pid, int32_t status)
 	}
 	else {
 		/* do whatcha want */
-		//set_cursor(10,0);
-		//printf("EXITING LAST SHELL IN TERMINAL\n");
 
 		/* clear terminal pid so a new thing can spawn */
 		term_id = pcb->term_ctx - term_terms;
 		term_pids[term_id] = -1;
 
+		/* Switch to an open terminal */
 		switch_to_open_terminal();
+
+		if(pcb == get_proc_pcb()) {
+			sched();
+		}
+
+		/* Restore flags  */
+		restore_flags(flags);
 
 		/* otherwise control should go back to the caller */
 		return 0;
