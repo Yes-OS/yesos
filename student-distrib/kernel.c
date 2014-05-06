@@ -210,6 +210,9 @@ void entry (unsigned long magic, unsigned long addr)
 
 
 	sleep(3000);
+
+	//statusbar_init();
+
 	set_cursor(0,0);
 	set_default_colors();
 	clear();

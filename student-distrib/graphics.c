@@ -97,17 +97,17 @@
 		else putc(148);
 
 		set_cursor(i%NUM_COLS,NUM_ROWS*3/4+1);
-		putc(219);
+		putc(CHAR_FULL_BLOCK);
 		set_cursor(i%NUM_COLS,NUM_ROWS*3/4+2);
-		putc(202);
+		putc(CHAR_UP_T_BAR);
 		set_cursor(i%NUM_COLS-1,NUM_ROWS*3/4+1);
-		if(i%4 == 0) putc(200);
-		else if (i%4 == 2) putc(201);
-		else putc(205);
+		if(i%4 == 0) putc(CHAR_SW_CORNER);
+		else if (i%4 == 2) putc(CHAR_NW_CORNER);
+		else putc(CHAR_HORIZONTAL_LINE);
 		set_cursor(1+i%NUM_COLS,NUM_ROWS*3/4+1);
-		if(i%4 == 0) putc(187);
-		else if (i%4 == 2) putc(188);
-		else putc(205);
+		if(i%4 == 0) putc(CHAR_NE_CORNER);
+		else if (i%4 == 2) putc(CHAR_SE_CORNER);
+		else putc(CHAR_HORIZONTAL_LINE);
 		
 		for(j = 0; j < 3; j++)
 		{
@@ -115,7 +115,7 @@
 			{
 				set_cursor(i%NUM_COLS-2-j,NUM_ROWS*3/4-j%2);
 
-				if(j == i%3) putc(14);
+				if(j == i%3) putc(CHAR_MUSIC_NOTE);
 				else putc(' ');
 			}
 			else
@@ -181,5 +181,13 @@
 	puts("[_________]                                                          [_________]");
 
 	hide_cursor();
+
+ }
+
+/*	Initializes status bar.
+ */
+ void statusbar_init()
+ {
+ 	draw_rectangle(0,NUM_ROWS,NUM_COLS,1, COLOR_GREEN);
 
  }

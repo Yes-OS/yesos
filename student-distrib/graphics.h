@@ -19,13 +19,21 @@
 #define CHAR_SW_CORNER			200
 #define CHAR_SE_CORNER			188
 
+#define CHAR_BIG_O_DOTS			153
+#define CHAR_SMALL_O_DOTS		148
+#define CHAR_UP_T_BAR			202
+#define CHAR_MUSIC_NOTE			14
+
+
+
+
 
 /* Graphics functions */
 void make_the_man(int frame_duration);
 void yes_os_splash(void);
 void draw_rectangle(int x, int y, int width, int height, int color);
 void draw_frame(int x, int y, int width, int height, int color);
-
+void statusbar_init();
 
 
 #endif
