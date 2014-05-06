@@ -491,6 +491,7 @@ static int32_t switch_terminals(int32_t new_terminal)
 {
 	pcb_t *pcb;
 	int32_t new_pid;
+	int32_t old_term;
 
 	/* sanity check */
 	if (new_terminal < 0 || new_terminal > NUM_TERMS) {
@@ -513,6 +514,7 @@ static int32_t switch_terminals(int32_t new_terminal)
 
 
 	/* Set the terminal number to the new terminal. */
+	old_term = terminal_num;
 	terminal_num = new_terminal;
 
 	/* Check for an existing process on the terminal we're switching to */
@@ -520,6 +522,8 @@ static int32_t switch_terminals(int32_t new_terminal)
 		/* spawn a new terminal */
 		new_pid = sys_exec_internal((uint8_t*)"shell", NULL);
 		if (new_pid <= 0) {
+			terminal_num = old_term;
+			background_color = term_colors[old_term];
 			return -1;
 		}
 
